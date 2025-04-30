@@ -1,21 +1,45 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { colors } from "@/constant/color";
+import { useThemeStore } from "@/store/theme";
 import { Tabs } from "expo-router";
-import Entypo from "@expo/vector-icons/Entypo";
+import { Heart, Search, House, ShoppingBag, User } from "lucide-react-native";
 
 export default function TabLayout() {
+  const theme = useThemeStore((state) => state.theme);
+  const themeColors = colors[theme];
+
   return (
     <Tabs
-      screenOptions={{ tabBarActiveTintColor: "black", tabBarShowLabel: false ,tabBarStyle:{
-        
-      }}} 
+      screenOptions={{
+        tabBarActiveTintColor: themeColors.primary,
+        tabBarInactiveTintColor: themeColors.accent,
+        tabBarStyle: {
+          backgroundColor: themeColors.background,
+          borderTopColor: themeColors.accent,
+          paddingBottom: 20,
+          height: 60,
+        },
+        headerStyle: {
+          backgroundColor: themeColors.background,
+        },
+        headerTintColor: themeColors.primary,
+      }}
     >
       <Tabs.Screen
         name="home"
         options={{
           title: "Home",
-
           tabBarIcon: ({ color }) => (
-            <Entypo size={28} name="home" color={color} />
+            <House size={24} strokeWidth={1.5} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="shop"
+        options={{
+          title: "Shop",
+          tabBarIcon: ({ color }) => (
+            <Search size={24} strokeWidth={1.5} color={color} />
           ),
         }}
       />
@@ -25,7 +49,7 @@ export default function TabLayout() {
         options={{
           title: "Wishlist",
           tabBarIcon: ({ color }) => (
-            <FontAwesome name="heart" size={28} color={color} />
+            <Heart size={24} strokeWidth={1.5} color={color} />
           ),
         }}
       />
@@ -35,7 +59,7 @@ export default function TabLayout() {
         options={{
           title: "Cart",
           tabBarIcon: ({ color }) => (
-            <FontAwesome name="shopping-cart" size={28} color={color} />
+            <ShoppingBag size={24} strokeWidth={1.5} color={color} />
           ),
         }}
       />
@@ -45,10 +69,12 @@ export default function TabLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ color }) => (
-            <FontAwesome size={28} name="user" color={color} />
+            <User size={24} strokeWidth={1.5} color={color} />
           ),
         }}
       />
+
+      <Tabs.Screen name="settings" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -1,10 +1,15 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import React from "react";
+import EmptyPage from "@/components/shared/EmptyCart";
+import { Heart } from "lucide-react-native";
 
 export default function wishlist() {
   return (
-    <View>
-      <Text>wishlist</Text>
-    </View>
-  )
+    <>
+      <EmptyPage
+        text1="Your Bag is empty."
+        text2="When you add products, they'll appear here."
+        Icon={Heart}
+      />
+    </>
+  );
 }

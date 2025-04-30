@@ -1,6 +1,7 @@
 import { View, Text, TextInput, StyleSheet } from "react-native";
 import React from "react";
 import { colors } from "@/constant/color";
+import { useThemeStore } from "@/store/theme";
 
 interface InputProps {
   label: string;
@@ -17,11 +18,20 @@ export default function Input({
   placeholder = "",
   secureTextEntry = false,
 }: InputProps) {
+  const theme = useThemeStore((state) => state.theme);
+  const themeColors = colors[theme];
+
   return (
     <View style={styles.container}>
-      <Text>{label}</Text>
+      <Text style={{color:themeColors.primary}}>{label}</Text>
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            borderColor: themeColors.primary,
+            color:themeColors.primary
+          },
+        ]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -35,13 +45,12 @@ export default function Input({
 const styles = StyleSheet.create({
   container: {
     flexDirection: "column",
-    gap: 5,
+    gap: 10,
     width: "100%",
   },
   input: {
     height: 40,
     borderWidth: 1,
-    borderColor: colors.accent,
     borderRadius: 10,
     padding: 10,
   },

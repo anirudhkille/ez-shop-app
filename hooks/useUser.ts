@@ -1,5 +1,4 @@
 import { postLogin, postSignup } from "@/api/user";
-import { ILogin } from "@/types/api";
 import { useMutation } from "@tanstack/react-query";
 
 export const useLoginMutation = () => {

@@ -8,7 +8,7 @@ import Toast from "react-native-toast-message";
 
 export default function Signup() {
   const router = useRouter();
-  const { mutate, error, data } = useSignupMutation();
+  const { mutate } = useSignupMutation();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -20,17 +20,23 @@ export default function Signup() {
   };
 
   const handleSignup = () => {
-    mutate(formData);
-
-    Toast.show({
-      type: error ? "error" : "success",
-      text1: error ? "Error" : "Success",
-      text2: error ? error?.message : data?.message,
+    mutate(formData, {
+      onSuccess: (data) => {
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: data?.message,
+        });
+        router.push("/home");
+      },
+      onError: (error: any) => {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: error?.message || "Something went wrong",
+        });
+      },
     });
-
-    if (data) {
-      router.push("/home");
-    }
   };
 
   return (

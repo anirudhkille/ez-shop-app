@@ -8,7 +8,7 @@ import { useRouter } from "expo-router";
 
 export default function Login() {
   const router = useRouter();
-  const { mutate, error, data } = useLoginMutation();
+  const { mutate, error, data, isSuccess } = useLoginMutation();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -19,17 +19,21 @@ export default function Login() {
   };
 
   const handleLogin = async () => {
-    mutate(formData);
-
-    Toast.show({
-      type: error ? "error" : "success",
-      text1: error ? "Error" : "Success",
-      text2: error ? error?.message : data?.message,
+    mutate(formData, {
+      onSuccess: (data) => {
+        Toast.show({
+          type: "success",
+          text1: data?.message,
+        });
+        router.push("/home");
+      },
+      onError: (error: any) => {
+        Toast.show({
+          type: "error",
+          text1: error?.message || "Something went wrong",
+        });
+      },
     });
-    
-    if (data) {
-      router.push("/home");
-    }
   };
 
   return (

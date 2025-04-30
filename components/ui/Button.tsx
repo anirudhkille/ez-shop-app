@@ -6,12 +6,15 @@ import {
   ViewStyle,
   TextStyle,
 } from "react-native";
+import { useThemeStore } from "@/store/theme";
+import { colors } from "@/constant/color";
 
 interface ButtonProps {
   text: string;
   onPress: () => void;
-  variant?: "primary" | "secondary" | "danger"; // Define your variants
+  variant?: "primary" | "outline";
   disabled?: boolean;
+  extraStyles?: any;
 }
 
 export default function Button({
@@ -20,7 +23,9 @@ export default function Button({
   variant = "primary",
   disabled = false,
 }: ButtonProps) {
-  const styles = getButtonStyles(variant, disabled);
+  const theme = useThemeStore((state) => state.theme);
+  const themeColors = colors[theme];
+  const styles = getButtonStyles(variant, disabled, themeColors);
 
   return (
     <Pressable
@@ -36,36 +41,38 @@ export default function Button({
 }
 
 function getButtonStyles(
-  variant: "primary" | "secondary" | "danger",
-  disabled: boolean
+  variant: "primary" | "outline",
+  disabled: boolean,
+  themeColors: { background: string; text: string; accent: string }
 ) {
   const baseButton: ViewStyle = {
-    paddingVertical: 8,
-    height:40,
+    paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 999,
     alignItems: "center",
   };
 
   const baseText: TextStyle = {
-    fontWeight: "semibold",
+    fontWeight: "600",
+    fontSize: 16,
   };
 
   const variants = {
     primary: {
       button: {
-        backgroundColor: disabled ? "#b3d4fc" : "black",
+        backgroundColor: disabled ? "#b3d4fc" : themeColors.text,
       },
       text: {
-        color: disabled ? "#d1d1d1" : "#ffffff",
+        color: disabled ? "#d1d1d1" : themeColors.background,
       },
     },
-    secondary: {
+    outline: {
       button: {
-        backgroundColor: disabled ? "#e2e3e5" : "#6c757d",
+        borderColor: themeColors.text,
+        borderWidth: 1,
       },
       text: {
-        color: disabled ? "#d1d1d1" : "#ffffff",
+        color: disabled ? "#d1d1d1" : themeColors.text,
       },
     },
     danger: {
