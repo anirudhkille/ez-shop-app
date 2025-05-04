@@ -14,7 +14,6 @@ interface ButtonProps {
   onPress: () => void;
   variant?: "primary" | "outline";
   disabled?: boolean;
-  extraStyles?: any;
 }
 
 export default function Button({

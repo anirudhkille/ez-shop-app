@@ -1,11 +1,11 @@
-import { StyleSheet, Text, View } from "react-native";
-import React, { JSXElementConstructor, ReactNode } from "react";
+import { StyleSheet, View } from "react-native";
+import React from "react";
 import Button from "../ui/Button";
 import { useRouter } from "expo-router";
-import { ShoppingBag } from "lucide-react-native";
 import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
 import Container from "@/layout/Container";
+import Text from "../ui/Text";
 
 interface EmptyPageProps {
   text1: string;
@@ -26,12 +26,8 @@ export default function EmptyPage({ text1, text2, Icon }: EmptyPageProps) {
         <Icon strokeWidth={1} size={30} color={themeColors.primary} />
       </View>
       <View style={styles.textContainer}>
-        <Text style={[styles.text, { color: themeColors.primary }]}>
-          {text1}
-        </Text>
-        <Text style={[styles.text, { color: themeColors.primary }]}>
-          {text2}
-        </Text>
+        <Text align="center">{text1}</Text>
+        <Text align="center">{text2}</Text>
       </View>
 
       <View style={styles.buttonContainer}>

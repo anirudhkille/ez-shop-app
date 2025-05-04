@@ -1,9 +1,10 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import React, { ReactNode } from "react";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Link, Stack } from "expo-router";
 import { colors } from "@/constant/color";
 import { useThemeStore } from "@/store/theme";
+import Text from "@/components/ui/Text";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -25,17 +26,26 @@ export default function AuthLayout({
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={[styles.container,{backgroundColor:themeColors.background}]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: themeColors.background }]}
+      >
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.card}>
           <View style={{ flexDirection: "column", gap: 10 }}>
-            <Text style={[styles.heading,{color:themeColors.text}]}>{heading}</Text>
-            <Text style={[styles.description,{color:themeColors.accent}]}>{description}</Text>
+            <Text size={22} weight="600" align="center">
+              {heading}
+            </Text>
+            <Text color="accent" align="center">
+              {description}
+            </Text>
           </View>
           <View style={styles.children}>
             {children}
             <View>
-              <Link href={href} style={[styles.link,{color:themeColors.primary}]}>
+              <Link
+                href={href}
+                style={[styles.link, { color: themeColors.primary }]}
+              >
                 {linkText}
               </Link>
             </View>
@@ -56,18 +66,10 @@ const styles = StyleSheet.create({
     marginHorizontal: "auto",
   },
   card: {
-    maxWidth:400,
+    maxWidth: 400,
     width: "100%",
     flexDirection: "column",
     gap: 30,
-  },
-  heading: {
-    textAlign: "center",
-    fontWeight: "600",
-    fontSize: 22,
-  },
-  description: {
-    textAlign: "center",
   },
   children: {
     flexDirection: "column",

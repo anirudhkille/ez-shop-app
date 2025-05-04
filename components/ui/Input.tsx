@@ -1,7 +1,8 @@
-import { View, Text, TextInput, StyleSheet } from "react-native";
+import { View, TextInput, StyleSheet } from "react-native";
 import React from "react";
 import { colors } from "@/constant/color";
 import { useThemeStore } from "@/store/theme";
+import Text from "./Text";
 
 interface InputProps {
   label: string;
@@ -23,13 +24,13 @@ export default function Input({
 
   return (
     <View style={styles.container}>
-      <Text style={{color:themeColors.primary}}>{label}</Text>
+      <Text>{label}</Text>
       <TextInput
         style={[
           styles.input,
           {
             borderColor: themeColors.primary,
-            color:themeColors.primary
+            color: themeColors.primary,
           },
         ]}
         value={value}

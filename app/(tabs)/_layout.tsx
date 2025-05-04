@@ -75,6 +75,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen name="settings" options={{ href: null }} />
+      <Tabs.Screen name="email" options={{ href: null }} />
     </Tabs>
   );
 }

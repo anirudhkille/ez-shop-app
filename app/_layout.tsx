@@ -27,6 +27,10 @@ export default function RootLayout() {
           name="/settings"
           options={{ title: "Settings", headerShown: true }}
         />
+         <Stack.Screen
+          name="/email"
+          options={{ title: "Email", headerShown: true }}
+        />
       </Stack>
       <Toast position="top" topOffset={20} config={toastConfig} />
     </QueryClientProvider>
