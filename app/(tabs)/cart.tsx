@@ -1,11 +1,9 @@
 import { StyleSheet } from "react-native";
 import React from "react";
 import { ShoppingBag } from "lucide-react-native";
-import { useRouter } from "expo-router";
 import EmptyPage from "@/components/shared/EmptyCart";
 
 export default function cart() {
-  const router = useRouter();
   return (
     <>
       <EmptyPage

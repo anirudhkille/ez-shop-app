@@ -1,14 +1,13 @@
-import { StyleSheet, Switch, TouchableOpacity, View } from "react-native";
-import React, { useState } from "react";
+import { StyleSheet, Switch, View } from "react-native";
+import React from "react";
 import Container from "@/layout/Container";
-import { Link, Stack, useRouter } from "expo-router";
-import { LucideArrowLeft } from "lucide-react-native";
+import { Link } from "expo-router";
 import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
 import Text from "@/components/ui/Text";
+import Header from "@/layout/Header";
 
-const settings = () => {
-  const router = useRouter();
+export default function settings() {
   const theme = useThemeStore((state) => state.theme);
   const themeColors = colors[theme];
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
@@ -16,48 +15,39 @@ const settings = () => {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          title: "Settings",
-          headerTitleAlign: "center",
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={{ marginLeft: 10 }}
-            >
-              <LucideArrowLeft color={themeColors.text} size={24} />
-            </TouchableOpacity>
-          ),
-        }}
-      />
+      <Header title="Settings" />
       <Container extraStyle={{ paddingTop: 20, paddingHorizontal: 0 }}>
         <Link
           href="/email"
-          style={{
-            borderWidth: 1,
-            borderBottomColor: themeColors.border,
-            color: themeColors.primary,
-            fontSize: 18,
-            paddingVertical: 20,
-            paddingHorizontal: 20,
-          }}
+          style={[
+            styles.list,
+            {
+              borderBottomColor: themeColors.border,
+              color: themeColors.primary,
+            },
+          ]}
         >
           Email
         </Link>
         <Link
           href="/email"
-          style={{
-            borderWidth: 1,
-            borderBottomColor: themeColors.border,
-            color: themeColors.primary,
-            fontSize: 18,
-            paddingVertical: 20,
-            paddingHorizontal: 20,
-          }}
+          style={[
+            styles.list,
+            {
+              borderBottomColor: themeColors.border,
+              color: themeColors.primary,
+            },
+          ]}
         >
           Mobile Number
         </Link>
-        <View style={styles.container}>
+        <View
+          style={[
+            styles.container,
+            styles.list,
+            { borderBottomColor: themeColors.border },
+          ]}
+        >
           <Text size={18}>Dark Mode</Text>
           <Switch
             trackColor={{ false: "#767577", true: "#81b0ff" }}
@@ -70,18 +60,18 @@ const settings = () => {
       </Container>
     </>
   );
-};
-
-export default settings;
+}
 
 const styles = StyleSheet.create({
+  list: {
+    borderBottomWidth: 1,
+    fontSize: 18,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+  },
   container: {
     flexDirection: "row",
     width: "100%",
     justifyContent: "space-between",
-    borderWidth: 1,
-    fontSize: 18,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
   },
 });

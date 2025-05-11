@@ -24,11 +24,13 @@ export default function settings() {
         Anirudh Kille
       </Text>
 
-      <Button
-        text="Edit profile"
-        variant="outline"
-        onPress={() => router.push("/")}
-      />
+      <View style={{ width: 150 ,marginHorizontal:"auto"}}>
+        <Button
+          text="Edit profile"
+          variant="outline"
+          onPress={() => router.push("/")}
+        />
+      </View>
 
       <View style={styles.options}>
         <View style={styles.option}>
