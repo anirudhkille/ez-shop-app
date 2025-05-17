@@ -5,10 +5,11 @@ import { useThemeStore } from "@/store/theme";
 import Text from "./Text";
 
 interface InputProps {
-  label: string;
+  label?: string;
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
+  size?: "sm" | "md";
   secureTextEntry?: boolean;
 }
 
@@ -17,10 +18,13 @@ export default function Input({
   value,
   onChangeText,
   placeholder = "",
+  size = "sm",
   secureTextEntry = false,
 }: InputProps) {
   const theme = useThemeStore((state) => state.theme);
   const themeColors = colors[theme];
+
+  const heightStyle = size === "sm" ? { height: 40 } : { height: 50 };
 
   return (
     <View style={styles.container}>
@@ -28,16 +32,14 @@ export default function Input({
       <TextInput
         style={[
           styles.input,
-          {
-            borderColor: themeColors.primary,
-            color: themeColors.primary,
-          },
+          heightStyle,
+          { borderColor: themeColors.border, color: themeColors.primary },
         ]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
+        placeholderTextColor={themeColors.accent}
         secureTextEntry={secureTextEntry}
-        placeholderTextColor="#aaa"
       />
     </View>
   );
@@ -50,9 +52,8 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   input: {
-    height: 40,
+    padding: 15,
     borderWidth: 1,
     borderRadius: 10,
-    padding: 10,
   },
 });

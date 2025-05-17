@@ -30,7 +30,6 @@ export default function Index() {
       <SafeAreaView
         style={[styles.container, { backgroundColor: themeColors.background }]}
       >
-        <Stack.Screen options={{ headerShown: false }} />
         <View style={{ padding: 20 }}>
           <View style={{ flexDirection: "column", gap: 10, marginBottom: 60 }}>
             <Text size={18} weight="600">

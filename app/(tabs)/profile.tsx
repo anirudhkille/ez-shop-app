@@ -9,7 +9,7 @@ import { Image } from "expo-image";
 import { Package, Settings } from "lucide-react-native";
 import Text from "@/components/ui/Text";
 
-export default function settings() {
+export default function profile() {
   const router = useRouter();
   const theme = useThemeStore((state) => state.theme);
   const themeColors = colors[theme];
@@ -24,11 +24,11 @@ export default function settings() {
         Anirudh Kille
       </Text>
 
-      <View style={{ width: 150 ,marginHorizontal:"auto"}}>
+      <View style={{ width: 150, marginHorizontal: "auto" }}>
         <Button
           text="Edit profile"
           variant="outline"
-          onPress={() => router.push("/")}
+          onPress={() => router.push("/edit-profile")}
         />
       </View>
 

@@ -1,8 +1,11 @@
-import Container from "@/layout/Container";
-import { StyleSheet } from "react-native";
+import { View, Text } from 'react-native'
+import React from 'react'
+import Container from '@/layout/Container'
 
-export default function Tab() {
-  return <Container>d</Container>;
+export default function home() {
+  return (
+    <Container>
+      <Text>home</Text>
+    </Container>
+  )
 }
-
-const styles = StyleSheet.create({});

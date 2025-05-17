@@ -13,3 +13,10 @@ export interface IResetPassword {
   token: string;
   password: string;
 }
+
+export interface IUpdateProfile {
+  token: string;
+  name: string;
+  email: string;
+  mobile: string;
+}

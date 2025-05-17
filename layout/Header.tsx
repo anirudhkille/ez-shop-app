@@ -18,7 +18,6 @@ export default function Header({ title }: HeaderProps) {
     <Stack.Screen
       options={{
         title: title,
-
         headerLeft: () => (
           <TouchableOpacity
             onPress={() => router.back()}

@@ -1,7 +1,7 @@
 import { View, StyleSheet } from "react-native";
 import React, { ReactNode } from "react";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { Link, Stack } from "expo-router";
+import { Link } from "expo-router";
 import { colors } from "@/constant/color";
 import { useThemeStore } from "@/store/theme";
 import Text from "@/components/ui/Text";
@@ -29,7 +29,6 @@ export default function AuthLayout({
       <SafeAreaView
         style={[styles.container, { backgroundColor: themeColors.background }]}
       >
-        <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.card}>
           <View style={{ flexDirection: "column", gap: 10 }}>
             <Text size={22} weight="600" align="center">

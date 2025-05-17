@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Appearance } from "react-native";
 
 type Theme = "light" | "dark";
 
@@ -9,10 +10,15 @@ interface ThemeStore {
   toggleTheme: () => void;
 }
 
+const getDeviceTheme = (): Theme => {
+  const colorScheme = Appearance.getColorScheme();
+  return colorScheme === "dark" ? "dark" : "light";
+};
+
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set) => ({
-      theme: "dark", // Default theme
+      theme: getDeviceTheme(),
       toggleTheme: () =>
         set((state) => ({
           theme: state.theme === "dark" ? "light" : "dark",

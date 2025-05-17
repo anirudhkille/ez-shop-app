@@ -6,7 +6,7 @@ import { useRouter } from "expo-router";
 import { useSignupMutation } from "@/hooks/useUser";
 import Toast from "react-native-toast-message";
 
-export default function Signup() {
+export default function signup() {
   const router = useRouter();
   const { mutate } = useSignupMutation();
   const [formData, setFormData] = useState({

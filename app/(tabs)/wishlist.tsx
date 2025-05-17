@@ -1,12 +1,22 @@
-import React from "react";
-import EmptyPage from "@/components/shared/EmptyCart"; // Assuming this is still suitable
+import React, { useCallback, useRef, useState } from "react";
+import EmptyPage from "@/components/shared/EmptyCart";
 import { Heart } from "lucide-react-native";
 import { Image } from "expo-image";
 import Container from "@/layout/Container";
-import { FlatList, StyleSheet, View, TouchableOpacity } from "react-native";
+import {
+  FlatList,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
 import Text from "@/components/ui/Text";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
+
+const { width } = Dimensions.get("window");
 
 interface WishlistItem {
   id: string;
@@ -15,9 +25,23 @@ interface WishlistItem {
   price: number;
 }
 
-const WishlistPage = () => {
+export default function wishlist() {
   const theme = useThemeStore((state) => state.theme);
   const themeColors = colors[theme];
+
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const [selectedItem, setSelectedItem] = useState<WishlistItem | null>(null);
+
+  const handleSheetChanges = useCallback((index: number) => {
+    console.log("handleSheetChanges", index);
+  }, []);
+
+  const handleItemPress = (item: WishlistItem) => {
+    alert("hi")
+    setSelectedItem(item);
+    console.log(selectedItem)
+    bottomSheetRef.current?.expand(); // Open the bottom sheet
+  };
 
   const wishlistItems: WishlistItem[] = [
     {
@@ -65,9 +89,10 @@ const WishlistPage = () => {
           <FlatList
             data={wishlistItems}
             keyExtractor={(item) => item.id}
-            numColumns={2}
+            numColumns={2} scrollEnabled
             renderItem={({ item }) => (
               <TouchableOpacity
+                onPress={() => handleItemPress(item)}
                 style={[
                   styles.itemContainer,
                   { backgroundColor: themeColors.background },
@@ -90,7 +115,7 @@ const WishlistPage = () => {
                       { backgroundColor: themeColors.background },
                     ]}
                   >
-                    <Heart color={themeColors.primary} size={20}/>
+                    <Heart color={themeColors.primary} size={20} />
                   </TouchableOpacity>
                 </View>
 
@@ -102,14 +127,45 @@ const WishlistPage = () => {
                 </View>
               </TouchableOpacity>
             )}
-            columnWrapperStyle={{ justifyContent: "space-between" }} // Add spacing
+            columnWrapperStyle={{ justifyContent: "space-between" }}
             contentContainerStyle={styles.listContent}
           />
         </Container>
       )}
+
+      <GestureHandlerRootView style={StyleSheet.absoluteFill}>
+        <BottomSheet
+          ref={bottomSheetRef}
+          index={-1}
+          snapPoints={["40%", "70%"]}
+          onChange={handleSheetChanges}
+        >
+          <BottomSheetView style={{ padding: 20 }}>
+            {selectedItem && (
+              <>
+                <Image
+                  source={selectedItem.imageUrl}
+                  style={{
+                    width: width - 40,
+                    height: width - 40,
+                    borderRadius: 10,
+                    marginBottom: 20,
+                  }}
+                />
+                <Text size={22} weight="600">
+                  {selectedItem.title}
+                </Text>
+                <Text size={18} color="accent">
+                  ₹{selectedItem.price.toFixed(2)}
+                </Text>
+              </>
+            )}
+          </BottomSheetView>
+        </BottomSheet>
+      </GestureHandlerRootView>
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -150,5 +206,3 @@ const styles = StyleSheet.create({
     gap: 5,
   },
 });
-
-export default WishlistPage;

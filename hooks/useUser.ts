@@ -1,4 +1,4 @@
-import { postLogin, postSignup } from "@/api/user";
+import { postLogin, postSignup, updateProfile } from "@/api/user";
 import { useMutation } from "@tanstack/react-query";
 
 export const useLoginMutation = () => {
@@ -12,5 +12,12 @@ export const useSignupMutation = () => {
   return useMutation({
     mutationKey: ["user"],
     mutationFn: postSignup,
+  });
+};
+
+export const useUpdateProfileMutation = () => {
+  return useMutation({
+    mutationKey: ["user"],
+    mutationFn: updateProfile,
   });
 };

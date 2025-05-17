@@ -5,7 +5,7 @@ import { colors } from "@/constant/color";
 
 interface TextProps {
   children: ReactNode;
-  size?: 14 | 18 | 22 | 24;
+  size?: 14 | 16 | 18 | 20 | 22 | 24;
   weight?: "400" | "500" | "600";
   align?: "right" | "left" | "center";
   color?: "primary" | "accent";
