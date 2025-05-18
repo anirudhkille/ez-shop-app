@@ -5,7 +5,7 @@ import Header from "@/layout/Header";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useUpdateProfileMutation } from "@/hooks/useUser";
-import Toast from "react-native-toast-message";
+// import Toast from "react-native-toast-message";
 
 export default function editprofile() {
   const [name, setName] = useState("");

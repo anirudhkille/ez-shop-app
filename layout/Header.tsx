@@ -1,9 +1,9 @@
 import { TouchableOpacity } from "react-native";
 import React from "react";
 import { Stack, useRouter } from "expo-router";
-import { LucideChevronLeft } from "lucide-react-native";
 import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
+import { ChevronLeftIcon } from "@/assets/icons/ChevronLeftIcon";
 
 interface HeaderProps {
   title: string;
@@ -23,7 +23,10 @@ export default function Header({ title }: HeaderProps) {
             onPress={() => router.back()}
             style={{ marginLeft: 10, marginRight: 20 }}
           >
-            <LucideChevronLeft color={themeColors.text} size={24} />
+            <ChevronLeftIcon
+              color={themeColors.primary}
+              
+            />
           </TouchableOpacity>
         ),
       }}

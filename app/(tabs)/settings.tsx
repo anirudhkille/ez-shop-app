@@ -7,6 +7,11 @@ import { colors } from "@/constant/color";
 import Text from "@/components/ui/Text";
 import Header from "@/layout/Header";
 
+interface LinkListProps {
+  href: any;
+  text: string;
+}
+
 export default function settings() {
   const theme = useThemeStore((state) => state.theme);
   const themeColors = colors[theme];
@@ -16,39 +21,19 @@ export default function settings() {
   return (
     <>
       <Header title="Settings" />
-      <Container extraStyle={{ paddingTop: 20, paddingHorizontal: 0 }}>
-        <Link
-          href="/email"
-          style={[
-            styles.list,
-            {
-              borderBottomColor: themeColors.border,
-              color: themeColors.primary,
-            },
-          ]}
-        >
-          Email
-        </Link>
-        <Link
-          href="/email"
-          style={[
-            styles.list,
-            {
-              borderBottomColor: themeColors.border,
-              color: themeColors.primary,
-            },
-          ]}
-        >
-          Mobile Number
-        </Link>
+      <Container extraStyle={{ paddingTop: 10, paddingHorizontal: 0 }}>
+        <LinkList href="/email" text="Email" />
+        <LinkList href="/email" text="Mobile" />
         <View
           style={[
             styles.container,
             styles.list,
+            { paddingVertical: 7 },
+            { alignItems: "center" },
             { borderBottomColor: themeColors.border },
           ]}
         >
-          <Text size={18}>Dark Mode</Text>
+          <Text size={16}>Dark Mode</Text>
           <Switch
             trackColor={{ false: "#767577", true: "#81b0ff" }}
             thumbColor={isDark ? themeColors.primary : "#f4f3f4"}
@@ -57,17 +42,38 @@ export default function settings() {
             value={isDark}
           />
         </View>
+        <LinkList href="/" text="Log Out" />
       </Container>
     </>
+  );
+}
+
+function LinkList({ href, text }: LinkListProps) {
+  const theme = useThemeStore((state) => state.theme);
+  const themeColors = colors[theme];
+  return (
+    <Link
+      href={href}
+      style={[
+        styles.list,
+        {
+          borderBottomColor: themeColors.border,
+          color: themeColors.primary,
+        },
+      ]}
+    >
+      {text}
+    </Link>
   );
 }
 
 const styles = StyleSheet.create({
   list: {
     borderBottomWidth: 1,
-    fontSize: 18,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    fontSize: 16,
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+    height:55
   },
   container: {
     flexDirection: "row",

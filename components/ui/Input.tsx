@@ -24,11 +24,11 @@ export default function Input({
   const theme = useThemeStore((state) => state.theme);
   const themeColors = colors[theme];
 
-  const heightStyle = size === "sm" ? { height: 40 } : { height: 50 };
+  const heightStyle = size === "sm" ? { height: 50 } : { height: 50 };
 
   return (
     <View style={styles.container}>
-      <Text>{label}</Text>
+      {label && <Text>{label}</Text>}
       <TextInput
         style={[
           styles.input,
@@ -55,5 +55,6 @@ const styles = StyleSheet.create({
     padding: 15,
     borderWidth: 1,
     borderRadius: 10,
+    fontSize: 16,
   },
 });

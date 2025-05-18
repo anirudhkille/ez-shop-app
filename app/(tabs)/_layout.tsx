@@ -1,7 +1,11 @@
+import { HeartIcon } from "@/assets/icons/HeartIcon";
+import { HouseIcon } from "@/assets/icons/HouseIcon";
+import { SearchIcon } from "@/assets/icons/SearchIcon";
+import { ShoppingBagIcon } from "@/assets/icons/ShoppingBagIcon";
+import { UserIcon } from "@/assets/icons/UserIcon";
 import { colors } from "@/constant/color";
 import { useThemeStore } from "@/store/theme";
 import { Tabs } from "expo-router";
-import { Heart, Search, House, ShoppingBag, User } from "lucide-react-native";
 
 export default function TabLayout() {
   const theme = useThemeStore((state) => state.theme);
@@ -28,9 +32,7 @@ export default function TabLayout() {
         name="home"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => (
-            <House size={24} strokeWidth={1.5} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <HouseIcon color={color} />,
         }}
       />
 
@@ -38,9 +40,7 @@ export default function TabLayout() {
         name="shop"
         options={{
           title: "Shop",
-          tabBarIcon: ({ color }) => (
-            <Search size={24} strokeWidth={1.5} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <SearchIcon color={color} />,
         }}
       />
 
@@ -48,9 +48,7 @@ export default function TabLayout() {
         name="wishlist"
         options={{
           title: "Wishlist",
-          tabBarIcon: ({ color }) => (
-            <Heart size={24} strokeWidth={1.5} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <HeartIcon color={color} />,
         }}
       />
 
@@ -58,9 +56,7 @@ export default function TabLayout() {
         name="cart"
         options={{
           title: "Cart",
-          tabBarIcon: ({ color }) => (
-            <ShoppingBag size={24} strokeWidth={1.5} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <ShoppingBagIcon color={color} />,
         }}
       />
 
@@ -68,9 +64,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color }) => (
-            <User size={24} strokeWidth={1.5} color={color} />
-          ),
+          tabBarIcon: ({ color }) => <UserIcon color={color} />,
         }}
       />
 

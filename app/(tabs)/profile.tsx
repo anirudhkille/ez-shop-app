@@ -6,8 +6,9 @@ import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
 import Button from "@/components/ui/Button";
 import { Image } from "expo-image";
-import { Package, Settings } from "lucide-react-native";
 import Text from "@/components/ui/Text";
+import { SettingsIcon } from "@/assets/icons/SettingsIcon";
+import { PackageIcon } from "@/assets/icons/PackageIcon";
 
 export default function profile() {
   const router = useRouter();
@@ -34,25 +35,26 @@ export default function profile() {
 
       <View style={styles.options}>
         <View style={styles.option}>
-          <Package color={themeColors.primary} strokeWidth={1.5} size={30} />
+          <PackageIcon color={themeColors.primary} size={30} />
           <Text align="center">Orders</Text>
         </View>
 
-        <View
+        <Text
           style={{
             borderLeftColor: themeColors.border,
-            borderWidth: 1,
+            borderLeftWidth: 1,
             marginVertical: 5,
+            color: themeColors.background,
           }}
         >
           |
-        </View>
+        </Text>
 
-        <Link href="/settings" style={styles.option}>
-          <Settings color={themeColors.primary} strokeWidth={1.5} size={30} />
-          <Text align="center" size={18}>
-            Settings
-          </Text>
+        <Link href="/settings" >
+          <View style={styles.option}>
+            <SettingsIcon color={themeColors.primary} size={30} />
+            <Text align="center">Settings</Text>
+          </View>
         </Link>
       </View>
     </Container>
@@ -85,6 +87,7 @@ const styles = StyleSheet.create({
   option: {
     flexDirection: "column",
     gap: 10,
+    justifyContent: "center",
     display: "flex",
     alignItems: "center",
   },

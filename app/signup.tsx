@@ -8,7 +8,7 @@ import Toast from "react-native-toast-message";
 
 export default function signup() {
   const router = useRouter();
-  const { mutate } = useSignupMutation();
+  const { mutate, isPending } = useSignupMutation();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -65,7 +65,11 @@ export default function signup() {
         secureTextEntry
       />
 
-      <Button text="Create an account" onPress={handleSignup} />
+      <Button
+        text="Create an account"
+        onPress={handleSignup}
+        loading={isPending}
+      />
     </AuthLayout>
   );
 }

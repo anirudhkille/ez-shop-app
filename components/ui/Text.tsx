@@ -14,7 +14,7 @@ interface TextProps {
 
 export default function Text({
   children,
-  size = 14,
+  size = 16,
   weight = "400",
   align = "left",
   color = "primary",
@@ -30,6 +30,7 @@ export default function Text({
           fontSize: size,
           fontWeight: weight,
           textAlign: align,
+          flexWrap: "wrap",
           color: themeColors,
         },
         style,

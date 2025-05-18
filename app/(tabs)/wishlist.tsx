@@ -1,22 +1,17 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import EmptyPage from "@/components/shared/EmptyCart";
-import { Heart } from "lucide-react-native";
 import { Image } from "expo-image";
 import Container from "@/layout/Container";
-import {
-  FlatList,
-  StyleSheet,
-  View,
-  TouchableOpacity,
-  Dimensions,
-} from "react-native";
+import { FlatList, StyleSheet, View, TouchableOpacity } from "react-native";
 import Text from "@/components/ui/Text";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetView,
+} from "@gorhom/bottom-sheet";
 import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
-
-const { width } = Dimensions.get("window");
+import { HeartIcon } from "@/assets/icons/HeartIcon";
+import Button from "@/components/ui/Button";
 
 interface WishlistItem {
   id: string;
@@ -25,23 +20,22 @@ interface WishlistItem {
   price: number;
 }
 
-export default function wishlist() {
+export default function Wishlist() {
   const theme = useThemeStore((state) => state.theme);
   const themeColors = colors[theme];
 
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [selectedItem, setSelectedItem] = useState<WishlistItem | null>(null);
 
-  const handleSheetChanges = useCallback((index: number) => {
-    console.log("handleSheetChanges", index);
-  }, []);
-
   const handleItemPress = (item: WishlistItem) => {
-    alert("hi")
     setSelectedItem(item);
-    console.log(selectedItem)
-    bottomSheetRef.current?.expand(); // Open the bottom sheet
   };
+
+  useEffect(() => {
+    if (selectedItem) {
+      bottomSheetRef.current?.expand();
+    }
+  }, [selectedItem]);
 
   const wishlistItems: WishlistItem[] = [
     {
@@ -82,14 +76,15 @@ export default function wishlist() {
         <EmptyPage
           text1="Your Wishlist is empty."
           text2="Save your favorite items and they'll appear here."
-          Icon={Heart}
+          Icon={HeartIcon}
         />
       ) : (
         <Container extraStyle={styles.container}>
           <FlatList
             data={wishlistItems}
             keyExtractor={(item) => item.id}
-            numColumns={2} scrollEnabled
+            numColumns={2}
+            scrollEnabled
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() => handleItemPress(item)}
@@ -115,15 +110,19 @@ export default function wishlist() {
                       { backgroundColor: themeColors.background },
                     ]}
                   >
-                    <Heart color={themeColors.primary} size={20} />
+                    <HeartIcon
+                      color={themeColors.primary}
+                      fill={themeColors.primary}
+                      size={18}
+                    />
                   </TouchableOpacity>
                 </View>
 
                 <View style={styles.textContainer}>
-                  <Text size={18} weight="600">
-                    {item.title}
+                  <Text weight="500">{item.title}</Text>
+                  <Text size={14} color="accent">
+                    ₹{item.price.toFixed(2)}
                   </Text>
-                  <Text color="accent">₹{item.price.toFixed(2)}</Text>
                 </View>
               </TouchableOpacity>
             )}
@@ -133,36 +132,69 @@ export default function wishlist() {
         </Container>
       )}
 
-      <GestureHandlerRootView style={StyleSheet.absoluteFill}>
-        <BottomSheet
-          ref={bottomSheetRef}
-          index={-1}
-          snapPoints={["40%", "70%"]}
-          onChange={handleSheetChanges}
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={-1}
+        handleIndicatorStyle={{ display: "none" }}
+        handleStyle={{ backgroundColor: themeColors.background }}
+        snapPoints={[10, 10]}
+        enablePanDownToClose
+        backdropComponent={(props) => (
+          <BottomSheetBackdrop
+            {...props}
+            appearsOnIndex={0}
+            disappearsOnIndex={-1}
+            pressBehavior="close"
+          />
+        )}
+      >
+        <BottomSheetView
+          style={{
+            padding: 20,
+            gap: 20,
+            backgroundColor: themeColors.background,
+          }}
+          hitSlop={1}
         >
-          <BottomSheetView style={{ padding: 20 }}>
-            {selectedItem && (
-              <>
+          {selectedItem && (
+            <>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 10,
+                  alignItems: "flex-start",
+                  paddingBottom: 20,
+                }}
+              >
                 <Image
                   source={selectedItem.imageUrl}
                   style={{
-                    width: width - 40,
-                    height: width - 40,
-                    borderRadius: 10,
-                    marginBottom: 20,
+                    width: "50%",
+                    height: 150,
+                    resizeMode: "cover",
                   }}
                 />
-                <Text size={22} weight="600">
-                  {selectedItem.title}
-                </Text>
-                <Text size={18} color="accent">
-                  ₹{selectedItem.price.toFixed(2)}
-                </Text>
-              </>
-            )}
-          </BottomSheetView>
-        </BottomSheet>
-      </GestureHandlerRootView>
+                <View style={{ flex: 1 }}>
+                  <Text weight="600" color="primary">
+                    {selectedItem.title}
+                  </Text>
+                  <Text size={14} color="accent">
+                    ₹{selectedItem.price.toFixed(2)}
+                  </Text>
+                </View>
+              </View>
+
+              <Button
+                text="Add to Cart"
+                onPress={() => {
+                  alert(`Added ${selectedItem.title} to cart`);
+                  bottomSheetRef.current?.close();
+                }}
+              />
+            </>
+          )}
+        </BottomSheetView>
+      </BottomSheet>
     </>
   );
 }

@@ -1,10 +1,11 @@
 import React from "react";
 import {
-  Pressable,
   Text,
   StyleSheet,
   ViewStyle,
   TextStyle,
+  TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
@@ -14,6 +15,7 @@ interface ButtonProps {
   onPress: () => void;
   variant?: "primary" | "outline";
   disabled?: boolean;
+  loading?: boolean;
 }
 
 export default function Button({
@@ -21,21 +23,24 @@ export default function Button({
   onPress,
   variant = "primary",
   disabled = false,
+  loading = false,
 }: ButtonProps) {
   const theme = useThemeStore((state) => state.theme);
   const themeColors = colors[theme];
   const styles = getButtonStyles(variant, disabled, themeColors);
 
   return (
-    <Pressable
-      onPress={disabled ? undefined : onPress}
-      style={({ pressed }) => [
-        styles.button,
-        pressed && !disabled && styles.pressed,
-      ]}
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={loading || disabled}
+      style={[styles.button, { opacity: loading || disabled ? 0.6 : 1 }]}
     >
-      <Text style={styles.text}>{text}</Text>
-    </Pressable>
+      {loading ? (
+        <ActivityIndicator size="small" color="#fff" />
+      ) : (
+        <Text style={styles.text}>{text}</Text>
+      )}
+    </TouchableOpacity>
   );
 }
 
@@ -45,7 +50,8 @@ function getButtonStyles(
   themeColors: { background: string; text: string; accent: string }
 ) {
   const baseButton: ViewStyle = {
-    paddingVertical: 12,
+    height: 60,
+    paddingVertical: 20,
     paddingHorizontal: 20,
     borderRadius: 999,
     alignItems: "center",

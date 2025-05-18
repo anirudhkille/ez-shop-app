@@ -8,7 +8,7 @@ import { useRouter } from "expo-router";
 
 export default function login() {
   const router = useRouter();
-  const { mutate } = useLoginMutation();
+  const { mutate ,isPending} = useLoginMutation();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -56,7 +56,7 @@ export default function login() {
         secureTextEntry
       />
 
-      <Button text="Login" onPress={handleLogin} />
+      <Button text="Login" onPress={handleLogin} loading={isPending} />
     </AuthLayout>
   );
 }
