@@ -29,7 +29,7 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
     <Container extraStyle={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <Animated.Image
-        source={require("@/assets/images/icon.png")} // Replace with your logo path
+        source={require("@/assets/images/icon.png")} 
         style={[styles.logo, logoStyle]}
         resizeMode="contain"
       />

@@ -9,9 +9,9 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function RootLayout() {
   const queryClient = new QueryClient();
-  const theme = useThemeStore((state) => state.theme);
-  const themeColors = colors[theme];
-  const isDark = theme === "dark";
+  const { appliedTheme } = useThemeStore();
+  const themeColors = colors[appliedTheme];
+  const isDark = appliedTheme === "dark";
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

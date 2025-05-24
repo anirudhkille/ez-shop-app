@@ -9,8 +9,8 @@ interface ContainerProps {
 }
 
 export default function Container({ children, extraStyle }: ContainerProps) {
-  const theme = useThemeStore((state) => state.theme);
-  const themeColors = colors[theme];
+  const { appliedTheme } = useThemeStore();
+  const themeColors = colors[appliedTheme];
 
   return (
     <View

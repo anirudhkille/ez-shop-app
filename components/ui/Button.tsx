@@ -25,8 +25,8 @@ export default function Button({
   disabled = false,
   loading = false,
 }: ButtonProps) {
-  const theme = useThemeStore((state) => state.theme);
-  const themeColors = colors[theme];
+  const { appliedTheme } = useThemeStore();
+  const themeColors = colors[appliedTheme];
   const styles = getButtonStyles(variant, disabled, themeColors);
 
   return (
@@ -47,14 +47,14 @@ export default function Button({
 function getButtonStyles(
   variant: "primary" | "outline",
   disabled: boolean,
-  themeColors: { background: string; text: string; accent: string }
+  themeColors: { background: string; primary: string; accent: string }
 ) {
   const baseButton: ViewStyle = {
-    height: 60,
-    paddingVertical: 20,
+    height: 50,
     paddingHorizontal: 20,
     borderRadius: 999,
     alignItems: "center",
+    justifyContent: "center",
   };
 
   const baseText: TextStyle = {
@@ -65,7 +65,7 @@ function getButtonStyles(
   const variants = {
     primary: {
       button: {
-        backgroundColor: disabled ? "#b3d4fc" : themeColors.text,
+        backgroundColor: disabled ? "#b3d4fc" : themeColors.primary,
       },
       text: {
         color: disabled ? "#d1d1d1" : themeColors.background,
@@ -73,11 +73,11 @@ function getButtonStyles(
     },
     outline: {
       button: {
-        borderColor: themeColors.text,
+        borderColor: themeColors.primary,
         borderWidth: 1,
       },
       text: {
-        color: disabled ? "#d1d1d1" : themeColors.text,
+        color: disabled ? "#d1d1d1" : themeColors.primary,
       },
     },
     danger: {

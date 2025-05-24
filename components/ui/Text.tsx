@@ -20,8 +20,8 @@ export default function Text({
   color = "primary",
   style,
 }: TextProps) {
-  const theme = useThemeStore((state) => state.theme);
-  const themeColors = colors[theme][color];
+  const { appliedTheme } = useThemeStore();
+  const themeColors = colors[appliedTheme][color];
 
   return (
     <RNText

@@ -8,8 +8,15 @@ import { useUpdateProfileMutation } from "@/hooks/useUser";
 // import Toast from "react-native-toast-message";
 
 export default function editprofile() {
-  const [name, setName] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+  });
   const { mutate } = useUpdateProfileMutation();
+
+  const handleChange = (key: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  };
 
   const hanldeUpdate = async () => {
     // mutate(token,name, {
@@ -34,8 +41,13 @@ export default function editprofile() {
       <Container extraStyle={styles.container}>
         <Input
           label="Name"
-          value={name}
-          onChangeText={(text) => setName(text)}
+          value={formData.name}
+          onChangeText={(e) => handleChange("name", e)}
+        />
+        <Input
+          label="Email"
+          value={formData.email}
+          onChangeText={(e) => handleChange("email", e)}
         />
         <Button text="Save" onPress={hanldeUpdate} />
       </Container>
@@ -45,6 +57,6 @@ export default function editprofile() {
 
 const styles = StyleSheet.create({
   container: {
-    gap: 20,
+    gap: 20, 
   },
 });

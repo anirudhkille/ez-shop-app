@@ -15,8 +15,8 @@ interface EmptyPageProps {
 
 export default function EmptyPage({ text1, text2, Icon }: EmptyPageProps) {
   const router = useRouter();
-  const theme = useThemeStore((state) => state.theme);
-  const themeColors = colors[theme];
+  const { appliedTheme } = useThemeStore();
+  const themeColors = colors[appliedTheme];
 
   const handlePres = () => router.push("/home");
 

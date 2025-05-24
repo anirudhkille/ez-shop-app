@@ -3,26 +3,30 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Appearance } from "react-native";
 
-type Theme = "light" | "dark";
+export type Theme = "light" | "dark" | "system";
 
 interface ThemeStore {
   theme: Theme;
-  toggleTheme: () => void;
+  appliedTheme: "light" | "dark";
+  setTheme: (newTheme: Theme) => void;
 }
 
-const getDeviceTheme = (): Theme => {
+const getDeviceTheme = (): "light" | "dark" => {
   const colorScheme = Appearance.getColorScheme();
   return colorScheme === "dark" ? "dark" : "light";
 };
 
 export const useThemeStore = create<ThemeStore>()(
   persist(
-    (set) => ({
-      theme: getDeviceTheme(),
-      toggleTheme: () =>
-        set((state) => ({
-          theme: state.theme === "dark" ? "light" : "dark",
-        })),
+    (set, get) => ({
+      theme: "system",
+      appliedTheme: getDeviceTheme(),
+
+      setTheme: (newTheme: Theme) => {
+        const resolvedTheme =
+          newTheme === "system" ? getDeviceTheme() : newTheme;
+        set({ theme: newTheme, appliedTheme: resolvedTheme });
+      },
     }),
     {
       name: "theme-storage",

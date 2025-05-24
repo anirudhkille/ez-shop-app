@@ -8,8 +8,8 @@ import { useThemeStore } from "@/store/theme";
 import { Tabs } from "expo-router";
 
 export default function TabLayout() {
-  const theme = useThemeStore((state) => state.theme);
-  const themeColors = colors[theme];
+  const { appliedTheme } = useThemeStore();
+  const themeColors = colors[appliedTheme];
 
   return (
     <Tabs
@@ -67,10 +67,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <UserIcon color={color} />,
         }}
       />
-
-      <Tabs.Screen name="edit-profile" options={{ href: null }} />
-      <Tabs.Screen name="settings" options={{ href: null }} />
-      <Tabs.Screen name="(settings)/email" options={{ href: null }} />
     </Tabs>
   );
 }

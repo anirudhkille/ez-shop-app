@@ -1,63 +1,85 @@
-import { StyleSheet, View } from "react-native";
-import React from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
 import Container from "@/layout/Container";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
-import Button from "@/components/ui/Button";
 import { Image } from "expo-image";
 import Text from "@/components/ui/Text";
-import { SettingsIcon } from "@/assets/icons/SettingsIcon";
-import { PackageIcon } from "@/assets/icons/PackageIcon";
+import { ChevronRightIcon } from "@/assets/icons/ChevronRightIcon";
+import { PaletteIcon } from "@/assets/icons/PaletteIcon";
+import { UserIcon } from "@/assets/icons/UserIcon";
+import { LogoutIcon } from "@/assets/icons/LogoutIcon";
+import ThemeToggle from "@/components/shared/ThemeToggle";
 
 export default function profile() {
+  const { appliedTheme } = useThemeStore();
+  const themeColors = colors[appliedTheme];
   const router = useRouter();
-  const theme = useThemeStore((state) => state.theme);
-  const themeColors = colors[theme];
+  const [sheetIndex, setSheetIndex] = useState(-1);
 
   return (
-    <Container extraStyle={{ paddingTop: 40, gap: 20 }}>
-      <Image
-        style={styles.image}
-        source="https://picsum.photos/seed/696/3000/2000"
-      />
-      <Text align="center" size={24} weight="500">
-        Anirudh Kille
-      </Text>
-
-      <View style={{ width: 150, marginHorizontal: "auto" }}>
-        <Button
-          text="Edit profile"
-          variant="outline"
-          onPress={() => router.push("/edit-profile")}
+    <>
+      <Container extraStyle={{ paddingTop: 40, gap: 20 }}>
+        <Image
+          style={styles.image}
+          source="https://picsum.photos/seed/696/3000/2000"
         />
-      </View>
-
-      <View style={styles.options}>
-        <View style={styles.option}>
-          <PackageIcon color={themeColors.primary} size={30} />
-          <Text align="center">Orders</Text>
-        </View>
-
-        <Text
-          style={{
-            borderLeftColor: themeColors.border,
-            borderLeftWidth: 1,
-            marginVertical: 5,
-            color: themeColors.background,
-          }}
-        >
-          |
+        <Text align="center" size={24} weight="500">
+          Anirudh Kille
         </Text>
 
-        <Link href="/settings" >
-          <View style={styles.option}>
-            <SettingsIcon color={themeColors.primary} size={30} />
-            <Text align="center">Settings</Text>
-          </View>
-        </Link>
+        <View style={styles.lists}>
+          <Lists
+            text="Your Profile"
+            Icon={<UserIcon color={themeColors.primary} />}
+            onPress={() => router.push("/profile/edit-profile")}
+          />
+          <Lists
+            text="Appearance"
+            Icon={<PaletteIcon color={themeColors.primary} />}
+            onPress={() => setSheetIndex(0)}
+          />
+
+          <Lists
+            text="Logout"
+            Icon={<LogoutIcon color={themeColors.primary} />}
+            onPress={() => router.push("/")}
+          />
+        </View>
+      </Container>
+
+      <ThemeToggle
+        index={sheetIndex}
+        onChangeIndex={(index) => setSheetIndex(index)}
+      />
+    </>
+  );
+}
+
+function Lists({
+  text,
+  Icon,
+  onPress,
+}: {
+  text: string;
+  Icon: any;
+  onPress: () => void;
+}) {
+  const { appliedTheme } = useThemeStore();
+  const themeColors = colors[appliedTheme];
+
+  return (
+    <TouchableOpacity
+      style={[styles.list, { backgroundColor: themeColors.card }]}
+      onPress={onPress}
+    >
+      <View style={{ gap: 10, alignItems: "center", flexDirection: "row" }}>
+        {Icon}
+        <Text color="primary">{text}</Text>
       </View>
-    </Container>
+      <ChevronRightIcon />
+    </TouchableOpacity>
   );
 }
 
@@ -74,21 +96,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#0553",
     marginHorizontal: "auto",
   },
-  options: {
-    padding: 20,
-    margin: 20,
-    flexDirection: "row",
+  lists: {
+    marginTop: 10,
     gap: 20,
-    justifyContent: "space-between",
-    maxWidth: 500,
-    marginHorizontal: "auto",
-    width: "100%",
   },
-  option: {
-    flexDirection: "column",
-    gap: 10,
-    justifyContent: "center",
-    display: "flex",
+  list: {
+    justifyContent: "space-between",
     alignItems: "center",
+    flexDirection: "row",
+    borderRadius: 10,
+    padding: 15,
   },
 });

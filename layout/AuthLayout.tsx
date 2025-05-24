@@ -21,8 +21,8 @@ export default function AuthLayout({
   linkText,
   href,
 }: AuthLayoutProps) {
-  const theme = useThemeStore((state) => state.theme);
-  const themeColors = colors[theme];
+  const { appliedTheme } = useThemeStore();
+  const themeColors = colors[appliedTheme];
 
   return (
     <SafeAreaProvider>

@@ -21,8 +21,8 @@ export default function Input({
   size = "sm",
   secureTextEntry = false,
 }: InputProps) {
-  const theme = useThemeStore((state) => state.theme);
-  const themeColors = colors[theme];
+  const { appliedTheme } = useThemeStore();
+  const themeColors = colors[appliedTheme];
 
   const heightStyle = size === "sm" ? { height: 50 } : { height: 50 };
 
@@ -33,7 +33,7 @@ export default function Input({
         style={[
           styles.input,
           heightStyle,
-          { borderColor: themeColors.border, color: themeColors.primary },
+          { borderColor: themeColors.border, color: themeColors.primary ,backgroundColor:themeColors.card },
         ]}
         value={value}
         onChangeText={onChangeText}

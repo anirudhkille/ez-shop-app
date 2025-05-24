@@ -7,8 +7,8 @@ import { BaseToastProps } from "react-native-toast-message";
 
 export const toastConfig = {
   success: ({ text1 }: BaseToastProps) => {
-    const theme = useThemeStore.getState().theme;
-    const themeColors = colors[theme];
+    const { appliedTheme } = useThemeStore();
+    const themeColors = colors[appliedTheme];
 
     return (
       <View
@@ -26,15 +26,15 @@ export const toastConfig = {
           alignItems: "center",
         }}
       >
-        <CircleCheckIcon color={themeColors.text} size={20} />
+        <CircleCheckIcon color={themeColors.primary} size={20} />
         <Text style={{ color: themeColors.primary }}>{text1}</Text>
       </View>
     );
   },
 
   error: ({ text1 }: BaseToastProps) => {
-    const theme = useThemeStore.getState().theme;
-    const themeColors = colors[theme];
+    const { appliedTheme } = useThemeStore();
+    const themeColors = colors[appliedTheme];
 
     return (
       <View
@@ -52,7 +52,7 @@ export const toastConfig = {
           alignItems: "center",
         }}
       >
-        <CircleXIcon color={themeColors.text} size={20} />
+        <CircleXIcon color={themeColors.primary} size={20} />
         <Text style={{ color: themeColors.primary }}>{text1}</Text>
       </View>
     );

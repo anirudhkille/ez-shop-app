@@ -3,15 +3,15 @@ import Button from "@/components/ui/Button";
 import Text from "@/components/ui/Text";
 import { colors } from "@/constant/color";
 import { useThemeStore } from "@/store/theme";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { SafeAreaView, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function Index() {
   const router = useRouter();
-  const theme = useThemeStore((state) => state.theme);
-  const themeColors = colors[theme];
+  const { appliedTheme } = useThemeStore();
+  const themeColors = colors[appliedTheme];
 
   const [isAppReady, setIsAppReady] = useState(false);
 

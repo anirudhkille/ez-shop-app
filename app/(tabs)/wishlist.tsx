@@ -21,8 +21,8 @@ interface WishlistItem {
 }
 
 export default function Wishlist() {
-  const theme = useThemeStore((state) => state.theme);
-  const themeColors = colors[theme];
+  const { appliedTheme } = useThemeStore();
+  const themeColors = colors[appliedTheme];
 
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [selectedItem, setSelectedItem] = useState<WishlistItem | null>(null);
@@ -100,6 +100,7 @@ export default function Wishlist() {
                   ]}
                 >
                   <Image
+                    contentFit="cover"
                     source={item.imageUrl}
                     style={styles.image}
                     transition={1000}
@@ -168,10 +169,10 @@ export default function Wishlist() {
               >
                 <Image
                   source={selectedItem.imageUrl}
+                  contentFit="cover"
                   style={{
                     width: "50%",
                     height: 150,
-                    resizeMode: "cover",
                   }}
                 />
                 <View style={{ flex: 1 }}>
@@ -223,7 +224,6 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   heart: {
     position: "absolute",
