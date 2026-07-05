@@ -30,7 +30,7 @@ export default function RootLayout() {
             headerShown: false,
           }}
         >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" />
         </Stack>
         <Toast position="top" topOffset={20} config={toastConfig} />
       </QueryClientProvider>

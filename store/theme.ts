@@ -9,6 +9,7 @@ interface ThemeStore {
   theme: Theme;
   appliedTheme: "light" | "dark";
   setTheme: (newTheme: Theme) => void;
+  syncSystemTheme: () => void;
 }
 
 const getDeviceTheme = (): "light" | "dark" => {
@@ -26,6 +27,13 @@ export const useThemeStore = create<ThemeStore>()(
         const resolvedTheme =
           newTheme === "system" ? getDeviceTheme() : newTheme;
         set({ theme: newTheme, appliedTheme: resolvedTheme });
+      },
+
+      syncSystemTheme: () => {
+        const currentTheme = get().theme;
+        if (currentTheme === "system") {
+          set({ appliedTheme: getDeviceTheme() });
+        }
       },
     }),
     {

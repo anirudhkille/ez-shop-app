@@ -1,47 +1,63 @@
-import { ILogin, ISignUp, IResetPassword, IUpdateProfile } from "@/types/api";
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+import { apiClient } from "./client";
+import { IApiResponse, IUser, ILogin, ISignUp } from "@/types/api";
 
-export const postSignup = async (formData: ISignUp) => {
-  const res = await fetch(`${API_URL}/user/signup`, {
+export const postSignup = (formData: ISignUp) =>
+  apiClient<IApiResponse>("/user/signup", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    body: JSON.stringify({ email: formData.email, password: formData.password }),
+  });
+
+export const verifySignupOTP = (email: string, otp: string) =>
+  apiClient<IApiResponse & { data: IUser; token: string }>("/user/verify-signup-otp", {
+    method: "POST",
+    body: JSON.stringify({ email, otp }),
+  });
+
+export const postLogin = (formData: ILogin) =>
+  apiClient<IApiResponse & { data: IUser; token: string }>("/user/login", {
+    method: "POST",
     body: JSON.stringify(formData),
   });
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.message || "Failed to create account");
-  }
-  return res.json();
-};
 
-export const postLogin = async (formData: ILogin) => {
-  const res = await fetch(`${API_URL}/user/login`, {
+export const forgotPassword = (email: string) =>
+  apiClient<IApiResponse>("/user/forgot-password", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(formData),
+    body: JSON.stringify({ email }),
   });
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.message || "Failed to login");
-  }
-  return res.json();
-};
 
-export const updateProfile = async (formData: IUpdateProfile) => {
-  const res = await fetch(`${API_URL}/user`, {
+export const resetPassword = (email: string, otp: string, newPassword: string) =>
+  apiClient<IApiResponse>("/user/reset-password", {
+    method: "PUT",
+    body: JSON.stringify({ email, otp, newPassword }),
+  });
+
+export const getProfile = (token: string) =>
+  apiClient<IApiResponse & { data: IUser }>("/user/profile", {
+    token,
+  });
+
+export const updateProfile = (token: string, data: { name?: string; phone?: string }) =>
+  apiClient<IApiResponse & { data: IUser }>("/user", {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(formData),
+    token,
+    body: JSON.stringify(data),
   });
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(error.message || "Failed to update profile");
-  }
-  return res.json();
-};
+
+export const updatePassword = (token: string, currentPassword: string, newPassword: string) =>
+  apiClient<IApiResponse>("/user/password", {
+    method: "PUT",
+    token,
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+
+export const logoutUser = (token: string) =>
+  apiClient<IApiResponse>("/user/logout", {
+    method: "POST",
+    token,
+  });
+
+export const refreshToken = () =>
+  apiClient<IApiResponse & { token: string }>("/user/refresh", {
+    method: "GET",
+    credentials: "include",
+  });

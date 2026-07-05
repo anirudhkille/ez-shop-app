@@ -1,10 +1,11 @@
+import { useEffect, useState } from "react";
 import SplashScreen from "@/components/shared/SplashScreen";
 import Button from "@/components/ui/Button";
 import Text from "@/components/ui/Text";
 import { colors } from "@/constant/color";
 import { useThemeStore } from "@/store/theme";
+import { useAuthStore } from "@/store/auth"; // import your auth store here
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
 import { SafeAreaView, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -13,15 +14,29 @@ export default function Index() {
   const { appliedTheme } = useThemeStore();
   const themeColors = colors[appliedTheme];
 
+  // Zustand persist hydration state
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Your existing isAppReady state
   const [isAppReady, setIsAppReady] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => {
-      setIsAppReady(true);
-    }, 1000);
+    // Wait for zustand persist to hydrate
+    useAuthStore.persist.onFinishHydration(() => {
+      setIsHydrated(true);
+    });
   }, []);
 
-  if (!isAppReady) {
+  useEffect(() => {
+    if (isHydrated) {
+      setTimeout(() => {
+        setIsAppReady(true);
+      }, 1000);
+    }
+  }, [isHydrated]);
+
+  // Show splash while loading state or hydration
+  if (!isHydrated || !isAppReady) {
     return <SplashScreen onFinish={() => setIsAppReady(true)} />;
   }
 

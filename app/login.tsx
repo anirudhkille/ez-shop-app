@@ -4,11 +4,15 @@ import Button from "@/components/ui/Button";
 import AuthLayout from "@/layout/AuthLayout";
 import { useLoginMutation } from "@/hooks/useUser";
 import Toast from "react-native-toast-message";
-import { useRouter } from "expo-router";
+import { useRouter, Link } from "expo-router";
+import { useThemeStore } from "@/store/theme";
+import { colors } from "@/constant/color";
 
-export default function login() {
+export default function Login() {
   const router = useRouter();
-  const { mutate ,isPending} = useLoginMutation();
+  const { mutate, isPending } = useLoginMutation();
+  const { appliedTheme } = useThemeStore();
+  const themeColors = colors[appliedTheme];
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -25,7 +29,7 @@ export default function login() {
           type: "success",
           text1: data?.message,
         });
-        router.push("/home");
+        router.push("/(tabs)/home");
       },
       onError: (error: any) => {
         Toast.show({
@@ -55,6 +59,17 @@ export default function login() {
         onChangeText={(text) => handleChange("password", text)}
         secureTextEntry
       />
+
+      <Link
+        href="/forgot-password"
+        style={{
+          textAlign: "right",
+          color: themeColors.primary,
+          fontWeight: "500",
+        }}
+      >
+        Forgot Password?
+      </Link>
 
       <Button text="Login" onPress={handleLogin} loading={isPending} />
     </AuthLayout>

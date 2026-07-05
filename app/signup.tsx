@@ -6,11 +6,10 @@ import { useRouter } from "expo-router";
 import { useSignupMutation } from "@/hooks/useUser";
 import Toast from "react-native-toast-message";
 
-export default function signup() {
+export default function Signup() {
   const router = useRouter();
   const { mutate, isPending } = useSignupMutation();
   const [formData, setFormData] = useState({
-    name: "",
     email: "",
     password: "",
   });
@@ -27,7 +26,7 @@ export default function signup() {
           text1: "Success",
           text2: data?.message,
         });
-        router.push("/home");
+        router.push(`/verify-otp?email=${formData.email}`);
       },
       onError: (error: any) => {
         Toast.show({
@@ -46,12 +45,6 @@ export default function signup() {
       href="/login"
       linkText="   Already have an account? Login"
     >
-      <Input
-        value={formData.name}
-        label="Name"
-        onChangeText={(text) => handleChange("name", text)}
-      />
-
       <Input
         value={formData.email}
         label="Email"

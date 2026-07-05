@@ -1,12 +1,9 @@
-import { StyleSheet } from "react-native";
 import React, { useState } from "react";
 import Container from "@/layout/Container";
 import Header from "@/layout/Header";
 import Input from "@/components/ui/Input";
-import { useLocalSearchParams } from "expo-router";
 
-export default function editprofile() {
-  const { id } = useLocalSearchParams();
+export default function EditProfile() {
   const [formData, setFormData] = useState({
     name: "",
   });
@@ -28,5 +25,3 @@ export default function editprofile() {
     </>
   );
 }
-
-const styles = StyleSheet.create({});

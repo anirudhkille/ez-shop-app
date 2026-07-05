@@ -1,145 +1,172 @@
-import React, { useRef, useState, useEffect } from "react";
-import EmptyPage from "@/components/shared/EmptyCart";
-import { Image } from "expo-image";
-import Container from "@/layout/Container";
-import { FlatList, StyleSheet, View, TouchableOpacity } from "react-native";
-import Text from "@/components/ui/Text";
+import React, { useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
+import { Image } from "expo-image";
+import Toast from "react-native-toast-message";
+import Container from "@/layout/Container";
+import Text from "@/components/ui/Text";
+import Button from "@/components/ui/Button";
+import EmptyCart from "@/components/shared/EmptyCart";
+import { HeartIcon } from "@/assets/icons/HeartIcon";
 import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
-import { HeartIcon } from "@/assets/icons/HeartIcon";
-import Button from "@/components/ui/Button";
-
-interface WishlistItem {
-  id: string;
-  title: string;
-  imageUrl: string;
-  price: number;
-}
+import { useWishlistDetailsQuery, useToggleWishlistMutation } from "@/hooks/useWishlist";
+import { useAddToCartMutation } from "@/hooks/useCart";
+import { IProduct } from "@/types/api";
 
 export default function Wishlist() {
   const { appliedTheme } = useThemeStore();
   const themeColors = colors[appliedTheme];
 
-  const bottomSheetRef = useRef<BottomSheet>(null);
-  const [selectedItem, setSelectedItem] = useState<WishlistItem | null>(null);
+  const { data: wishlistResponse, isLoading } = useWishlistDetailsQuery();
+  const { mutate: toggleWishlist } = useToggleWishlistMutation();
+  const { mutate: addToCart, isPending: isAddingToCart } =
+    useAddToCartMutation();
 
-  const handleItemPress = (item: WishlistItem) => {
-    setSelectedItem(item);
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
+
+  const products: IProduct[] =
+    (((wishlistResponse as any)?.data?.products || []).filter(
+      (p: any): p is IProduct => typeof p === "object"
+    )) || [];
+
+  const handleItemPress = (product: IProduct) => {
+    setSelectedProduct(product);
+    bottomSheetRef.current?.expand();
   };
 
-  useEffect(() => {
-    if (selectedItem) {
-      bottomSheetRef.current?.expand();
-    }
-  }, [selectedItem]);
+  const handleToggleWishlist = (productId: string) => {
+    toggleWishlist(productId, {
+      onSuccess: (res: any) => {
+        const action = res?.data?.action || res?.action;
+        if (action === "removed") {
+          Toast.show({ type: "success", text1: "Removed from wishlist" });
+        } else if (action === "added") {
+          Toast.show({ type: "success", text1: "Added to wishlist" });
+        }
+      },
+      onError: () => {
+        Toast.show({ type: "error", text1: "Failed to update wishlist" });
+      },
+    });
+  };
 
-  const wishlistItems: WishlistItem[] = [
-    {
-      id: "1",
-      title: "Nike Air Max 270",
-      imageUrl:
-        "https://anirudhkille.github.io/nike-landing-page/assets/shoe4-ITTu7E0E.svg",
-      price: 170,
-    },
-    {
-      id: "2",
-      title: "Nike React Infinity Run Flyknit 3",
-      imageUrl:
-        "https://anirudhkille.github.io/nike-landing-page/assets/shoe5-7-zrw4nw.svg",
-      price: 180,
-    },
-    {
-      id: "3",
-      title: "Nike Dunk Low",
-      imageUrl:
-        "https://anirudhkille.github.io/nike-landing-page/assets/shoe6-hPwIYIrH.svg",
-      price: 110,
-    },
-    {
-      id: "4",
-      title: "Nike Air Force 1 '07",
-      imageUrl:
-        "https://anirudhkille.github.io/nike-landing-page/assets/thumbnail-shoe2-uPtbhEJp.svg",
-      price: 130,
-    },
-  ];
+  const handleAddToCart = () => {
+    if (!selectedProduct) return;
+    addToCart(
+      { productId: selectedProduct._id, quantity: 1 },
+      {
+        onSuccess: () => {
+          Toast.show({
+            type: "success",
+            text1: `${selectedProduct.name} added to cart`,
+          });
+          bottomSheetRef.current?.close();
+          setSelectedProduct(null);
+        },
+        onError: () => {
+          Toast.show({ type: "error", text1: "Failed to add to cart" });
+        },
+      }
+    );
+  };
 
-  const hasItemsInWishlist = wishlistItems.length > 0;
+  if (isLoading) {
+    return (
+      <Container extraStyle={styles.center}>
+        <ActivityIndicator size="large" color={themeColors.primary} />
+      </Container>
+    );
+  }
+
+  if (!products.length) {
+    return (
+      <EmptyCart
+        text1="Your Wishlist is empty."
+        text2="Save your favorite items and they'll appear here."
+        Icon={HeartIcon}
+      />
+    );
+  }
+
+  const price = (p: IProduct) =>
+    p.discountPrice ?? p.price;
 
   return (
-    <>
-      {!hasItemsInWishlist ? (
-        <EmptyPage
-          text1="Your Wishlist is empty."
-          text2="Save your favorite items and they'll appear here."
-          Icon={HeartIcon}
-        />
-      ) : (
-        <Container extraStyle={styles.container}>
-          <FlatList
-            data={wishlistItems}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            scrollEnabled
-            renderItem={({ item }) => (
+    <Container extraStyle={styles.container}>
+      <FlatList
+        data={products}
+        keyExtractor={(item) => item._id}
+        numColumns={2}
+        scrollEnabled
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => handleItemPress(item)}
+            style={[
+              styles.itemContainer,
+              { backgroundColor: themeColors.background },
+            ]}
+          >
+            <View
+              style={[
+                styles.imageContainer,
+                { backgroundColor: themeColors.card },
+              ]}
+            >
+              <Image
+                contentFit="cover"
+                source={item.image}
+                style={styles.image}
+                transition={300}
+              />
               <TouchableOpacity
-                onPress={() => handleItemPress(item)}
+                onPress={() => handleToggleWishlist(item._id)}
                 style={[
-                  styles.itemContainer,
+                  styles.heart,
                   { backgroundColor: themeColors.background },
                 ]}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <View
-                  style={[
-                    styles.imageContainer,
-                    { backgroundColor: themeColors.accent },
-                  ]}
-                >
-                  <Image
-                    contentFit="cover"
-                    source={item.imageUrl}
-                    style={styles.image}
-                    transition={1000}
-                  />
-                  <TouchableOpacity
-                    style={[
-                      styles.heart,
-                      { backgroundColor: themeColors.background },
-                    ]}
-                  >
-                    <HeartIcon
-                      color={themeColors.primary}
-                      fill={themeColors.primary}
-                      size={18}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.textContainer}>
-                  <Text weight="500">{item.title}</Text>
-                  <Text size={14} color="accent">
-                    ₹{item.price.toFixed(2)}
-                  </Text>
-                </View>
+                <HeartIcon
+                  color={themeColors.primary}
+                  fill={themeColors.primary}
+                  size={18}
+                />
               </TouchableOpacity>
-            )}
-            columnWrapperStyle={{ justifyContent: "space-between" }}
-            contentContainerStyle={styles.listContent}
-          />
-        </Container>
-      )}
+            </View>
+            <View style={styles.textContainer}>
+              <Text weight="500" size={14}>
+                {item.name.length > 40
+                  ? item.name.slice(0, 40) + "..."
+                  : item.name}
+              </Text>
+              <Text size={14} color="accent">
+                ₹{price(item).toFixed(2)}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+        columnWrapperStyle={{ justifyContent: "space-between" }}
+        contentContainerStyle={styles.listContent}
+      />
 
       <BottomSheet
         ref={bottomSheetRef}
         index={-1}
-        handleIndicatorStyle={{ display: "none" }}
-        handleStyle={{ backgroundColor: themeColors.background }}
-        snapPoints={[10, 10]}
+        snapPoints={["50%"]}
         enablePanDownToClose
+        handleIndicatorStyle={{ backgroundColor: themeColors.accent }}
+        handleStyle={{ backgroundColor: themeColors.background }}
         backdropComponent={(props) => (
           <BottomSheetBackdrop
             {...props}
@@ -155,54 +182,75 @@ export default function Wishlist() {
             gap: 20,
             backgroundColor: themeColors.background,
           }}
-          hitSlop={1}
         >
-          {selectedItem && (
+          {selectedProduct && (
             <>
               <View
                 style={{
                   flexDirection: "row",
-                  gap: 10,
+                  gap: 12,
                   alignItems: "flex-start",
-                  paddingBottom: 20,
                 }}
               >
                 <Image
-                  source={selectedItem.imageUrl}
+                  source={selectedProduct.image}
                   contentFit="cover"
                   style={{
-                    width: "50%",
-                    height: 150,
+                    width: 140,
+                    height: 140,
+                    borderRadius: 12,
+                    backgroundColor: themeColors.card,
                   }}
                 />
-                <View style={{ flex: 1 }}>
-                  <Text weight="600" color="primary">
-                    {selectedItem.title}
+                <View style={{ flex: 1, gap: 6 }}>
+                  <Text weight="600" size={18}>
+                    {selectedProduct.name}
                   </Text>
+                  {selectedProduct.discountPrice ? (
+                    <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+                      <Text weight="600" size={18}>
+                        ₹{selectedProduct.discountPrice.toFixed(2)}
+                      </Text>
+                      <Text
+                        size={14}
+                        color="accent"
+                        style={{ textDecorationLine: "line-through" }}
+                      >
+                        ₹{selectedProduct.price.toFixed(2)}
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text weight="600" size={18}>
+                      ₹{selectedProduct.price.toFixed(2)}
+                    </Text>
+                  )}
                   <Text size={14} color="accent">
-                    ₹{selectedItem.price.toFixed(2)}
+                    {selectedProduct.description?.slice(0, 100)}
+                    {selectedProduct.description?.length > 100 ? "..." : ""}
                   </Text>
                 </View>
               </View>
 
               <Button
                 text="Add to Cart"
-                onPress={() => {
-                  alert(`Added ${selectedItem.title} to cart`);
-                  bottomSheetRef.current?.close();
-                }}
+                onPress={handleAddToCart}
+                loading={isAddingToCart}
               />
             </>
           )}
         </BottomSheetView>
       </BottomSheet>
-    </>
+    </Container>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 5,
+  },
+  center: {
+    justifyContent: "center",
+    alignItems: "center",
   },
   listContent: {
     paddingBottom: 20,

@@ -1,7 +1,8 @@
+import { IconProps } from "@/types/icon";
 import React from "react";
 import Svg, { Path } from "react-native-svg";
 
-export const ChevronRightIcon = ({ color = "white", size = 24 }) => (
+export const ChevronRightIcon = ({ color = "white", size = 24 }:IconProps) => (
   <Svg
     height={size}
     width={size}

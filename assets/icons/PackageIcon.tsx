@@ -1,6 +1,7 @@
+import { IconProps } from "@/types/icon";
 import Svg, { Path, Polyline } from "react-native-svg";
 
-export const PackageIcon = ({ color = "white", size = 24 }) => (
+export const PackageIcon = ({ color = "white", size = 24 }:IconProps) => (
   <Svg
     height={size}
     width={size}

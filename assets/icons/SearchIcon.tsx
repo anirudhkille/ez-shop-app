@@ -1,6 +1,7 @@
+import { IconProps } from "@/types/icon";
 import Svg, { Circle, Path } from "react-native-svg";
 
-export const SearchIcon = ({ color = "white", size = 24 }) => (
+export const SearchIcon = ({ color = "white", size = 24 }:IconProps) => (
   <Svg
     height={size}
     width={size}
