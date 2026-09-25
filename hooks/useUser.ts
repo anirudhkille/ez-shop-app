@@ -36,8 +36,7 @@ export const useVerifySignupOTPMutation = () => {
   const setUser = useAuthStore((s) => s.setUser);
 
   return useMutation({
-    mutationFn: ({ email, otp }: { email: string; otp: string }) =>
-      verifySignupOTP(email, otp),
+    mutationFn: ({ email, otp }: { email: string; otp: string }) => verifySignupOTP(email, otp),
     onSuccess: (data) => {
       if (data.token) setToken(data.token);
       if (data.data) setUser(data.data);
@@ -78,8 +77,7 @@ export const useUpdateProfileMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: { name?: string; phone?: string }) =>
-      updateProfile(token, data),
+    mutationFn: (data: { name?: string; phone?: string }) => updateProfile(token, data),
     onSuccess: (data) => {
       if (data.data) setUser(data.data);
       queryClient.invalidateQueries({ queryKey: ["profile"] });

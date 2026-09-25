@@ -58,11 +58,7 @@ export default function Signup() {
         secureTextEntry
       />
 
-      <Button
-        text="Create an account"
-        onPress={handleSignup}
-        loading={isPending}
-      />
+      <Button text="Create an account" onPress={handleSignup} loading={isPending} />
     </AuthLayout>
   );
 }

@@ -33,7 +33,11 @@ export default function Input({
         style={[
           styles.input,
           heightStyle,
-          { borderColor: themeColors.border, color: themeColors.primary ,backgroundColor:themeColors.card },
+          {
+            borderColor: themeColors.border,
+            color: themeColors.primary,
+            backgroundColor: themeColors.card,
+          },
         ]}
         value={value}
         onChangeText={onChangeText}

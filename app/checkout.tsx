@@ -11,7 +11,8 @@ export default function CheckoutScreen() {
   const router = useRouter();
   const { data: cart } = useCartQuery();
   const { data: addressesRes } = useAddressesQuery();
-  const addresses = (addressesRes as any)?.data || (Array.isArray(addressesRes) ? addressesRes : []);
+  const addresses =
+    (addressesRes as any)?.data || (Array.isArray(addressesRes) ? addressesRes : []);
   const [selectedAddressId, setSelectedAddressId] = useState<string>(addresses?.[0]?._id || "");
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "stripe">("cod");
 
@@ -30,7 +31,8 @@ export default function CheckoutScreen() {
           onSuccess: (res: any) => {
             router.replace(`/order-success?orderId=${res?.order?._id || res?._id || ""}`);
           },
-          onError: (err: any) => Alert.alert("Order Failed", err?.message || "Could not place order")
+          onError: (err: any) =>
+            Alert.alert("Order Failed", err?.message || "Could not place order"),
         }
       );
     } else {
@@ -44,7 +46,8 @@ export default function CheckoutScreen() {
               router.replace(`/order-success`);
             }
           },
-          onError: (err: any) => Alert.alert("Payment Failed", err?.message || "Could not initiate payment")
+          onError: (err: any) =>
+            Alert.alert("Payment Failed", err?.message || "Could not initiate payment"),
         }
       );
     }
@@ -67,7 +70,9 @@ export default function CheckoutScreen() {
             style={[styles.addressCard, selectedAddressId === addr._id && styles.selectedCard]}
             onPress={() => setSelectedAddressId(addr._id)}
           >
-            <Text style={styles.addressText}>{addr.street}, {addr.city}, {addr.state}</Text>
+            <Text style={styles.addressText}>
+              {addr.street}, {addr.city}, {addr.state}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -102,11 +107,31 @@ const styles = StyleSheet.create({
   headerTitle: { color: "#F5F5F5", fontSize: 20, fontWeight: "bold" },
   section: { marginBottom: 24 },
   sectionTitle: { color: "#F5F5F5", fontSize: 16, fontWeight: "600", marginBottom: 12 },
-  addressCard: { backgroundColor: "#141414", borderWidth: 1, borderColor: "#262626", padding: 14, borderRadius: 10, marginBottom: 8 },
-  paymentCard: { backgroundColor: "#141414", borderWidth: 1, borderColor: "#262626", padding: 14, borderRadius: 10, marginBottom: 8 },
+  addressCard: {
+    backgroundColor: "#141414",
+    borderWidth: 1,
+    borderColor: "#262626",
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
+  paymentCard: {
+    backgroundColor: "#141414",
+    borderWidth: 1,
+    borderColor: "#262626",
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 8,
+  },
   selectedCard: { borderColor: "#FF5500" },
   addressText: { color: "#F5F5F5", fontSize: 14 },
   paymentText: { color: "#F5F5F5", fontSize: 15, fontWeight: "500" },
-  orderButton: { backgroundColor: "#FF5500", padding: 16, borderRadius: 12, alignItems: "center", marginVertical: 20 },
-  orderButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "bold" }
+  orderButton: {
+    backgroundColor: "#FF5500",
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  orderButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "bold" },
 });

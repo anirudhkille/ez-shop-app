@@ -1,10 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  placeCODOrder,
-  getMyOrders,
-  getOrderById,
-  getOrderBySessionId,
-} from "@/api/orders";
+import { placeCODOrder, getMyOrders, getOrderById, getOrderBySessionId } from "@/api/orders";
 import { useAuthStore } from "@/store/auth";
 
 const useToken = () => useAuthStore((s) => s.token);
@@ -38,8 +33,7 @@ export const usePlaceCODOrderMutation = () => {
   const token = useToken();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { addressId: string; deliveryMethod: string }) =>
-      placeCODOrder(token, data),
+    mutationFn: (data: { addressId: string; deliveryMethod: string }) => placeCODOrder(token, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       queryClient.invalidateQueries({ queryKey: ["cart"] });

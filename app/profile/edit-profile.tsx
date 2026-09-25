@@ -4,10 +4,7 @@ import Container from "@/layout/Container";
 import Header from "@/layout/Header";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import {
-  useProfileQuery,
-  useUpdateProfileMutation,
-} from "@/hooks/useUser";
+import { useProfileQuery, useUpdateProfileMutation } from "@/hooks/useUser";
 import Toast from "react-native-toast-message";
 
 export default function EditProfile() {

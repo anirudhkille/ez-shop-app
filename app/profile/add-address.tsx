@@ -7,10 +7,7 @@ import Text from "@/components/ui/Text";
 import Button from "@/components/ui/Button";
 import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
-import {
-  useCreateAddressMutation,
-  useAddressesQuery,
-} from "@/hooks/useAddress";
+import { useCreateAddressMutation, useAddressesQuery } from "@/hooks/useAddress";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 
@@ -84,7 +81,10 @@ export default function AddAddress() {
     <>
       <Header title={id ? "Edit Address" : "Add Address"} />
       <Container extraStyle={{ paddingTop: 10 }}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 20, paddingBottom: 40 }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ gap: 20, paddingBottom: 40 }}
+        >
           <View>
             <Text style={{ marginBottom: 8 }}>Label</Text>
             <View style={{ flexDirection: "row", gap: 10 }}>
@@ -114,16 +114,17 @@ export default function AddAddress() {
           <Input label="Full Name" value={name} onChangeText={setName} />
           <Input label="Phone" value={phone} onChangeText={setPhone} />
           <Input label="Address Line 1" value={addressLine1} onChangeText={setAddressLine1} />
-          <Input label="Address Line 2 (Optional)" value={addressLine2} onChangeText={setAddressLine2} />
+          <Input
+            label="Address Line 2 (Optional)"
+            value={addressLine2}
+            onChangeText={setAddressLine2}
+          />
           <Input label="City" value={city} onChangeText={setCity} />
           <Input label="State" value={state} onChangeText={setState} />
           <Input label="Zip Code" value={zipCode} onChangeText={setZipCode} />
           <Input label="Country" value={country} onChangeText={setCountry} />
 
-          <TouchableOpacity
-            style={[styles.checkboxRow]}
-            onPress={() => setIsDefault(!isDefault)}
-          >
+          <TouchableOpacity style={[styles.checkboxRow]} onPress={() => setIsDefault(!isDefault)}>
             <View
               style={[
                 styles.checkbox,
@@ -133,12 +134,20 @@ export default function AddAddress() {
                 },
               ]}
             >
-              {isDefault && <Text size={14} style={{ color: "#fff" }}>✓</Text>}
+              {isDefault && (
+                <Text size={14} style={{ color: "#fff" }}>
+                  ✓
+                </Text>
+              )}
             </View>
             <Text>Set as default address</Text>
           </TouchableOpacity>
 
-          <Button text={id ? "Update Address" : "Save Address"} onPress={handleSave} loading={isPending} />
+          <Button
+            text={id ? "Update Address" : "Save Address"}
+            onPress={handleSave}
+            loading={isPending}
+          />
         </ScrollView>
       </Container>
     </>

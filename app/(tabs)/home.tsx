@@ -14,10 +14,7 @@ import Container from "@/layout/Container";
 import Text from "@/components/ui/Text";
 import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
-import {
-  useFeaturedProductsQuery,
-  useBestSellersQuery,
-} from "@/hooks/useProducts";
+import { useFeaturedProductsQuery, useBestSellersQuery } from "@/hooks/useProducts";
 import { useCategoriesQuery } from "@/hooks/useCategories";
 import { IProduct, ICategory } from "@/types/api";
 
@@ -39,13 +36,7 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-function ProductCard({
-  product,
-  onPress,
-}: {
-  product: IProduct;
-  onPress: () => void;
-}) {
+function ProductCard({ product, onPress }: { product: IProduct; onPress: () => void }) {
   const { appliedTheme } = useThemeStore();
   const themeColors = colors[appliedTheme];
 
@@ -81,13 +72,7 @@ function ProductCard({
   );
 }
 
-function CategoryCard({
-  category,
-  onPress,
-}: {
-  category: ICategory;
-  onPress: () => void;
-}) {
+function CategoryCard({ category, onPress }: { category: ICategory; onPress: () => void }) {
   const { appliedTheme } = useThemeStore();
   const themeColors = colors[appliedTheme];
 
@@ -138,11 +123,7 @@ export default function Home() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([
-      refetchFeatured(),
-      refetchBestSellers(),
-      refetchCategories(),
-    ]);
+    await Promise.all([refetchFeatured(), refetchBestSellers(), refetchCategories()]);
     setRefreshing(false);
   }, [refetchFeatured, refetchBestSellers, refetchCategories]);
 
@@ -238,15 +219,13 @@ export default function Home() {
           </View>
         )}
 
-        {featured.length === 0 &&
-          bestSellers.length === 0 &&
-          categories.length === 0 && (
-            <View style={styles.emptyState}>
-              <Text align="center" color="accent">
-                No products available right now.
-              </Text>
-            </View>
-          )}
+        {featured.length === 0 && bestSellers.length === 0 && categories.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text align="center" color="accent">
+              No products available right now.
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </Container>
   );

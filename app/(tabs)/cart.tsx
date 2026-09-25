@@ -1,16 +1,7 @@
 import React, { useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import BottomSheet, {
-  BottomSheetBackdrop,
-  BottomSheetView,
-} from "@gorhom/bottom-sheet";
+import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import * as WebBrowser from "expo-web-browser";
 import { useRouter } from "expo-router";
@@ -59,15 +50,12 @@ export default function Cart() {
   const { mutate: updateQuantity } = useUpdateCartQuantityMutation();
   const { mutate: removeFromCart } = useRemoveFromCartMutation();
   const { data: addressesResponse } = useAddressesQuery();
-  const { mutate: placeCODOrder, isPending: isPlacingCOD } =
-    usePlaceCODOrderMutation();
+  const { mutate: placeCODOrder, isPending: isPlacingCOD } = usePlaceCODOrderMutation();
   const { mutate: createCheckoutSession, isPending: isCreatingSession } =
     useCreateCheckoutSessionMutation();
 
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
-    null
-  );
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [selectedDelivery, setSelectedDelivery] = useState("standard");
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "card">("cod");
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>("address");
@@ -78,9 +66,7 @@ export default function Cart() {
   const cartItems = cart?.products || [];
 
   const openCheckout = () => {
-    setSelectedAddressId(
-      addresses.find((a: IAddress) => a.isDefault)?._id || null
-    );
+    setSelectedAddressId(addresses.find((a: IAddress) => a.isDefault)?._id || null);
     setSelectedDelivery("standard");
     setPaymentMethod("cod");
     setCheckoutStep("address");
@@ -161,12 +147,7 @@ export default function Cart() {
 
     return (
       <View style={[styles.cartItem, { backgroundColor: themeColors.card }]}>
-        <Image
-          source={image}
-          contentFit="cover"
-          style={styles.itemImage}
-          transition={300}
-        />
+        <Image source={image} contentFit="cover" style={styles.itemImage} transition={300} />
         <View style={styles.itemDetails}>
           <Text weight="500" size={14} style={{ flex: 1 }}>
             {name}
@@ -239,12 +220,7 @@ export default function Cart() {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           ListFooterComponent={
-            <View
-              style={[
-                styles.summary,
-                { borderTopColor: themeColors.border },
-              ]}
-            >
+            <View style={[styles.summary, { borderTopColor: themeColors.border }]}>
               <View style={styles.summaryRow}>
                 <Text color="accent">Subtotal</Text>
                 <Text>₹{(cart?.subtotal || 0).toFixed(2)}</Text>
@@ -252,28 +228,22 @@ export default function Cart() {
               {(cart?.discountTotal ?? 0) > 0 && (
                 <View style={styles.summaryRow}>
                   <Text color="accent">Discount</Text>
-                  <Text color="accent">
-                    -₹{(cart?.discountTotal || 0).toFixed(2)}
-                  </Text>
+                  <Text color="accent">-₹{(cart?.discountTotal || 0).toFixed(2)}</Text>
                 </View>
               )}
               <View style={styles.summaryRow}>
                 <Text color="accent">Delivery</Text>
                 <Text color="accent">
-                  {getDeliveryCharge() === 0
-                    ? "Free"
-                    : `₹${getDeliveryCharge().toFixed(2)}`}
+                  {getDeliveryCharge() === 0 ? "Free" : `₹${getDeliveryCharge().toFixed(2)}`}
                 </Text>
               </View>
-              <View
-                style={[styles.summaryDivider, { borderColor: themeColors.border }]}
-              />
+              <View style={[styles.summaryDivider, { borderColor: themeColors.border }]} />
               <View style={styles.summaryRow}>
                 <Text weight="600" size={18}>
                   Total
                 </Text>
                 <Text weight="600" size={18}>
-                  ₹{(getTotal()).toFixed(2)}
+                  ₹{getTotal().toFixed(2)}
                 </Text>
               </View>
             </View>
@@ -301,9 +271,7 @@ export default function Cart() {
           />
         )}
       >
-        <BottomSheetView
-          style={[styles.sheetContent, { backgroundColor: themeColors.background }]}
-        >
+        <BottomSheetView style={[styles.sheetContent, { backgroundColor: themeColors.background }]}>
           {checkoutStep === "address" && (
             <View style={{ flex: 1 }}>
               <Text weight="600" size={20} style={{ marginBottom: 16 }}>
@@ -329,9 +297,7 @@ export default function Cart() {
                           styles.addressItem,
                           {
                             backgroundColor: themeColors.card,
-                            borderColor: isSelected
-                              ? themeColors.primary
-                              : themeColors.border,
+                            borderColor: isSelected ? themeColors.primary : themeColors.border,
                           },
                         ]}
                       >
@@ -339,8 +305,17 @@ export default function Cart() {
                           <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
                             <Text weight="600">{item.label}</Text>
                             {item.isDefault && (
-                              <View style={[styles.defaultBadge, { backgroundColor: themeColors.primary }]}>
-                                <Text size={14} color="primary" style={{ color: themeColors.background }}>
+                              <View
+                                style={[
+                                  styles.defaultBadge,
+                                  { backgroundColor: themeColors.primary },
+                                ]}
+                              >
+                                <Text
+                                  size={14}
+                                  color="primary"
+                                  style={{ color: themeColors.background }}
+                                >
                                   Default
                                 </Text>
                               </View>
@@ -348,16 +323,13 @@ export default function Cart() {
                           </View>
                           <Text size={14}>{item.name}</Text>
                           <Text size={14} color="accent">
-                            {item.addressLine1}, {item.city}, {item.state} -{" "}
-                            {item.zipCode}
+                            {item.addressLine1}, {item.city}, {item.state} - {item.zipCode}
                           </Text>
                           <Text size={14} color="accent">
                             {item.phone}
                           </Text>
                         </View>
-                        {isSelected && (
-                          <CircleCheckIcon color={themeColors.primary} size={22} />
-                        )}
+                        {isSelected && <CircleCheckIcon color={themeColors.primary} size={22} />}
                       </TouchableOpacity>
                     );
                   }}
@@ -396,9 +368,7 @@ export default function Cart() {
                         styles.deliveryItem,
                         {
                           backgroundColor: themeColors.card,
-                          borderColor: isSelected
-                            ? themeColors.primary
-                            : themeColors.border,
+                          borderColor: isSelected ? themeColors.primary : themeColors.border,
                         },
                       ]}
                     >
@@ -413,10 +383,7 @@ export default function Cart() {
                       </Text>
                       {isSelected && (
                         <View style={{ marginLeft: 8 }}>
-                          <CircleCheckIcon
-                            color={themeColors.primary}
-                            size={22}
-                          />
+                          <CircleCheckIcon color={themeColors.primary} size={22} />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -424,15 +391,8 @@ export default function Cart() {
                 })}
               </View>
               <View style={{ marginTop: "auto", gap: 8 }}>
-                <Button
-                  text="Continue"
-                  onPress={() => setCheckoutStep("payment")}
-                />
-                <Button
-                  text="Back"
-                  variant="outline"
-                  onPress={() => setCheckoutStep("address")}
-                />
+                <Button text="Continue" onPress={() => setCheckoutStep("payment")} />
+                <Button text="Back" variant="outline" onPress={() => setCheckoutStep("address")} />
               </View>
             </View>
           )}
@@ -450,9 +410,7 @@ export default function Cart() {
                     {
                       backgroundColor: themeColors.card,
                       borderColor:
-                        paymentMethod === "cod"
-                          ? themeColors.primary
-                          : themeColors.border,
+                        paymentMethod === "cod" ? themeColors.primary : themeColors.border,
                     },
                   ]}
                 >
@@ -468,9 +426,7 @@ export default function Cart() {
                     {
                       backgroundColor: themeColors.card,
                       borderColor:
-                        paymentMethod === "card"
-                          ? themeColors.primary
-                          : themeColors.border,
+                        paymentMethod === "card" ? themeColors.primary : themeColors.border,
                     },
                   ]}
                 >
@@ -481,12 +437,7 @@ export default function Cart() {
                 </TouchableOpacity>
               </View>
 
-              <View
-                style={[
-                  styles.summary,
-                  { borderTopColor: themeColors.border, marginTop: 20 },
-                ]}
-              >
+              <View style={[styles.summary, { borderTopColor: themeColors.border, marginTop: 20 }]}>
                 <View style={styles.summaryRow}>
                   <Text color="accent">Subtotal</Text>
                   <Text>₹{(cart?.subtotal || 0).toFixed(2)}</Text>
@@ -494,25 +445,16 @@ export default function Cart() {
                 {(cart?.discountTotal ?? 0) > 0 && (
                   <View style={styles.summaryRow}>
                     <Text color="accent">Discount</Text>
-                    <Text color="accent">
-                      -₹{(cart?.discountTotal || 0).toFixed(2)}
-                    </Text>
+                    <Text color="accent">-₹{(cart?.discountTotal || 0).toFixed(2)}</Text>
                   </View>
                 )}
                 <View style={styles.summaryRow}>
                   <Text color="accent">Delivery</Text>
                   <Text color="accent">
-                    {getDeliveryCharge() === 0
-                      ? "Free"
-                      : `₹${getDeliveryCharge().toFixed(2)}`}
+                    {getDeliveryCharge() === 0 ? "Free" : `₹${getDeliveryCharge().toFixed(2)}`}
                   </Text>
                 </View>
-                <View
-                  style={[
-                    styles.summaryDivider,
-                    { borderColor: themeColors.border },
-                  ]}
-                />
+                <View style={[styles.summaryDivider, { borderColor: themeColors.border }]} />
                 <View style={styles.summaryRow}>
                   <Text weight="600" size={18}>
                     Total
@@ -530,17 +472,11 @@ export default function Cart() {
                   </Text>
                 ) : null}
                 <Button
-                  text={
-                    paymentMethod === "cod" ? "Place Order (COD)" : "Pay with Card"
-                  }
+                  text={paymentMethod === "cod" ? "Place Order (COD)" : "Pay with Card"}
                   onPress={handlePlaceOrder}
                   loading={isPlacingCOD || isCreatingSession}
                 />
-                <Button
-                  text="Back"
-                  variant="outline"
-                  onPress={() => setCheckoutStep("delivery")}
-                />
+                <Button text="Back" variant="outline" onPress={() => setCheckoutStep("delivery")} />
               </View>
             </View>
           )}
@@ -561,8 +497,7 @@ export default function Cart() {
                 Order Placed Successfully!
               </Text>
               <Text color="accent" align="center">
-                Thank you for your purchase. You will receive a confirmation
-                shortly.
+                Thank you for your purchase. You will receive a confirmation shortly.
               </Text>
               <View style={{ width: "100%", marginTop: 20 }}>
                 <Button

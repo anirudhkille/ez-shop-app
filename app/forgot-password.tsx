@@ -46,12 +46,7 @@ export default function ForgotPassword() {
       href="/login"
       linkText="Back to Login"
     >
-      <Input
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        placeholder="Enter your email"
-      />
+      <Input label="Email" value={email} onChangeText={setEmail} placeholder="Enter your email" />
       <Button text="Send OTP" onPress={handleSubmit} loading={isPending} />
     </AuthLayout>
   );

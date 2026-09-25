@@ -13,13 +13,7 @@ export default function Container({ children, extraStyle }: ContainerProps) {
   const themeColors = colors[appliedTheme];
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: themeColors.background },
-        extraStyle,
-      ]}
-    >
+    <View style={[styles.container, { backgroundColor: themeColors.background }, extraStyle]}>
       {children}
     </View>
   );

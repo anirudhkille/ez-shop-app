@@ -23,10 +23,7 @@ import { PackageIcon } from "@/assets/icons/PackageIcon";
 import { ChevronRightIcon } from "@/assets/icons/ChevronRightIcon";
 import ThemeToggle from "@/components/shared/ThemeToggle";
 import Button from "@/components/ui/Button";
-import {
-  useProfileQuery,
-  useLogoutMutation,
-} from "@/hooks/useUser";
+import { useProfileQuery, useLogoutMutation } from "@/hooks/useUser";
 import { useSubscribeNewsletterMutation } from "@/hooks/useNewsletter";
 import Toast from "react-native-toast-message";
 
@@ -114,7 +111,12 @@ export default function Profile() {
                   },
                 ]}
               >
-                <Text size={24} weight="600" color="accent" style={{ color: themeColors.background }}>
+                <Text
+                  size={24}
+                  weight="600"
+                  color="accent"
+                  style={{ color: themeColors.background }}
+                >
                   {(user?.name || user?.email || "U").charAt(0).toUpperCase()}
                 </Text>
               </View>
@@ -186,11 +188,7 @@ export default function Profile() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
-                <Button
-                  text="Subscribe"
-                  onPress={handleSubscribe}
-                  loading={isSubscribing}
-                />
+                <Button text="Subscribe" onPress={handleSubscribe} loading={isSubscribing} />
               </View>
             </View>
 
@@ -203,10 +201,7 @@ export default function Profile() {
         </ScrollView>
       </Container>
 
-      <ThemeToggle
-        index={sheetIndex}
-        onChangeIndex={(index) => setSheetIndex(index)}
-      />
+      <ThemeToggle index={sheetIndex} onChangeIndex={(index) => setSheetIndex(index)} />
     </>
   );
 }

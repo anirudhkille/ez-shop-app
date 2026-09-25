@@ -1,8 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import {
-  createCheckoutSession,
-  createGuestCheckoutSession,
-} from "@/api/payment";
+import { createCheckoutSession, createGuestCheckoutSession } from "@/api/payment";
 import { useAuthStore } from "@/store/auth";
 
 export const useCreateCheckoutSessionMutation = () => {

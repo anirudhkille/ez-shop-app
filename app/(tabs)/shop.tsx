@@ -14,10 +14,7 @@ import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
 import Text from "@/components/ui/Text";
 import Container from "@/layout/Container";
-import {
-  useFilteredProductsQuery,
-  useSearchProductsQuery,
-} from "@/hooks/useProducts";
+import { useFilteredProductsQuery, useSearchProductsQuery } from "@/hooks/useProducts";
 import { useCategoriesQuery } from "@/hooks/useCategories";
 import { IProduct } from "@/types/api";
 
@@ -48,13 +45,7 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-function ProductItem({
-  product,
-  onPress,
-}: {
-  product: IProduct;
-  onPress: () => void;
-}) {
+function ProductItem({ product, onPress }: { product: IProduct; onPress: () => void }) {
   const { appliedTheme } = useThemeStore();
   const themeColors = colors[appliedTheme];
 
@@ -165,13 +156,8 @@ export default function Shop() {
   const isSearchMode = debouncedSearch.length > 0;
   const displayProducts = isSearchMode ? searchResults : allProducts;
   const isLoading = isSearchMode ? searchFetching : filterFetching;
-  const isInitialLoading = isSearchMode
-    ? searchLoading
-    : filterLoading && page === 1;
-  const hasMore =
-    pagination && !isSearchMode
-      ? page < pagination.totalPages
-      : false;
+  const isInitialLoading = isSearchMode ? searchLoading : filterLoading && page === 1;
+  const hasMore = pagination && !isSearchMode ? page < pagination.totalPages : false;
 
   const loadMore = useCallback(() => {
     if (!isSearchMode && hasMore && !filterFetching) {
@@ -213,18 +199,12 @@ export default function Shop() {
             contentContainerStyle={styles.chipsContainer}
             renderItem={({ item }) => (
               <TouchableOpacity
-                onPress={() =>
-                  setSelectedCategory(
-                    selectedCategory === item.slug ? "" : item.slug
-                  )
-                }
+                onPress={() => setSelectedCategory(selectedCategory === item.slug ? "" : item.slug)}
                 style={[
                   styles.chip,
                   {
                     backgroundColor:
-                      selectedCategory === item.slug
-                        ? themeColors.primary
-                        : themeColors.card,
+                      selectedCategory === item.slug ? themeColors.primary : themeColors.card,
                     borderColor: themeColors.border,
                   },
                 ]}
@@ -232,14 +212,10 @@ export default function Shop() {
                 <Text
                   size={14}
                   weight="500"
-                  color={
-                    selectedCategory === item.slug ? "primary" : "primary"
-                  }
+                  color={selectedCategory === item.slug ? "primary" : "primary"}
                   style={{
                     color:
-                      selectedCategory === item.slug
-                        ? themeColors.background
-                        : themeColors.primary,
+                      selectedCategory === item.slug ? themeColors.background : themeColors.primary,
                   }}
                 >
                   {item.name}
@@ -249,35 +225,29 @@ export default function Shop() {
           />
 
           <View style={styles.filterRow}>
-            {(["all", "men", "women", "unisex"] as GenderFilter[]).map(
-              (g) => (
-                <TouchableOpacity
-                  key={g}
-                  onPress={() => setGender(g)}
-                  style={[
-                    styles.genderChip,
-                    {
-                      backgroundColor:
-                        gender === g ? themeColors.primary : themeColors.card,
-                      borderColor: themeColors.border,
-                    },
-                  ]}
+            {(["all", "men", "women", "unisex"] as GenderFilter[]).map((g) => (
+              <TouchableOpacity
+                key={g}
+                onPress={() => setGender(g)}
+                style={[
+                  styles.genderChip,
+                  {
+                    backgroundColor: gender === g ? themeColors.primary : themeColors.card,
+                    borderColor: themeColors.border,
+                  },
+                ]}
+              >
+                <Text
+                  size={14}
+                  weight="500"
+                  style={{
+                    color: gender === g ? themeColors.background : themeColors.primary,
+                  }}
                 >
-                    <Text
-                      size={14}
-                      weight="500"
-                      style={{
-                        color:
-                          gender === g
-                            ? themeColors.background
-                            : themeColors.primary,
-                      }}
-                    >
-                      {g.charAt(0).toUpperCase() + g.slice(1)}
-                    </Text>
-                </TouchableOpacity>
-              )
-            )}
+                  {g.charAt(0).toUpperCase() + g.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
 
             <TouchableOpacity
               onPress={() => setShowSort(!showSort)}
@@ -314,10 +284,7 @@ export default function Shop() {
                     },
                   ]}
                 >
-                  <Text
-                    size={14}
-                    weight={sort === opt.value ? "600" : "400"}
-                  >
+                  <Text size={14} weight={sort === opt.value ? "600" : "400"}>
                     {opt.label}
                   </Text>
                 </TouchableOpacity>
@@ -346,10 +313,7 @@ export default function Shop() {
           columnWrapperStyle={styles.columnWrapper}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
-            <ProductItem
-              product={item}
-              onPress={() => navigateToProduct(item)}
-            />
+            <ProductItem product={item} onPress={() => navigateToProduct(item)} />
           )}
           onEndReached={loadMore}
           onEndReachedThreshold={0.3}

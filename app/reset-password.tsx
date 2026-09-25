@@ -68,12 +68,7 @@ export default function ResetPassword() {
       href="/login"
       linkText="Back to Login"
     >
-      <Input
-        label="OTP"
-        value={otp}
-        onChangeText={setOtp}
-        placeholder="Enter 6-digit OTP"
-      />
+      <Input label="OTP" value={otp} onChangeText={setOtp} placeholder="Enter 6-digit OTP" />
       <Input
         label="New Password"
         value={newPassword}
@@ -88,11 +83,7 @@ export default function ResetPassword() {
         secureTextEntry
         placeholder="Confirm new password"
       />
-      <Button
-        text="Reset Password"
-        onPress={handleReset}
-        loading={isPending}
-      />
+      <Button text="Reset Password" onPress={handleReset} loading={isPending} />
     </AuthLayout>
   );
 }

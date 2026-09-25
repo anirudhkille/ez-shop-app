@@ -1,9 +1,6 @@
 import { useRef, useState } from "react";
 import { View, Pressable } from "react-native";
-import BottomSheet, {
-  BottomSheetBackdrop,
-  BottomSheetView,
-} from "@gorhom/bottom-sheet";
+import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
 import { Theme, useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
 import Text from "../ui/Text";
@@ -14,10 +11,7 @@ interface ThemeToggleProps {
   onChangeIndex: (index: number) => void;
 }
 
-export default function ThemeToggle({
-  index = -1,
-  onChangeIndex,
-}: ThemeToggleProps) {
+export default function ThemeToggle({ index = -1, onChangeIndex }: ThemeToggleProps) {
   const bottomSheetRef = useRef<BottomSheet>(null);
   const { appliedTheme, setTheme } = useThemeStore();
   const themeColors = colors[appliedTheme];

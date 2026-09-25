@@ -52,7 +52,9 @@ export default function Addresses() {
           <Text weight="600">{item.label}</Text>
           {item.isDefault && (
             <View style={[styles.defaultBadge, { backgroundColor: themeColors.primary }]}>
-              <Text size={14} weight="500" style={{ color: themeColors.background }}>Default</Text>
+              <Text size={14} weight="500" style={{ color: themeColors.background }}>
+                Default
+              </Text>
             </View>
           )}
         </View>
@@ -66,18 +68,22 @@ export default function Addresses() {
       <Text color="accent">{item.country}</Text>
       <Text color="accent">{item.phone}</Text>
 
-        <View style={[styles.cardActions, { borderTopColor: themeColors.border }]}>
-          <TouchableOpacity
+      <View style={[styles.cardActions, { borderTopColor: themeColors.border }]}>
+        <TouchableOpacity
           style={[styles.actionBtn, { borderColor: themeColors.border }]}
           onPress={() => router.push(`/profile/add-address?id=${item._id}`)}
         >
-          <Text size={14} color="primary">Edit</Text>
+          <Text size={14} color="primary">
+            Edit
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.actionBtn, { borderColor: "#ef4444" }]}
           onPress={() => handleDelete(item._id)}
         >
-          <Text size={14} style={{ color: "#ef4444" }}>Delete</Text>
+          <Text size={14} style={{ color: "#ef4444" }}>
+            Delete
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

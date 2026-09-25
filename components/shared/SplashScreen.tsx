@@ -29,14 +29,16 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
     <Container extraStyle={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
       <Animated.Image
-        source={require("@/assets/images/icon.png")} 
+        source={require("@/assets/images/icon.png")}
         style={[styles.logo, logoStyle]}
         resizeMode="contain"
       />
 
       <View style={styles.caption}>
         <Text color="accent">from</Text>
-        <Text weight="600" size={22}>Anirudh Kille</Text>
+        <Text weight="600" size={22}>
+          Anirudh Kille
+        </Text>
       </View>
     </Container>
   );

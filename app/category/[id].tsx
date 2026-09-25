@@ -1,5 +1,12 @@
 import React from "react";
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useFilteredProductsQuery } from "@/hooks/useProducts";
 import { ChevronLeftIcon } from "@/assets/icons/ChevronLeftIcon";
@@ -33,10 +40,12 @@ export default function CategoryProductsScreen() {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.card}
-              onPress={() => router.push(`/product/${item.slug || 'item'}/${item._id || item.id}`)}
+              onPress={() => router.push(`/product/${item.slug || "item"}/${item._id || item.id}`)}
             >
               <Image source={{ uri: item.images?.[0] || item.image }} style={styles.image} />
-              <Text style={styles.title} numberOfLines={2}>{item.name}</Text>
+              <Text style={styles.title} numberOfLines={2}>
+                {item.name}
+              </Text>
               <Text style={styles.price}>${item.price}</Text>
             </TouchableOpacity>
           )}
@@ -56,9 +65,18 @@ const styles = StyleSheet.create({
   headerTitle: { color: "#F5F5F5", fontSize: 18, fontWeight: "bold" },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   listContainer: { paddingHorizontal: 12, paddingBottom: 24 },
-  card: { flex: 1, backgroundColor: "#141414", borderRadius: 12, borderWidth: 1, borderColor: "#262626", margin: 6, padding: 12, maxWidth: "48%" },
+  card: {
+    flex: 1,
+    backgroundColor: "#141414",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#262626",
+    margin: 6,
+    padding: 12,
+    maxWidth: "48%",
+  },
   image: { width: "100%", height: 140, borderRadius: 8, marginBottom: 8 },
   title: { color: "#F5F5F5", fontSize: 14, fontWeight: "500", marginBottom: 4 },
   price: { color: "#FF5500", fontSize: 16, fontWeight: "bold" },
-  emptyText: { color: "#8C8C8C", textAlign: "center", marginTop: 40, fontSize: 16 }
+  emptyText: { color: "#8C8C8C", textAlign: "center", marginTop: 40, fontSize: 16 },
 });

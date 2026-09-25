@@ -24,8 +24,7 @@ export const useThemeStore = create<ThemeStore>()(
       appliedTheme: getDeviceTheme(),
 
       setTheme: (newTheme: Theme) => {
-        const resolvedTheme =
-          newTheme === "system" ? getDeviceTheme() : newTheme;
+        const resolvedTheme = newTheme === "system" ? getDeviceTheme() : newTheme;
         set({ theme: newTheme, appliedTheme: resolvedTheme });
       },
 

@@ -42,18 +42,15 @@ export default function Index() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView
-        style={[styles.container, { backgroundColor: themeColors.background }]}
-      >
+      <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
         <View style={{ padding: 20 }}>
           <View style={{ flexDirection: "column", gap: 10, marginBottom: 60 }}>
             <Text size={18} weight="600">
               Welcome to EZ SHOP.
             </Text>
             <Text color="accent">
-              Discover the ultimate shopping experience with EZ SHOP. Browse a
-              wide range of products, enjoy exclusive deals, and shop with ease
-              from the comfort of your home.
+              Discover the ultimate shopping experience with EZ SHOP. Browse a wide range of
+              products, enjoy exclusive deals, and shop with ease from the comfort of your home.
             </Text>
           </View>
           <Button text="Continue" onPress={() => router.push("/login")} />

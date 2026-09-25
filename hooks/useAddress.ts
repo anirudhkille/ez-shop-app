@@ -1,10 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  getAddresses,
-  createAddress,
-  updateAddress,
-  deleteAddress,
-} from "@/api/address";
+import { getAddresses, createAddress, updateAddress, deleteAddress } from "@/api/address";
 import { useAuthStore } from "@/store/auth";
 import { IAddress } from "@/types/api";
 

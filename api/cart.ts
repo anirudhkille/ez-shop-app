@@ -1,12 +1,11 @@
 import { apiClient } from "./client";
 import { IApiResponse, ICart } from "@/types/api";
 
-export const getCart = (token: string) =>
-  apiClient<IApiResponse<ICart>>("/cart", { token });
+export const getCart = (token: string) => apiClient<IApiResponse<ICart>>("/cart", { token });
 
 export const addToCart = (
   token: string,
-  data: { productId: string; variantId?: string; size?: string; quantity?: number },
+  data: { productId: string; variantId?: string; size?: string; quantity?: number }
 ) =>
   apiClient<IApiResponse<ICart>>("/cart", {
     method: "POST",

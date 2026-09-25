@@ -58,15 +58,12 @@ export default function ProductDetail() {
   const { data: reviewsData } = useReviewsByProductQuery(id);
   const reviews = reviewsData?.data || [];
 
-  const { mutate: toggleWishlist, isPending: wishlistPending } =
-    useToggleWishlistMutation();
-  const { mutate: addToCart, isPending: cartPending } =
-    useAddToCartMutation();
+  const { mutate: toggleWishlist, isPending: wishlistPending } = useToggleWishlistMutation();
+  const { mutate: addToCart, isPending: cartPending } = useAddToCartMutation();
 
   const variant = product?.variants?.[selectedVariant];
   const sizes = variant?.sizes || [];
-  const displayImage =
-    variant?.images?.[0] || product?.image || "";
+  const displayImage = variant?.images?.[0] || product?.image || "";
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -112,9 +109,7 @@ export default function ProductDetail() {
 
   if (isLoading) {
     return (
-      <Container
-        extraStyle={{ justifyContent: "center", alignItems: "center" }}
-      >
+      <Container extraStyle={{ justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" color={themeColors.primary} />
       </Container>
     );
@@ -124,9 +119,7 @@ export default function ProductDetail() {
     return (
       <>
         <Header title="Product" />
-        <Container
-          extraStyle={{ justifyContent: "center", alignItems: "center" }}
-        >
+        <Container extraStyle={{ justifyContent: "center", alignItems: "center" }}>
           <Text align="center" color="accent">
             Failed to load product.
           </Text>
@@ -141,12 +134,7 @@ export default function ProductDetail() {
       <Header title={product.name} />
       <Container extraStyle={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View
-            style={[
-              styles.imageWrapper,
-              { backgroundColor: themeColors.card },
-            ]}
-          >
+          <View style={[styles.imageWrapper, { backgroundColor: themeColors.card }]}>
             <Image
               source={displayImage}
               style={styles.mainImage}
@@ -162,12 +150,7 @@ export default function ProductDetail() {
                   {product.name}
                 </Text>
                 {product.tag ? (
-                  <View
-                    style={[
-                      styles.tagBadge,
-                      { backgroundColor: themeColors.primary + "15" },
-                    ]}
-                  >
+                  <View style={[styles.tagBadge, { backgroundColor: themeColors.primary + "15" }]}>
                     <Text size={14} weight="500">
                       {product.tag}
                     </Text>
@@ -177,15 +160,9 @@ export default function ProductDetail() {
               <TouchableOpacity
                 onPress={handleToggleWishlist}
                 disabled={wishlistPending}
-                style={[
-                  styles.wishlistBtn,
-                  { backgroundColor: themeColors.card },
-                ]}
+                style={[styles.wishlistBtn, { backgroundColor: themeColors.card }]}
               >
-                <HeartIcon
-                  color={themeColors.primary}
-                  size={22}
-                />
+                <HeartIcon color={themeColors.primary} size={22} />
               </TouchableOpacity>
             </View>
 
@@ -194,11 +171,7 @@ export default function ProductDetail() {
                 ₹{product.discountPrice || product.price}
               </Text>
               {product.discountPrice > 0 && (
-                <Text
-                  size={16}
-                  color="accent"
-                  style={styles.strikethrough}
-                >
+                <Text size={16} color="accent" style={styles.strikethrough}>
                   ₹{product.price}
                 </Text>
               )}
@@ -228,9 +201,7 @@ export default function ProductDetail() {
                         {
                           backgroundColor: v.colorCode || v.color,
                           borderColor:
-                            selectedVariant === idx
-                              ? themeColors.primary
-                              : themeColors.border,
+                            selectedVariant === idx ? themeColors.primary : themeColors.border,
                           borderWidth: selectedVariant === idx ? 2.5 : 1,
                         },
                       ]}
@@ -257,9 +228,7 @@ export default function ProductDetail() {
                           styles.sizeChip,
                           {
                             backgroundColor:
-                              selectedSize === s.size
-                                ? themeColors.primary
-                                : themeColors.card,
+                              selectedSize === s.size ? themeColors.primary : themeColors.card,
                             borderColor: themeColors.border,
                             opacity: outOfStock ? 0.35 : 1,
                           },
@@ -288,12 +257,7 @@ export default function ProductDetail() {
               <Text size={16} weight="600">
                 Quantity
               </Text>
-              <View
-                style={[
-                  styles.quantityControl,
-                  { borderColor: themeColors.border },
-                ]}
-              >
+              <View style={[styles.quantityControl, { borderColor: themeColors.border }]}>
                 <TouchableOpacity
                   onPress={() => setQuantity(Math.max(1, quantity - 1))}
                   style={styles.qtyBtn}
@@ -305,10 +269,7 @@ export default function ProductDetail() {
                 <Text size={18} weight="600">
                   {quantity}
                 </Text>
-                <TouchableOpacity
-                  onPress={() => setQuantity(quantity + 1)}
-                  style={styles.qtyBtn}
-                >
+                <TouchableOpacity onPress={() => setQuantity(quantity + 1)} style={styles.qtyBtn}>
                   <Text size={20} weight="600">
                     +
                   </Text>
@@ -316,11 +277,7 @@ export default function ProductDetail() {
               </View>
             </View>
 
-            <Button
-              text="Add to Cart"
-              onPress={handleAddToCart}
-              loading={cartPending}
-            />
+            <Button text="Add to Cart" onPress={handleAddToCart} loading={cartPending} />
           </View>
 
           {similarProducts.length > 0 && (
@@ -336,13 +293,8 @@ export default function ProductDetail() {
                 {similarProducts.map((p) => (
                   <TouchableOpacity
                     key={p._id}
-                    onPress={() =>
-                      router.replace(`/product/${p.slug}/${p._id}`)
-                    }
-                    style={[
-                      styles.similarCard,
-                      { backgroundColor: themeColors.card },
-                    ]}
+                    onPress={() => router.replace(`/product/${p.slug}/${p._id}`)}
+                    style={[styles.similarCard, { backgroundColor: themeColors.card }]}
                     activeOpacity={0.7}
                   >
                     <Image
@@ -374,10 +326,7 @@ export default function ProductDetail() {
                 {reviews.map((r) => (
                   <View
                     key={r._id}
-                    style={[
-                      styles.reviewCard,
-                      { borderColor: themeColors.border },
-                    ]}
+                    style={[styles.reviewCard, { borderColor: themeColors.border }]}
                   >
                     <View style={styles.reviewHeader}>
                       <Text size={14} weight="600">

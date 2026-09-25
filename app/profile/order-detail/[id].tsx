@@ -1,9 +1,4 @@
-import {
-  StyleSheet,
-  View,
-  ScrollView,
-  ActivityIndicator,
-} from "react-native";
+import { StyleSheet, View, ScrollView, ActivityIndicator } from "react-native";
 import React from "react";
 import Container from "@/layout/Container";
 import Header from "@/layout/Header";
@@ -69,18 +64,27 @@ export default function OrderDetail() {
     <>
       <Header title="Order Details" />
       <Container extraStyle={{ paddingTop: 10 }}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 20, paddingBottom: 40 }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ gap: 20, paddingBottom: 40 }}
+        >
           <View style={[styles.section, { backgroundColor: themeColors.card }]}>
             <View style={styles.row}>
-              <Text size={14} color="accent">Order ID</Text>
+              <Text size={14} color="accent">
+                Order ID
+              </Text>
               <Text weight="600">#{order._id.slice(-8).toUpperCase()}</Text>
             </View>
             <View style={styles.row}>
-              <Text size={14} color="accent">Date</Text>
+              <Text size={14} color="accent">
+                Date
+              </Text>
               <Text>{date}</Text>
             </View>
             <View style={styles.row}>
-              <Text size={14} color="accent">Payment</Text>
+              <Text size={14} color="accent">
+                Payment
+              </Text>
               <View style={styles.statusRow}>
                 <View
                   style={[
@@ -92,16 +96,22 @@ export default function OrderDetail() {
               </View>
             </View>
             <View style={styles.row}>
-              <Text size={14} color="accent">Payment Type</Text>
+              <Text size={14} color="accent">
+                Payment Type
+              </Text>
               <Text>{order.paymentType?.toUpperCase()}</Text>
             </View>
           </View>
 
           <View style={[styles.section, { backgroundColor: themeColors.card }]}>
-            <Text weight="600" size={18}>Delivery Address</Text>
+            <Text weight="600" size={18}>
+              Delivery Address
+            </Text>
             <Text style={{ marginTop: 8 }}>{order.address?.name}</Text>
             <Text color="accent">{order.address?.addressLine1}</Text>
-            {order.address?.addressLine2 ? <Text color="accent">{order.address?.addressLine2}</Text> : null}
+            {order.address?.addressLine2 ? (
+              <Text color="accent">{order.address?.addressLine2}</Text>
+            ) : null}
             <Text color="accent">
               {order.address?.city}, {order.address?.state} {order.address?.zipCode}
             </Text>
@@ -110,17 +120,28 @@ export default function OrderDetail() {
           </View>
 
           <View style={[styles.section, { backgroundColor: themeColors.card }]}>
-            <Text weight="600" size={18}>Order Items</Text>
+            <Text weight="600" size={18}>
+              Order Items
+            </Text>
             {order.products?.map((item: any, index: number) => (
               <View
                 key={index}
-                style={[styles.productRow, index < order.products.length - 1 && { borderBottomWidth: 1, borderBottomColor: themeColors.border, paddingBottom: 12 }]}
+                style={[
+                  styles.productRow,
+                  index < order.products.length - 1 && {
+                    borderBottomWidth: 1,
+                    borderBottomColor: themeColors.border,
+                    paddingBottom: 12,
+                  },
+                ]}
               >
                 <View style={{ flex: 1 }}>
                   <Text weight="500">
                     {typeof item.product === "object" ? item.product.name : `Product #${index + 1}`}
                   </Text>
-                  <Text size={14} color="accent">Qty: {item.quantity}</Text>
+                  <Text size={14} color="accent">
+                    Qty: {item.quantity}
+                  </Text>
                 </View>
                 <Text weight="600">${(item.price * item.quantity).toFixed(2)}</Text>
               </View>
@@ -136,14 +157,30 @@ export default function OrderDetail() {
               <Text color="accent">Delivery</Text>
               <Text>${order.deliveryCharge?.toFixed(2)}</Text>
             </View>
-            <View style={[styles.row, { borderTopWidth: 1, borderTopColor: themeColors.border, paddingTop: 12, marginTop: 4 }]}>
-              <Text weight="600" size={18}>Total</Text>
-              <Text weight="600" size={18}>${order.totalAmount?.toFixed(2)}</Text>
+            <View
+              style={[
+                styles.row,
+                {
+                  borderTopWidth: 1,
+                  borderTopColor: themeColors.border,
+                  paddingTop: 12,
+                  marginTop: 4,
+                },
+              ]}
+            >
+              <Text weight="600" size={18}>
+                Total
+              </Text>
+              <Text weight="600" size={18}>
+                ${order.totalAmount?.toFixed(2)}
+              </Text>
             </View>
           </View>
 
           <View style={[styles.section, { backgroundColor: themeColors.card }]}>
-            <Text weight="600" size={18}>Order Timeline</Text>
+            <Text weight="600" size={18}>
+              Order Timeline
+            </Text>
             <View style={{ marginTop: 16 }}>
               {timelineSteps.map((step, index) => {
                 const isCompleted = index <= currentStepIndex;
@@ -164,12 +201,21 @@ export default function OrderDetail() {
                         <View
                           style={[
                             styles.timelineLine,
-                            { backgroundColor: isCompleted ? statusColors[step] : themeColors.border },
+                            {
+                              backgroundColor: isCompleted
+                                ? statusColors[step]
+                                : themeColors.border,
+                            },
                           ]}
                         />
                       )}
                     </View>
-                    <View style={{ marginLeft: 12, paddingBottom: index < timelineSteps.length - 1 ? 24 : 0 }}>
+                    <View
+                      style={{
+                        marginLeft: 12,
+                        paddingBottom: index < timelineSteps.length - 1 ? 24 : 0,
+                      }}
+                    >
                       <Text
                         weight={isCompleted ? "600" : "400"}
                         color={isCompleted ? "primary" : "accent"}

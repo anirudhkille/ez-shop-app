@@ -1,15 +1,6 @@
 import React, { useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import BottomSheet, {
-  BottomSheetBackdrop,
-  BottomSheetView,
-} from "@gorhom/bottom-sheet";
+import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import Toast from "react-native-toast-message";
 import Container from "@/layout/Container";
@@ -29,16 +20,15 @@ export default function Wishlist() {
 
   const { data: wishlistResponse, isLoading } = useWishlistDetailsQuery();
   const { mutate: toggleWishlist } = useToggleWishlistMutation();
-  const { mutate: addToCart, isPending: isAddingToCart } =
-    useAddToCartMutation();
+  const { mutate: addToCart, isPending: isAddingToCart } = useAddToCartMutation();
 
   const bottomSheetRef = useRef<BottomSheet>(null);
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
 
   const products: IProduct[] =
-    (((wishlistResponse as any)?.data?.products || []).filter(
+    ((wishlistResponse as any)?.data?.products || []).filter(
       (p: any): p is IProduct => typeof p === "object"
-    )) || [];
+    ) || [];
 
   const handleItemPress = (product: IProduct) => {
     setSelectedProduct(product);
@@ -99,8 +89,7 @@ export default function Wishlist() {
     );
   }
 
-  const price = (p: IProduct) =>
-    p.discountPrice ?? p.price;
+  const price = (p: IProduct) => p.discountPrice ?? p.price;
 
   return (
     <Container extraStyle={styles.container}>
@@ -112,43 +101,21 @@ export default function Wishlist() {
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() => handleItemPress(item)}
-            style={[
-              styles.itemContainer,
-              { backgroundColor: themeColors.background },
-            ]}
+            style={[styles.itemContainer, { backgroundColor: themeColors.background }]}
           >
-            <View
-              style={[
-                styles.imageContainer,
-                { backgroundColor: themeColors.card },
-              ]}
-            >
-              <Image
-                contentFit="cover"
-                source={item.image}
-                style={styles.image}
-                transition={300}
-              />
+            <View style={[styles.imageContainer, { backgroundColor: themeColors.card }]}>
+              <Image contentFit="cover" source={item.image} style={styles.image} transition={300} />
               <TouchableOpacity
                 onPress={() => handleToggleWishlist(item._id)}
-                style={[
-                  styles.heart,
-                  { backgroundColor: themeColors.background },
-                ]}
+                style={[styles.heart, { backgroundColor: themeColors.background }]}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <HeartIcon
-                  color={themeColors.primary}
-                  fill={themeColors.primary}
-                  size={18}
-                />
+                <HeartIcon color={themeColors.primary} fill={themeColors.primary} size={18} />
               </TouchableOpacity>
             </View>
             <View style={styles.textContainer}>
               <Text weight="500" size={14}>
-                {item.name.length > 40
-                  ? item.name.slice(0, 40) + "..."
-                  : item.name}
+                {item.name.length > 40 ? item.name.slice(0, 40) + "..." : item.name}
               </Text>
               <Text size={14} color="accent">
                 ₹{price(item).toFixed(2)}
@@ -211,11 +178,7 @@ export default function Wishlist() {
                       <Text weight="600" size={18}>
                         ₹{selectedProduct.discountPrice.toFixed(2)}
                       </Text>
-                      <Text
-                        size={14}
-                        color="accent"
-                        style={{ textDecorationLine: "line-through" }}
-                      >
+                      <Text size={14} color="accent" style={{ textDecorationLine: "line-through" }}>
                         ₹{selectedProduct.price.toFixed(2)}
                       </Text>
                     </View>
@@ -231,11 +194,7 @@ export default function Wishlist() {
                 </View>
               </View>
 
-              <Button
-                text="Add to Cart"
-                onPress={handleAddToCart}
-                loading={isAddingToCart}
-              />
+              <Button text="Add to Cart" onPress={handleAddToCart} loading={isAddingToCart} />
             </>
           )}
         </BottomSheetView>

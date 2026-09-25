@@ -26,9 +26,7 @@ export default function AuthLayout({
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView
-        style={[styles.container, { backgroundColor: themeColors.background }]}
-      >
+      <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
         <View style={styles.card}>
           <View style={{ flexDirection: "column", gap: 10 }}>
             <Text size={22} weight="600" align="center">
@@ -41,10 +39,7 @@ export default function AuthLayout({
           <View style={styles.children}>
             {children}
             <View>
-              <Link
-                href={href}
-                style={[styles.link, { color: themeColors.primary }]}
-              >
+              <Link href={href} style={[styles.link, { color: themeColors.primary }]}>
                 {linkText}
               </Link>
             </View>

@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useSearchProductsQuery } from "@/hooks/useProducts";
 import { SearchIcon } from "@/assets/icons/SearchIcon";
@@ -44,10 +52,12 @@ export default function SearchScreen() {
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.card}
-              onPress={() => router.push(`/product/${item.slug || 'item'}/${item._id || item.id}`)}
+              onPress={() => router.push(`/product/${item.slug || "item"}/${item._id || item.id}`)}
             >
               <Image source={{ uri: item.images?.[0] || item.image }} style={styles.image} />
-              <Text style={styles.title} numberOfLines={2}>{item.name}</Text>
+              <Text style={styles.title} numberOfLines={2}>
+                {item.name}
+              </Text>
               <Text style={styles.price}>${item.price}</Text>
             </TouchableOpacity>
           )}
@@ -68,13 +78,32 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0D0D0D", paddingTop: 50 },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, marginBottom: 16 },
   backButton: { marginRight: 12 },
-  searchBar: { flex: 1, flexDirection: "row", alignItems: "center", backgroundColor: "#141414", borderWidth: 1, borderColor: "#262626", borderRadius: 12, paddingHorizontal: 12, height: 46 },
+  searchBar: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#141414",
+    borderWidth: 1,
+    borderColor: "#262626",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 46,
+  },
   input: { flex: 1, color: "#F5F5F5", marginLeft: 8, fontSize: 16 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   listContainer: { paddingHorizontal: 12, paddingBottom: 24 },
-  card: { flex: 1, backgroundColor: "#141414", borderRadius: 12, borderWidth: 1, borderColor: "#262626", margin: 6, padding: 12, maxWidth: "48%" },
+  card: {
+    flex: 1,
+    backgroundColor: "#141414",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#262626",
+    margin: 6,
+    padding: 12,
+    maxWidth: "48%",
+  },
   image: { width: "100%", height: 140, borderRadius: 8, marginBottom: 8 },
   title: { color: "#F5F5F5", fontSize: 14, fontWeight: "500", marginBottom: 4 },
   price: { color: "#FF5500", fontSize: 16, fontWeight: "bold" },
-  emptyText: { color: "#8C8C8C", textAlign: "center", marginTop: 40, fontSize: 16 }
+  emptyText: { color: "#8C8C8C", textAlign: "center", marginTop: 40, fontSize: 16 },
 });

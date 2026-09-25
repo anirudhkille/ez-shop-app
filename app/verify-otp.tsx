@@ -51,9 +51,7 @@ export default function VerifyOtp() {
   };
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: themeColors.background }]}
-    >
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
       <Container>
         <Text size={22} weight="600" align="center">
           Verify OTP
@@ -61,12 +59,7 @@ export default function VerifyOtp() {
         <Text color="accent" align="center">
           Enter the OTP sent to {email}
         </Text>
-        <Input
-          label="OTP"
-          value={otp}
-          onChangeText={setOtp}
-          placeholder="Enter 6-digit OTP"
-        />
+        <Input label="OTP" value={otp} onChangeText={setOtp} placeholder="Enter 6-digit OTP" />
         <Button text="Verify" onPress={handleVerify} loading={isPending} />
       </Container>
     </SafeAreaView>

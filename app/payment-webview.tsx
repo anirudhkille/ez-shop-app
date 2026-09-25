@@ -23,7 +23,7 @@ export default function PaymentWebviewScreen() {
         <Text style={styles.headerTitle}>Secure Payment</Text>
       </View>
       <WebView
-        source={{ uri: decodeURIComponent(url as string || "https://stripe.com") }}
+        source={{ uri: decodeURIComponent((url as string) || "https://stripe.com") }}
         onNavigationStateChange={handleNavigationStateChange}
         style={{ flex: 1 }}
       />
@@ -35,5 +35,5 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0D0D0D", paddingTop: 50 },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingBottom: 12 },
   backButton: { marginRight: 12 },
-  headerTitle: { color: "#F5F5F5", fontSize: 18, fontWeight: "bold" }
+  headerTitle: { color: "#F5F5F5", fontSize: 18, fontWeight: "bold" },
 });
