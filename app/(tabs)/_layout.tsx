@@ -32,7 +32,7 @@ export default function TabLayout() {
         name="home"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => <HouseIcon color={color} />,
+          tabBarIcon: ({ color }) => <HouseIcon color={color as string} />,
         }}
       />
 
@@ -40,7 +40,7 @@ export default function TabLayout() {
         name="shop"
         options={{
           title: "Shop",
-          tabBarIcon: ({ color }) => <SearchIcon color={color} />,
+          tabBarIcon: ({ color }) => <SearchIcon color={color as string} />,
         }}
       />
 
@@ -48,7 +48,7 @@ export default function TabLayout() {
         name="wishlist"
         options={{
           title: "Wishlist",
-          tabBarIcon: ({ color }) => <HeartIcon color={color} />,
+          tabBarIcon: ({ color }) => <HeartIcon color={color as string} />,
         }}
       />
 
@@ -56,7 +56,7 @@ export default function TabLayout() {
         name="cart"
         options={{
           title: "Cart",
-          tabBarIcon: ({ color }) => <ShoppingBagIcon color={color} />,
+          tabBarIcon: ({ color }) => <ShoppingBagIcon color={color as string} />,
         }}
       />
 
@@ -64,7 +64,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color }) => <UserIcon color={color} />,
+          tabBarIcon: ({ color }) => <UserIcon color={color as string} />,
         }}
       />
     </Tabs>
