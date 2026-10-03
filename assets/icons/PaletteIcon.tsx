@@ -2,7 +2,7 @@ import { IconProps } from "@/types/icon";
 import React from "react";
 import Svg, { Circle, Path } from "react-native-svg";
 
-export const PaletteIcon = ({ color = "white", size = 24 }:IconProps) => (
+export const PaletteIcon = ({ color = "white", size = 24 }: IconProps) => (
   <Svg
     height={size}
     width={size}

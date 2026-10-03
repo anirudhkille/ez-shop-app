@@ -1,7 +1,7 @@
 import { IconProps } from "@/types/icon";
 import Svg, { Path } from "react-native-svg";
 
-export const LogoutIcon = ({ color = "white", size = 24 }:IconProps) => (
+export const LogoutIcon = ({ color = "white", size = 24 }: IconProps) => (
   <Svg
     height={size}
     width={size}
