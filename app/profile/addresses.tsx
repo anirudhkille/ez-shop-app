@@ -11,7 +11,6 @@ import Container from "@/layout/Container";
 import Header from "@/layout/Header";
 import Text from "@/components/ui/Text";
 import Button from "@/components/ui/Button";
-import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
 import { useAddressesQuery, useDeleteAddressMutation } from "@/hooks/useAddress";
 import { useRouter } from "expo-router";
@@ -20,8 +19,6 @@ import { UserIcon } from "@/assets/icons/UserIcon";
 import Toast from "react-native-toast-message";
 
 export default function Addresses() {
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
   const router = useRouter();
 
   const { data, isLoading, isError, refetch } = useAddressesQuery();
@@ -46,13 +43,13 @@ export default function Addresses() {
   };
 
   const renderAddress = ({ item }: { item: IAddress }) => (
-    <View style={[styles.card, { backgroundColor: themeColors.card }]}>
+    <View style={[styles.card, { backgroundColor: colors.surface }]}>
       <View style={styles.cardHeader}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Text weight="600">{item.label}</Text>
           {item.isDefault && (
-            <View style={[styles.defaultBadge, { backgroundColor: themeColors.primary }]}>
-              <Text size={14} weight="500" style={{ color: themeColors.background }}>
+            <View style={[styles.defaultBadge, { backgroundColor: colors.brand }]}>
+              <Text size={14} weight="500" style={{ color: colors.background }}>
                 Default
               </Text>
             </View>
@@ -60,20 +57,20 @@ export default function Addresses() {
         </View>
       </View>
       <Text style={{ marginTop: 4 }}>{item.name}</Text>
-      <Text color="accent">{item.addressLine1}</Text>
-      {item.addressLine2 ? <Text color="accent">{item.addressLine2}</Text> : null}
-      <Text color="accent">
+      <Text color="muted">{item.addressLine1}</Text>
+      {item.addressLine2 ? <Text color="muted">{item.addressLine2}</Text> : null}
+      <Text color="muted">
         {item.city}, {item.state} {item.zipCode}
       </Text>
-      <Text color="accent">{item.country}</Text>
-      <Text color="accent">{item.phone}</Text>
+      <Text color="muted">{item.country}</Text>
+      <Text color="muted">{item.phone}</Text>
 
-      <View style={[styles.cardActions, { borderTopColor: themeColors.border }]}>
+      <View style={[styles.cardActions, { borderTopColor: colors.border }]}>
         <TouchableOpacity
-          style={[styles.actionBtn, { borderColor: themeColors.border }]}
+          style={[styles.actionBtn, { borderColor: colors.border }]}
           onPress={() => router.push(`/profile/add-address?id=${item._id}`)}
         >
-          <Text size={14} color="primary">
+          <Text size={14} color="foreground">
             Edit
           </Text>
         </TouchableOpacity>
@@ -92,9 +89,9 @@ export default function Addresses() {
   if (isLoading) {
     return (
       <>
-        <Header title="Addresses" />
-        <Container extraStyle={{ justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={themeColors.primary} />
+        <Header />
+        <Container bottomInset extraStyle={{ justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color={colors.brand} />
         </Container>
       </>
     );
@@ -103,8 +100,11 @@ export default function Addresses() {
   if (isError) {
     return (
       <>
-        <Header title="Addresses" />
-        <Container extraStyle={{ justifyContent: "center", alignItems: "center", gap: 20 }}>
+        <Header />
+        <Container
+          bottomInset
+          extraStyle={{ justifyContent: "center", alignItems: "center", gap: 20 }}
+        >
           <Text align="center">Failed to load addresses</Text>
           <Button text="Retry" onPress={() => refetch()} />
         </Container>
@@ -114,12 +114,12 @@ export default function Addresses() {
 
   return (
     <>
-      <Header title="Addresses" />
-      <Container extraStyle={{ paddingTop: 10 }}>
+      <Header />
+      <Container bottomInset extraStyle={{ paddingTop: 10 }}>
         {addresses.length === 0 ? (
           <View style={{ flex: 1, justifyContent: "center", alignItems: "center", gap: 16 }}>
-            <UserIcon color={themeColors.accent} size={48} />
-            <Text align="center" color="accent" size={18}>
+            <UserIcon color={colors.muted} size={48} />
+            <Text align="center" color="muted" size={18}>
               No addresses saved
             </Text>
             <Button text="Add Address" onPress={() => router.push("/profile/add-address")} />

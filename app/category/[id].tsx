@@ -1,57 +1,104 @@
 import React from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-} from "react-native";
+import { View, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useFilteredProductsQuery } from "@/hooks/useProducts";
-import { ChevronLeftIcon } from "@/assets/icons/ChevronLeftIcon";
 import { Image } from "expo-image";
 
+import { useCategoriesQuery } from "@/hooks/useCategories";
+import { useFilteredProductsQuery } from "@/hooks/useProducts";
+import { ChevronLeftIcon } from "@/assets/icons/ChevronLeftIcon";
+import Text from "@/components/ui/Text";
+import Button from "@/components/ui/Button";
+import { colors, fonts, radius } from "@/constant/color";
+import { IProduct } from "@/types/api";
+
+const CARD_WIDTH = 168;
+
 export default function CategoryProductsScreen() {
-  const { id } = useLocalSearchParams();
+  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { data: productsRes, isLoading } = useFilteredProductsQuery({ category: id as string });
-  const products = (productsRes as any)?.data || (Array.isArray(productsRes) ? productsRes : []);
+
+  const { data: categoriesData } = useCategoriesQuery();
+  const categories = categoriesData?.data || [];
+
+  const matches = categories.find((c) => c._id === id) ?? categories.find((c) => c.slug === id);
+
+  // The filter endpoint validates `category` as an ObjectId, so a slug from a
+  // deep link has to be resolved before it is sent.
+  const categoryId = matches?._id ?? (id?.length === 24 ? id : undefined);
+
+  const { data, isLoading, isError, refetch } = useFilteredProductsQuery(
+    { category: categoryId ?? "" },
+    { enabled: !!categoryId }
+  );
+
+  const products: IProduct[] = data?.data ?? [];
+  const title = matches?.name ?? "Category";
 
   return (
-    <View style={styles.container}>
+    <View style={styles.screen}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ChevronLeftIcon color="#fff" size={24} />
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <ChevronLeftIcon color={colors.foreground} size={28} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Category Products</Text>
+        <Text size={20} weight="700" variant="displaySemi" numberOfLines={1} style={styles.title}>
+          {title}
+        </Text>
       </View>
 
       {isLoading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#FF5500" />
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.brand} />
+        </View>
+      ) : isError || !categoryId ? (
+        <View style={styles.center}>
+          <Text align="center" color="muted">
+            {categoryId ? "Could not load this category." : "That category no longer exists."}
+          </Text>
+          {categoryId ? (
+            <Button text="Try again" variant="outline" onPress={() => refetch()} />
+          ) : null}
+        </View>
+      ) : products.length === 0 ? (
+        <View style={styles.center}>
+          <Text align="center" color="muted">
+            No products in {title} yet.
+          </Text>
         </View>
       ) : (
         <FlatList
+          contentInsetAdjustmentBehavior="automatic"
           data={products}
-          keyExtractor={(item: any) => item._id || item.id}
+          keyExtractor={(item) => item._id}
           numColumns={2}
-          contentContainerStyle={styles.listContainer}
+          columnWrapperStyle={styles.row}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.card}
-              onPress={() => router.push(`/product/${item.slug || "item"}/${item._id || item.id}`)}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              onPress={() => router.push(`/product/${item.slug}/${item._id}`)}
             >
-              <Image source={{ uri: item.images?.[0] || item.image }} style={styles.image} />
-              <Text style={styles.title} numberOfLines={2}>
-                {item.name}
-              </Text>
-              <Text style={styles.price}>${item.price}</Text>
+              <View style={styles.imageWrap}>
+                <Image source={item.image} style={styles.image} contentFit="contain" />
+              </View>
+              <View style={styles.cardBody}>
+                <Text size={15} weight="600" numberOfLines={2} style={styles.name}>
+                  {item.name}
+                </Text>
+                <Text size={18} weight="700" variant="display" style={styles.price}>
+                  {"\u20B9"}
+                  {item.discountPrice || item.price}
+                </Text>
+              </View>
             </TouchableOpacity>
           )}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No products found in this category</Text>
-          }
         />
       )}
     </View>
@@ -59,24 +106,65 @@ export default function CategoryProductsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0D0D0D", paddingTop: 50 },
-  header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, marginBottom: 16 },
-  backButton: { marginRight: 12 },
-  headerTitle: { color: "#F5F5F5", fontSize: 18, fontWeight: "bold" },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-  listContainer: { paddingHorizontal: 12, paddingBottom: 24 },
-  card: {
+  screen: {
     flex: 1,
-    backgroundColor: "#141414",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#262626",
-    margin: 6,
-    padding: 12,
-    maxWidth: "48%",
+    backgroundColor: colors.background,
   },
-  image: { width: "100%", height: 140, borderRadius: 8, marginBottom: 8 },
-  title: { color: "#F5F5F5", fontSize: 14, fontWeight: "500", marginBottom: 4 },
-  price: { color: "#FF5500", fontSize: 16, fontWeight: "bold" },
-  emptyText: { color: "#8C8C8C", textAlign: "center", marginTop: 40, fontSize: 16 },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingTop: 48,
+    paddingBottom: 12,
+  },
+  title: {
+    flex: 1,
+    letterSpacing: 0.6,
+  },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 18,
+    paddingHorizontal: 32,
+  },
+  list: {
+    paddingBottom: 28,
+    paddingHorizontal: 16,
+  },
+  row: {
+    gap: 12,
+  },
+  card: {
+    width: CARD_WIDTH,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    overflow: "hidden",
+    marginBottom: 12,
+  },
+  imageWrap: {
+    width: "100%",
+    aspectRatio: 1,
+    padding: 12,
+    backgroundColor: colors.surfaceRaised,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  image: {
+    width: "100%",
+    height: "100%",
+  },
+  cardBody: {
+    padding: 12,
+    gap: 4,
+  },
+  name: {
+    fontFamily: fonts.body,
+  },
+  price: {
+    color: colors.brand,
+  },
 });

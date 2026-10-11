@@ -8,15 +8,12 @@ import Text from "@/components/ui/Text";
 import Container from "@/layout/Container";
 import { useVerifySignupOTPMutation } from "@/hooks/useUser";
 import { colors } from "@/constant/color";
-import { useThemeStore } from "@/store/theme";
 import Toast from "react-native-toast-message";
 
 export default function VerifyOtp() {
   const router = useRouter();
   const { email } = useLocalSearchParams<{ email: string }>();
   const { mutate, isPending } = useVerifySignupOTPMutation();
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
   const [otp, setOtp] = useState("");
 
   const handleVerify = () => {
@@ -51,12 +48,12 @@ export default function VerifyOtp() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Container>
         <Text size={22} weight="600" align="center">
           Verify OTP
         </Text>
-        <Text color="accent" align="center">
+        <Text color="muted" align="center">
           Enter the OTP sent to {email}
         </Text>
         <Input label="OTP" value={otp} onChangeText={setOtp} placeholder="Enter 6-digit OTP" />

@@ -1,64 +1,104 @@
-import { View, TextInput, StyleSheet } from "react-native";
+import { View, TextInput, StyleSheet, TextInputProps } from "react-native";
 import React from "react";
-import { colors } from "@/constant/color";
-import { useThemeStore } from "@/store/theme";
-import Text from "./Text";
+import { colors, radius } from "@/constant/color";
+import { Text } from "./Text";
 
-interface InputProps {
+interface InputProps extends Omit<TextInputProps, "style"> {
   label?: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder?: string;
-  size?: "sm" | "md";
-  secureTextEntry?: boolean;
+  icon?: React.ReactNode;
+  /** Rendered on the label row's trailing edge, e.g. a "Forgot password?" link. */
+  labelAction?: React.ReactNode;
+  error?: string;
 }
 
 export default function Input({
   label,
-  value,
-  onChangeText,
-  placeholder = "",
-  size = "sm",
-  secureTextEntry = false,
+  icon,
+  labelAction,
+  error,
+  onFocus,
+  onBlur,
+  ...props
 }: InputProps) {
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
-
-  const heightStyle = size === "sm" ? { height: 50 } : { height: 50 };
+  const [focused, setFocused] = React.useState(false);
 
   return (
     <View style={styles.container}>
-      {label && <Text>{label}</Text>}
-      <TextInput
+      {label || labelAction ? (
+        <View style={styles.labelRow}>
+          {label ? (
+            <Text size={12} weight="600" color="muted" style={styles.label}>
+              {label.toUpperCase()}
+            </Text>
+          ) : null}
+          {labelAction}
+        </View>
+      ) : null}
+
+      <View
         style={[
-          styles.input,
-          heightStyle,
+          styles.field,
           {
-            borderColor: themeColors.border,
-            color: themeColors.primary,
-            backgroundColor: themeColors.card,
+            backgroundColor: colors.surface,
+            borderColor: error ? colors.destructive : focused ? colors.borderStrong : colors.border,
           },
         ]}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={themeColors.accent}
-        secureTextEntry={secureTextEntry}
-      />
+      >
+        {icon ? <View style={styles.icon}>{icon}</View> : null}
+        <TextInput
+          {...props}
+          onFocus={(e) => {
+            setFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            onBlur?.(e);
+          }}
+          style={styles.input}
+          placeholderTextColor={colors.subtle}
+        />
+      </View>
+
+      {error ? (
+        <Text size={12} color="destructive">
+          {error}
+        </Text>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "column",
-    gap: 10,
+    gap: 8,
     width: "100%",
   },
-  input: {
-    padding: 15,
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  label: {
+    letterSpacing: 1.1,
+  },
+  field: {
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: radius.md,
+    paddingHorizontal: 14,
+    height: 52,
+    gap: 10,
+  },
+  icon: {
+    width: 20,
+    alignItems: "center",
+  },
+  input: {
+    flex: 1,
+    color: colors.foreground,
     fontSize: 16,
+    height: "100%",
   },
 });

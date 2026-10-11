@@ -4,28 +4,24 @@ import { SearchIcon } from "@/assets/icons/SearchIcon";
 import { ShoppingBagIcon } from "@/assets/icons/ShoppingBagIcon";
 import { UserIcon } from "@/assets/icons/UserIcon";
 import { colors } from "@/constant/color";
-import { useThemeStore } from "@/store/theme";
 import { Tabs } from "expo-router";
 
 export default function TabLayout() {
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: themeColors.primary,
-        tabBarInactiveTintColor: themeColors.accent,
+        // Each tab supplies its own context in the page body, so the navigator
+        // header would only repeat it.
+        headerShown: false,
+        tabBarActiveTintColor: colors.brand,
+        tabBarInactiveTintColor: colors.muted,
+        sceneStyle: { backgroundColor: colors.background },
         tabBarStyle: {
-          backgroundColor: themeColors.background,
-          borderTopColor: themeColors.accent,
+          backgroundColor: colors.background,
+          borderTopColor: colors.border,
           paddingBottom: 20,
           height: 60,
         },
-        headerStyle: {
-          backgroundColor: themeColors.background,
-        },
-        headerTintColor: themeColors.primary,
       }}
     >
       <Tabs.Screen

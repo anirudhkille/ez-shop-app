@@ -44,7 +44,8 @@ export default function ForgotPassword() {
       heading="Forgot Password"
       description="Enter your email to receive an OTP"
       href="/login"
-      linkText="Back to Login"
+      prompt="Already remembered it?"
+      action="Back to login"
     >
       <Input label="Email" value={email} onChangeText={setEmail} placeholder="Enter your email" />
       <Button text="Send OTP" onPress={handleSubmit} loading={isPending} />

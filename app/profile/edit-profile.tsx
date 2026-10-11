@@ -41,8 +41,8 @@ export default function EditProfile() {
 
   return (
     <>
-      <Header title="Edit Profile" />
-      <Container extraStyle={styles.container}>
+      <Header />
+      <Container bottomInset extraStyle={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <Input label="Name" value={name} onChangeText={setName} />
           <Input label="Phone" value={phone} onChangeText={setPhone} />

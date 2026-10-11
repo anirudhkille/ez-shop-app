@@ -5,7 +5,6 @@ import Header from "@/layout/Header";
 import Input from "@/components/ui/Input";
 import Text from "@/components/ui/Text";
 import Button from "@/components/ui/Button";
-import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
 import { useCreateAddressMutation, useAddressesQuery } from "@/hooks/useAddress";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -14,8 +13,6 @@ import Toast from "react-native-toast-message";
 const LABELS = ["Home", "Work", "Other"] as const;
 
 export default function AddAddress() {
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -79,8 +76,8 @@ export default function AddAddress() {
 
   return (
     <>
-      <Header title={id ? "Edit Address" : "Add Address"} />
-      <Container extraStyle={{ paddingTop: 10 }}>
+      <Header />
+      <Container bottomInset extraStyle={{ paddingTop: 10 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ gap: 20, paddingBottom: 40 }}
@@ -94,15 +91,15 @@ export default function AddAddress() {
                   style={[
                     styles.labelBtn,
                     {
-                      borderColor: label === l ? themeColors.primary : themeColors.border,
-                      backgroundColor: label === l ? themeColors.primary + "15" : themeColors.card,
+                      borderColor: label === l ? colors.brand : colors.border,
+                      backgroundColor: label === l ? colors.brand + "15" : colors.surface,
                     },
                   ]}
                   onPress={() => setLabel(l)}
                 >
                   <Text
                     weight={label === l ? "600" : "400"}
-                    color={label === l ? "primary" : "accent"}
+                    color={label === l ? "brand" : "muted"}
                   >
                     {l}
                   </Text>
@@ -129,8 +126,8 @@ export default function AddAddress() {
               style={[
                 styles.checkbox,
                 {
-                  borderColor: themeColors.primary,
-                  backgroundColor: isDefault ? themeColors.primary : "transparent",
+                  borderColor: colors.brand,
+                  backgroundColor: isDefault ? colors.brand : "transparent",
                 },
               ]}
             >

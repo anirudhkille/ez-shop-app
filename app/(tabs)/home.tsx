@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from "react";
+import { useWindowDimensions } from "react-native";
 import {
   View,
   ScrollView,
@@ -6,30 +7,29 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Dimensions,
 } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import Container from "@/layout/Container";
 import Text from "@/components/ui/Text";
-import { useThemeStore } from "@/store/theme";
+import PromoBanner from "@/components/shared/PromoBanner";
 import { colors } from "@/constant/color";
 import { useFeaturedProductsQuery, useBestSellersQuery } from "@/hooks/useProducts";
 import { useCategoriesQuery } from "@/hooks/useCategories";
 import { IProduct, ICategory } from "@/types/api";
 
-const { width } = Dimensions.get("window");
+const { width } = useWindowDimensions();
 const CARD_WIDTH = width * 0.55;
 const CATEGORY_SIZE = (width - 60) / 2;
 
 function StarRating({ rating }: { rating: number }) {
   return (
     <View style={styles.starRow}>
-      <Text size={14} color="accent">
+      <Text size={14} color="muted">
         {"★".repeat(Math.round(rating))}
         {"☆".repeat(5 - Math.round(rating))}
       </Text>
-      <Text size={14} color="accent">
+      <Text size={14} color="muted">
         {rating.toFixed(1)}
       </Text>
     </View>
@@ -37,13 +37,10 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 function ProductCard({ product, onPress }: { product: IProduct; onPress: () => void }) {
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
-
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[styles.productCard, { backgroundColor: themeColors.card }]}
+      style={[styles.productCard, { backgroundColor: colors.surface }]}
       activeOpacity={0.7}
     >
       <Image
@@ -61,7 +58,7 @@ function ProductCard({ product, onPress }: { product: IProduct; onPress: () => v
             ₹{product.discountPrice || product.price}
           </Text>
           {product.discountPrice > 0 && (
-            <Text size={14} color="accent" style={styles.strikethrough}>
+            <Text size={14} color="muted" style={styles.strikethrough}>
               ₹{product.price}
             </Text>
           )}
@@ -73,13 +70,10 @@ function ProductCard({ product, onPress }: { product: IProduct; onPress: () => v
 }
 
 function CategoryCard({ category, onPress }: { category: ICategory; onPress: () => void }) {
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
-
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[styles.categoryCard, { backgroundColor: themeColors.card }]}
+      style={[styles.categoryCard, { backgroundColor: colors.surface }]}
       activeOpacity={0.7}
     >
       <Image
@@ -97,8 +91,6 @@ function CategoryCard({ category, onPress }: { category: ICategory; onPress: () 
 
 export default function Home() {
   const router = useRouter();
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
   const [refreshing, setRefreshing] = useState(false);
 
   const {
@@ -132,7 +124,7 @@ export default function Home() {
   };
 
   const navigateToCategory = (category: ICategory) => {
-    router.push(`/shop?category=${category.slug}`);
+    router.push(`/category/${category._id}`);
   };
 
   if (featuredLoading && bestSellersLoading && categoriesLoading) {
@@ -143,7 +135,7 @@ export default function Home() {
           alignItems: "center",
         }}
       >
-        <ActivityIndicator size="large" color={themeColors.primary} />
+        <ActivityIndicator size="large" color={colors.brand} />
       </Container>
     );
   }
@@ -153,17 +145,17 @@ export default function Home() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={themeColors.primary}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />
         }
       >
+        <View style={styles.section}>
+          <PromoBanner onPress={() => router.push("/(tabs)/shop")} />
+        </View>
+
         {featured.length > 0 && (
           <View style={styles.section}>
-            <Text size={22} weight="600">
-              Featured
+            <Text size={22} weight="700" variant="displaySemi" style={styles.sectionTitle}>
+              FEATURED
             </Text>
             <ScrollView
               horizontal
@@ -200,8 +192,8 @@ export default function Home() {
 
         {bestSellers.length > 0 && (
           <View style={styles.section}>
-            <Text size={22} weight="600">
-              Best Sellers
+            <Text size={22} weight="700" variant="displaySemi" style={styles.sectionTitle}>
+              BEST SELLERS
             </Text>
             <ScrollView
               horizontal
@@ -221,7 +213,7 @@ export default function Home() {
 
         {featured.length === 0 && bestSellers.length === 0 && categories.length === 0 && (
           <View style={styles.emptyState}>
-            <Text align="center" color="accent">
+            <Text align="center" color="muted">
               No products available right now.
             </Text>
           </View>
@@ -234,6 +226,9 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
+  },
+  sectionTitle: {
+    letterSpacing: 1,
   },
   section: {
     marginBottom: 28,

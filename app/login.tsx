@@ -1,35 +1,45 @@
-import React, { useState } from "react";
+import React from "react";
+import { StyleSheet } from "react-native";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useRouter, Link } from "expo-router";
+import Toast from "react-native-toast-message";
+
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import AuthLayout from "@/layout/AuthLayout";
+import GoogleButton from "@/components/ui/GoogleButton";
+import Text from "@/components/ui/Text";
+import AuthLayout, { OrDivider } from "@/layout/AuthLayout";
 import { useLoginMutation } from "@/hooks/useUser";
-import Toast from "react-native-toast-message";
-import { useRouter, Link } from "expo-router";
-import { useThemeStore } from "@/store/theme";
+import { useGoogleLogin } from "@/hooks/useGoogleAuth";
+import { MailIcon } from "@/assets/icons/MailIcon";
+import { LockIcon } from "@/assets/icons/LockIcon";
 import { colors } from "@/constant/color";
+
+const schema = z.object({
+  email: z.string().min(1, "Email is required").email("Enter a valid email"),
+  password: z.string().min(1, "Password is required").min(8, "At least 8 characters"),
+});
+
+type FormValues = z.infer<typeof schema>;
 
 export default function Login() {
   const router = useRouter();
   const { mutate, isPending } = useLoginMutation();
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+  const { startGoogleLogin, isPending: isGooglePending } = useGoogleLogin();
+
+  const { control, handleSubmit, formState } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { email: "", password: "" },
+    mode: "onSubmit",
   });
 
-  const handleChange = (key: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleLogin = async () => {
-    mutate(formData, {
+  const onSubmit = handleSubmit((values) => {
+    mutate(values, {
       onSuccess: (data) => {
-        Toast.show({
-          type: "success",
-          text1: data?.message,
-        });
-        router.push("/(tabs)/home");
+        Toast.show({ type: "success", text1: data?.message || "Logged in" });
+        router.replace("/(tabs)/home");
       },
       onError: (error: any) => {
         Toast.show({
@@ -38,40 +48,69 @@ export default function Login() {
         });
       },
     });
-  };
+  });
 
   return (
     <AuthLayout
-      heading="Login"
-      description="Enter your email and password to login"
+      heading="Welcome back"
+      description="Login to your EZ Shop account"
+      prompt="Don't have an account?"
+      action="Create account"
       href="/signup"
-      linkText="Don't have an account? Sign Up"
     >
-      <Input
-        value={formData.email}
-        label="Email"
-        onChangeText={(text) => handleChange("email", text)}
+      <GoogleButton onPress={startGoogleLogin} loading={isGooglePending} />
+
+      <OrDivider />
+
+      <Controller
+        control={control}
+        name="email"
+        render={({ field }) => (
+          <Input
+            label="Email"
+            icon={<MailIcon color={colors.muted} size={20} />}
+            placeholder="you@example.com"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={field.value}
+            onChangeText={field.onChange}
+            onBlur={field.onBlur}
+            error={formState.errors.email?.message}
+          />
+        )}
       />
 
-      <Input
-        label="Password"
-        value={formData.password}
-        onChangeText={(text) => handleChange("password", text)}
-        secureTextEntry
+      <Controller
+        control={control}
+        name="password"
+        render={({ field }) => (
+          <Input
+            label="Password"
+            icon={<LockIcon color={colors.muted} size={20} />}
+            placeholder="Enter your password"
+            secureTextEntry
+            value={field.value}
+            onChangeText={field.onChange}
+            onBlur={field.onBlur}
+            labelAction={
+              <Link href="/forgot-password" style={styles.forgot}>
+                <Text size={14} weight="600" color="brand">
+                  Forgot password?
+                </Text>
+              </Link>
+            }
+            error={formState.errors.password?.message}
+          />
+        )}
       />
 
-      <Link
-        href="/forgot-password"
-        style={{
-          textAlign: "right",
-          color: themeColors.primary,
-          fontWeight: "500",
-        }}
-      >
-        Forgot Password?
-      </Link>
-
-      <Button text="Login" onPress={handleLogin} loading={isPending} />
+      <Button text="Login" onPress={onSubmit} loading={isPending} />
     </AuthLayout>
   );
 }
+
+const styles = StyleSheet.create({
+  forgot: {
+    marginTop: -2,
+  },
+});

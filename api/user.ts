@@ -14,7 +14,7 @@ export const verifySignupOTP = (email: string, otp: string) =>
   });
 
 export const postLogin = (formData: ILogin) =>
-  apiClient<IApiResponse & { data: IUser; token: string }>("/user/login", {
+  apiClient<IApiResponse<IUser & { token: string }>>("/user/login", {
     method: "POST",
     body: JSON.stringify(formData),
   });

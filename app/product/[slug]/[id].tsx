@@ -1,16 +1,9 @@
 import React, { useState } from "react";
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  Dimensions,
-} from "react-native";
+import { useWindowDimensions } from "react-native";
+import { View, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
-import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
 import Container from "@/layout/Container";
 import Text from "@/components/ui/Text";
@@ -22,16 +15,16 @@ import { useToggleWishlistMutation } from "@/hooks/useWishlist";
 import { useAddToCartMutation } from "@/hooks/useCart";
 import { useReviewsByProductQuery } from "@/hooks/useReviews";
 
-const { width } = Dimensions.get("window");
+const { width } = useWindowDimensions();
 
 function StarRow({ rating, count }: { rating: number; count?: number }) {
   return (
     <View style={styles.starRow}>
-      <Text size={14} color="accent">
+      <Text size={14} color="muted">
         {"★".repeat(Math.round(rating))}
         {"☆".repeat(5 - Math.round(rating))}
       </Text>
-      <Text size={14} color="accent">
+      <Text size={14} color="muted">
         {rating.toFixed(1)}
         {count ? ` (${count})` : ""}
       </Text>
@@ -42,8 +35,6 @@ function StarRow({ rating, count }: { rating: number; count?: number }) {
 export default function ProductDetail() {
   const { slug, id } = useLocalSearchParams<{ slug: string; id: string }>();
   const router = useRouter();
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
 
   const [selectedVariant, setSelectedVariant] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
@@ -109,8 +100,8 @@ export default function ProductDetail() {
 
   if (isLoading) {
     return (
-      <Container extraStyle={{ justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={themeColors.primary} />
+      <Container bottomInset extraStyle={{ justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={colors.brand} />
       </Container>
     );
   }
@@ -118,9 +109,9 @@ export default function ProductDetail() {
   if (isError || !product) {
     return (
       <>
-        <Header title="Product" />
-        <Container extraStyle={{ justifyContent: "center", alignItems: "center" }}>
-          <Text align="center" color="accent">
+        <Header />
+        <Container bottomInset extraStyle={{ justifyContent: "center", alignItems: "center" }}>
+          <Text align="center" color="muted">
             Failed to load product.
           </Text>
           <Button text="Go Back" onPress={() => router.back()} />
@@ -131,10 +122,10 @@ export default function ProductDetail() {
 
   return (
     <>
-      <Header title={product.name} />
-      <Container extraStyle={styles.container}>
+      <Header />
+      <Container bottomInset extraStyle={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={[styles.imageWrapper, { backgroundColor: themeColors.card }]}>
+          <View style={[styles.imageWrapper, { backgroundColor: colors.surface }]}>
             <Image
               source={displayImage}
               style={styles.mainImage}
@@ -150,7 +141,7 @@ export default function ProductDetail() {
                   {product.name}
                 </Text>
                 {product.tag ? (
-                  <View style={[styles.tagBadge, { backgroundColor: themeColors.primary + "15" }]}>
+                  <View style={[styles.tagBadge, { backgroundColor: colors.brand + "15" }]}>
                     <Text size={14} weight="500">
                       {product.tag}
                     </Text>
@@ -160,9 +151,9 @@ export default function ProductDetail() {
               <TouchableOpacity
                 onPress={handleToggleWishlist}
                 disabled={wishlistPending}
-                style={[styles.wishlistBtn, { backgroundColor: themeColors.card }]}
+                style={[styles.wishlistBtn, { backgroundColor: colors.surface }]}
               >
-                <HeartIcon color={themeColors.primary} size={22} />
+                <HeartIcon color={colors.brand} size={22} />
               </TouchableOpacity>
             </View>
 
@@ -171,7 +162,7 @@ export default function ProductDetail() {
                 ₹{product.discountPrice || product.price}
               </Text>
               {product.discountPrice > 0 && (
-                <Text size={16} color="accent" style={styles.strikethrough}>
+                <Text size={16} color="muted" style={styles.strikethrough}>
                   ₹{product.price}
                 </Text>
               )}
@@ -179,7 +170,7 @@ export default function ProductDetail() {
 
             <StarRow rating={product.rating} count={product.reviewsCount} />
 
-            <Text size={16} color="accent" style={styles.description}>
+            <Text size={16} color="muted" style={styles.description}>
               {product.description}
             </Text>
 
@@ -200,8 +191,7 @@ export default function ProductDetail() {
                         styles.colorCircle,
                         {
                           backgroundColor: v.colorCode || v.color,
-                          borderColor:
-                            selectedVariant === idx ? themeColors.primary : themeColors.border,
+                          borderColor: selectedVariant === idx ? colors.brand : colors.border,
                           borderWidth: selectedVariant === idx ? 2.5 : 1,
                         },
                       ]}
@@ -228,8 +218,8 @@ export default function ProductDetail() {
                           styles.sizeChip,
                           {
                             backgroundColor:
-                              selectedSize === s.size ? themeColors.primary : themeColors.card,
-                            borderColor: themeColors.border,
+                              selectedSize === s.size ? colors.brand : colors.surface,
+                            borderColor: colors.border,
                             opacity: outOfStock ? 0.35 : 1,
                           },
                         ]}
@@ -238,10 +228,7 @@ export default function ProductDetail() {
                           size={14}
                           weight="500"
                           style={{
-                            color:
-                              selectedSize === s.size
-                                ? themeColors.background
-                                : themeColors.primary,
+                            color: selectedSize === s.size ? colors.background : colors.brand,
                           }}
                         >
                           {s.size}
@@ -257,7 +244,7 @@ export default function ProductDetail() {
               <Text size={16} weight="600">
                 Quantity
               </Text>
-              <View style={[styles.quantityControl, { borderColor: themeColors.border }]}>
+              <View style={[styles.quantityControl, { borderColor: colors.border }]}>
                 <TouchableOpacity
                   onPress={() => setQuantity(Math.max(1, quantity - 1))}
                   style={styles.qtyBtn}
@@ -294,7 +281,7 @@ export default function ProductDetail() {
                   <TouchableOpacity
                     key={p._id}
                     onPress={() => router.replace(`/product/${p.slug}/${p._id}`)}
-                    style={[styles.similarCard, { backgroundColor: themeColors.card }]}
+                    style={[styles.similarCard, { backgroundColor: colors.surface }]}
                     activeOpacity={0.7}
                   >
                     <Image
@@ -324,10 +311,7 @@ export default function ProductDetail() {
               </Text>
               <View style={styles.reviewsList}>
                 {reviews.map((r) => (
-                  <View
-                    key={r._id}
-                    style={[styles.reviewCard, { borderColor: themeColors.border }]}
-                  >
+                  <View key={r._id} style={[styles.reviewCard, { borderColor: colors.border }]}>
                     <View style={styles.reviewHeader}>
                       <Text size={14} weight="600">
                         {r.user || "Anonymous"}
@@ -335,7 +319,7 @@ export default function ProductDetail() {
                       <StarRow rating={r.rating} />
                     </View>
                     {r.comment ? (
-                      <Text size={14} color="accent">
+                      <Text size={14} color="muted">
                         {r.comment}
                       </Text>
                     ) : null}
@@ -353,6 +337,7 @@ export default function ProductDetail() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 0,
+    paddingTop: 0,
   },
   imageWrapper: {
     width: width,

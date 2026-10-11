@@ -43,7 +43,8 @@ export default function Signup() {
       heading="Create an account"
       description="Enter your details to create a new account"
       href="/login"
-      linkText="   Already have an account? Login"
+      prompt="Already have an account?"
+      action="Login"
     >
       <Input
         value={formData.email}

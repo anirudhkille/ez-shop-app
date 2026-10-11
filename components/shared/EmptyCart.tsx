@@ -2,7 +2,6 @@ import { StyleSheet, View } from "react-native";
 import React from "react";
 import Button from "../ui/Button";
 import { useRouter } from "expo-router";
-import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
 import Container from "@/layout/Container";
 import Text from "../ui/Text";
@@ -15,15 +14,13 @@ interface EmptyPageProps {
 
 export default function EmptyPage({ text1, text2, Icon }: EmptyPageProps) {
   const router = useRouter();
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
 
   const handlePres = () => router.push("/home");
 
   return (
     <Container extraStyle={{ justifyContent: "center", alignItems: "center" }}>
-      <View style={[styles.iconContainer, { borderColor: themeColors.border }]}>
-        <Icon strokeWidth={1} size={30} color={themeColors.primary} />
+      <View style={[styles.iconContainer, { borderColor: colors.border }]}>
+        <Icon strokeWidth={1} size={30} color={colors.brand} />
       </View>
       <View style={styles.textContainer}>
         <Text align="center">{text1}</Text>

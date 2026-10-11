@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
+import Sheet from "@/components/shared/Sheet";
 import { Image } from "expo-image";
 import * as WebBrowser from "expo-web-browser";
 import { useRouter } from "expo-router";
@@ -15,7 +15,6 @@ import { CircleXIcon } from "@/assets/icons/CircleXIcon";
 import { MinusIcon } from "@/assets/icons/MinusIcon";
 import { PlusIcon } from "@/assets/icons/PlusIcon";
 import { CircleCheckIcon } from "@/assets/icons/CircleCheckIcon";
-import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
 import {
   useCartQuery,
@@ -42,8 +41,6 @@ function getProduct(item: ICartProduct): IProduct | null {
 }
 
 export default function Cart() {
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
   const router = useRouter();
 
   const { data: cartResponse, isLoading } = useCartQuery();
@@ -54,7 +51,7 @@ export default function Cart() {
   const { mutate: createCheckoutSession, isPending: isCreatingSession } =
     useCreateCheckoutSessionMutation();
 
-  const bottomSheetRef = useRef<BottomSheet>(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [selectedDelivery, setSelectedDelivery] = useState("standard");
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "card">("cod");
@@ -71,7 +68,7 @@ export default function Cart() {
     setPaymentMethod("cod");
     setCheckoutStep("address");
     setError("");
-    bottomSheetRef.current?.expand();
+    setCheckoutOpen(true);
   };
 
   const handleQuantityChange = (item: ICartProduct, delta: number) => {
@@ -127,7 +124,7 @@ export default function Cart() {
             if (url) {
               WebBrowser.openBrowserAsync(url);
             }
-            bottomSheetRef.current?.close();
+            setCheckoutOpen(false);
           },
           onError: (err: any) => {
             setError(err?.message || "Failed to create checkout session");
@@ -146,14 +143,14 @@ export default function Cart() {
     const itemTotal = price * item.quantity;
 
     return (
-      <View style={[styles.cartItem, { backgroundColor: themeColors.card }]}>
+      <View style={[styles.cartItem, { backgroundColor: colors.surface }]}>
         <Image source={image} contentFit="cover" style={styles.itemImage} transition={300} />
         <View style={styles.itemDetails}>
           <Text weight="500" size={14} style={{ flex: 1 }}>
             {name}
           </Text>
           {item.size && (
-            <Text size={14} color="accent">
+            <Text size={14} color="muted">
               Size: {item.size}
             </Text>
           )}
@@ -163,18 +160,18 @@ export default function Cart() {
           <View style={styles.stepper}>
             <TouchableOpacity
               onPress={() => handleQuantityChange(item, -1)}
-              style={[styles.stepperBtn, { borderColor: themeColors.border }]}
+              style={[styles.stepperBtn, { borderColor: colors.border }]}
             >
-              <MinusIcon color={themeColors.primary} size={16} />
+              <MinusIcon color={colors.brand} size={16} />
             </TouchableOpacity>
             <Text weight="500" size={16} style={styles.stepperQty}>
               {item.quantity}
             </Text>
             <TouchableOpacity
               onPress={() => handleQuantityChange(item, 1)}
-              style={[styles.stepperBtn, { borderColor: themeColors.border }]}
+              style={[styles.stepperBtn, { borderColor: colors.border }]}
             >
-              <PlusIcon color={themeColors.primary} size={16} />
+              <PlusIcon color={colors.brand} size={16} />
             </TouchableOpacity>
           </View>
         </View>
@@ -183,7 +180,7 @@ export default function Cart() {
           style={styles.deleteBtn}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <CircleXIcon color={themeColors.accent} size={20} />
+          <CircleXIcon color={colors.muted} size={20} />
         </TouchableOpacity>
       </View>
     );
@@ -192,7 +189,7 @@ export default function Cart() {
   if (isLoading) {
     return (
       <Container extraStyle={styles.center}>
-        <ActivityIndicator size="large" color={themeColors.primary} />
+        <ActivityIndicator size="large" color={colors.brand} />
       </Container>
     );
   }
@@ -208,10 +205,7 @@ export default function Cart() {
   }
 
   return (
-    <SafeAreaView
-      style={[styles.safe, { backgroundColor: themeColors.background }]}
-      edges={["bottom"]}
-    >
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={["bottom"]}>
       <Container extraStyle={styles.container}>
         <FlatList
           data={cartItems}
@@ -220,24 +214,24 @@ export default function Cart() {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           ListFooterComponent={
-            <View style={[styles.summary, { borderTopColor: themeColors.border }]}>
+            <View style={[styles.summary, { borderTopColor: colors.border }]}>
               <View style={styles.summaryRow}>
-                <Text color="accent">Subtotal</Text>
+                <Text color="muted">Subtotal</Text>
                 <Text>₹{(cart?.subtotal || 0).toFixed(2)}</Text>
               </View>
               {(cart?.discountTotal ?? 0) > 0 && (
                 <View style={styles.summaryRow}>
-                  <Text color="accent">Discount</Text>
-                  <Text color="accent">-₹{(cart?.discountTotal || 0).toFixed(2)}</Text>
+                  <Text color="muted">Discount</Text>
+                  <Text color="muted">-₹{(cart?.discountTotal || 0).toFixed(2)}</Text>
                 </View>
               )}
               <View style={styles.summaryRow}>
-                <Text color="accent">Delivery</Text>
-                <Text color="accent">
+                <Text color="muted">Delivery</Text>
+                <Text color="muted">
                   {getDeliveryCharge() === 0 ? "Free" : `₹${getDeliveryCharge().toFixed(2)}`}
                 </Text>
               </View>
-              <View style={[styles.summaryDivider, { borderColor: themeColors.border }]} />
+              <View style={[styles.summaryDivider, { borderColor: colors.border }]} />
               <View style={styles.summaryRow}>
                 <Text weight="600" size={18}>
                   Total
@@ -255,23 +249,8 @@ export default function Cart() {
         </View>
       </Container>
 
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={-1}
-        snapPoints={["70%"]}
-        enablePanDownToClose
-        handleIndicatorStyle={{ backgroundColor: themeColors.accent }}
-        handleStyle={{ backgroundColor: themeColors.background }}
-        backdropComponent={(props) => (
-          <BottomSheetBackdrop
-            {...props}
-            appearsOnIndex={0}
-            disappearsOnIndex={-1}
-            pressBehavior="close"
-          />
-        )}
-      >
-        <BottomSheetView style={[styles.sheetContent, { backgroundColor: themeColors.background }]}>
+      <Sheet visible={checkoutOpen} onClose={() => setCheckoutOpen(false)} heightRatio={0.7}>
+        <View style={styles.sheetContent}>
           {checkoutStep === "address" && (
             <View style={{ flex: 1 }}>
               <Text weight="600" size={20} style={{ marginBottom: 16 }}>
@@ -279,7 +258,7 @@ export default function Cart() {
               </Text>
               {addresses.length === 0 ? (
                 <View style={styles.center}>
-                  <Text color="accent" align="center">
+                  <Text color="muted" align="center">
                     No addresses found. Please add one in your profile.
                   </Text>
                 </View>
@@ -296,8 +275,8 @@ export default function Cart() {
                         style={[
                           styles.addressItem,
                           {
-                            backgroundColor: themeColors.card,
-                            borderColor: isSelected ? themeColors.primary : themeColors.border,
+                            backgroundColor: colors.surface,
+                            borderColor: isSelected ? colors.brand : colors.border,
                           },
                         ]}
                       >
@@ -306,15 +285,12 @@ export default function Cart() {
                             <Text weight="600">{item.label}</Text>
                             {item.isDefault && (
                               <View
-                                style={[
-                                  styles.defaultBadge,
-                                  { backgroundColor: themeColors.primary },
-                                ]}
+                                style={[styles.defaultBadge, { backgroundColor: colors.brand }]}
                               >
                                 <Text
                                   size={14}
-                                  color="primary"
-                                  style={{ color: themeColors.background }}
+                                  color="foreground"
+                                  style={{ color: colors.background }}
                                 >
                                   Default
                                 </Text>
@@ -322,21 +298,21 @@ export default function Cart() {
                             )}
                           </View>
                           <Text size={14}>{item.name}</Text>
-                          <Text size={14} color="accent">
+                          <Text size={14} color="muted">
                             {item.addressLine1}, {item.city}, {item.state} - {item.zipCode}
                           </Text>
-                          <Text size={14} color="accent">
+                          <Text size={14} color="muted">
                             {item.phone}
                           </Text>
                         </View>
-                        {isSelected && <CircleCheckIcon color={themeColors.primary} size={22} />}
+                        {isSelected && <CircleCheckIcon color={colors.brand} size={22} />}
                       </TouchableOpacity>
                     );
                   }}
                   ListFooterComponent={
                     <View style={{ marginTop: "auto", gap: 8 }}>
                       {error ? (
-                        <Text color="primary" style={styles.errorText}>
+                        <Text color="foreground" style={styles.errorText}>
                           {error}
                         </Text>
                       ) : null}
@@ -367,14 +343,14 @@ export default function Cart() {
                       style={[
                         styles.deliveryItem,
                         {
-                          backgroundColor: themeColors.card,
-                          borderColor: isSelected ? themeColors.primary : themeColors.border,
+                          backgroundColor: colors.surface,
+                          borderColor: isSelected ? colors.brand : colors.border,
                         },
                       ]}
                     >
                       <View style={{ flex: 1 }}>
                         <Text weight="600">{opt.label}</Text>
-                        <Text size={14} color="accent">
+                        <Text size={14} color="muted">
                           {opt.days}
                         </Text>
                       </View>
@@ -383,7 +359,7 @@ export default function Cart() {
                       </Text>
                       {isSelected && (
                         <View style={{ marginLeft: 8 }}>
-                          <CircleCheckIcon color={themeColors.primary} size={22} />
+                          <CircleCheckIcon color={colors.brand} size={22} />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -408,53 +384,47 @@ export default function Cart() {
                   style={[
                     styles.paymentItem,
                     {
-                      backgroundColor: themeColors.card,
-                      borderColor:
-                        paymentMethod === "cod" ? themeColors.primary : themeColors.border,
+                      backgroundColor: colors.surface,
+                      borderColor: paymentMethod === "cod" ? colors.brand : colors.border,
                     },
                   ]}
                 >
                   <Text weight="500">Cash on Delivery</Text>
-                  {paymentMethod === "cod" && (
-                    <CircleCheckIcon color={themeColors.primary} size={22} />
-                  )}
+                  {paymentMethod === "cod" && <CircleCheckIcon color={colors.brand} size={22} />}
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => setPaymentMethod("card")}
                   style={[
                     styles.paymentItem,
                     {
-                      backgroundColor: themeColors.card,
-                      borderColor:
-                        paymentMethod === "card" ? themeColors.primary : themeColors.border,
+                      backgroundColor: colors.surface,
+                      borderColor: paymentMethod === "card" ? colors.brand : colors.border,
                     },
                   ]}
                 >
                   <Text weight="500">Pay with Card (Stripe)</Text>
-                  {paymentMethod === "card" && (
-                    <CircleCheckIcon color={themeColors.primary} size={22} />
-                  )}
+                  {paymentMethod === "card" && <CircleCheckIcon color={colors.brand} size={22} />}
                 </TouchableOpacity>
               </View>
 
-              <View style={[styles.summary, { borderTopColor: themeColors.border, marginTop: 20 }]}>
+              <View style={[styles.summary, { borderTopColor: colors.border, marginTop: 20 }]}>
                 <View style={styles.summaryRow}>
-                  <Text color="accent">Subtotal</Text>
+                  <Text color="muted">Subtotal</Text>
                   <Text>₹{(cart?.subtotal || 0).toFixed(2)}</Text>
                 </View>
                 {(cart?.discountTotal ?? 0) > 0 && (
                   <View style={styles.summaryRow}>
-                    <Text color="accent">Discount</Text>
-                    <Text color="accent">-₹{(cart?.discountTotal || 0).toFixed(2)}</Text>
+                    <Text color="muted">Discount</Text>
+                    <Text color="muted">-₹{(cart?.discountTotal || 0).toFixed(2)}</Text>
                   </View>
                 )}
                 <View style={styles.summaryRow}>
-                  <Text color="accent">Delivery</Text>
-                  <Text color="accent">
+                  <Text color="muted">Delivery</Text>
+                  <Text color="muted">
                     {getDeliveryCharge() === 0 ? "Free" : `₹${getDeliveryCharge().toFixed(2)}`}
                   </Text>
                 </View>
-                <View style={[styles.summaryDivider, { borderColor: themeColors.border }]} />
+                <View style={[styles.summaryDivider, { borderColor: colors.border }]} />
                 <View style={styles.summaryRow}>
                   <Text weight="600" size={18}>
                     Total
@@ -467,7 +437,7 @@ export default function Cart() {
 
               <View style={{ marginTop: "auto", gap: 8 }}>
                 {error ? (
-                  <Text color="primary" style={styles.errorText}>
+                  <Text color="foreground" style={styles.errorText}>
                     {error}
                   </Text>
                 ) : null}
@@ -483,8 +453,8 @@ export default function Cart() {
 
           {checkoutStep === "confirming" && (
             <View style={[styles.center, { flex: 1 }]}>
-              <ActivityIndicator size="large" color={themeColors.primary} />
-              <Text style={{ marginTop: 16 }} color="accent">
+              <ActivityIndicator size="large" color={colors.brand} />
+              <Text style={{ marginTop: 16 }} color="muted">
                 Processing your order...
               </Text>
             </View>
@@ -492,26 +462,26 @@ export default function Cart() {
 
           {checkoutStep === "success" && (
             <View style={[styles.center, { flex: 1, gap: 12 }]}>
-              <CircleCheckIcon color={themeColors.primary} size={64} />
+              <CircleCheckIcon color={colors.brand} size={64} />
               <Text weight="600" size={20} align="center">
                 Order Placed Successfully!
               </Text>
-              <Text color="accent" align="center">
+              <Text color="muted" align="center">
                 Thank you for your purchase. You will receive a confirmation shortly.
               </Text>
               <View style={{ width: "100%", marginTop: 20 }}>
                 <Button
                   text="Continue Shopping"
                   onPress={() => {
-                    bottomSheetRef.current?.close();
+                    setCheckoutOpen(false);
                     router.push("/shop");
                   }}
                 />
               </View>
             </View>
           )}
-        </BottomSheetView>
-      </BottomSheet>
+        </View>
+      </Sheet>
     </SafeAreaView>
   );
 }

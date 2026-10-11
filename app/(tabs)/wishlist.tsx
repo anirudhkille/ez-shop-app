@@ -1,29 +1,25 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
-import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import Toast from "react-native-toast-message";
 import Container from "@/layout/Container";
 import Text from "@/components/ui/Text";
 import Button from "@/components/ui/Button";
 import EmptyCart from "@/components/shared/EmptyCart";
+import Sheet from "@/components/shared/Sheet";
 import { HeartIcon } from "@/assets/icons/HeartIcon";
-import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
 import { useWishlistDetailsQuery, useToggleWishlistMutation } from "@/hooks/useWishlist";
 import { useAddToCartMutation } from "@/hooks/useCart";
 import { IProduct } from "@/types/api";
 
 export default function Wishlist() {
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
-
   const { data: wishlistResponse, isLoading } = useWishlistDetailsQuery();
   const { mutate: toggleWishlist } = useToggleWishlistMutation();
   const { mutate: addToCart, isPending: isAddingToCart } = useAddToCartMutation();
 
-  const bottomSheetRef = useRef<BottomSheet>(null);
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const products: IProduct[] =
     ((wishlistResponse as any)?.data?.products || []).filter(
@@ -32,7 +28,7 @@ export default function Wishlist() {
 
   const handleItemPress = (product: IProduct) => {
     setSelectedProduct(product);
-    bottomSheetRef.current?.expand();
+    setSheetOpen(true);
   };
 
   const handleToggleWishlist = (productId: string) => {
@@ -61,7 +57,7 @@ export default function Wishlist() {
             type: "success",
             text1: `${selectedProduct.name} added to cart`,
           });
-          bottomSheetRef.current?.close();
+          setSheetOpen(false);
           setSelectedProduct(null);
         },
         onError: () => {
@@ -74,7 +70,7 @@ export default function Wishlist() {
   if (isLoading) {
     return (
       <Container extraStyle={styles.center}>
-        <ActivityIndicator size="large" color={themeColors.primary} />
+        <ActivityIndicator size="large" color={colors.brand} />
       </Container>
     );
   }
@@ -101,23 +97,23 @@ export default function Wishlist() {
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() => handleItemPress(item)}
-            style={[styles.itemContainer, { backgroundColor: themeColors.background }]}
+            style={[styles.itemContainer, { backgroundColor: colors.background }]}
           >
-            <View style={[styles.imageContainer, { backgroundColor: themeColors.card }]}>
+            <View style={[styles.imageContainer, { backgroundColor: colors.surface }]}>
               <Image contentFit="cover" source={item.image} style={styles.image} transition={300} />
               <TouchableOpacity
                 onPress={() => handleToggleWishlist(item._id)}
-                style={[styles.heart, { backgroundColor: themeColors.background }]}
+                style={[styles.heart, { backgroundColor: colors.background }]}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <HeartIcon color={themeColors.primary} fill={themeColors.primary} size={18} />
+                <HeartIcon color={colors.brand} fill={colors.brand} size={18} />
               </TouchableOpacity>
             </View>
             <View style={styles.textContainer}>
               <Text weight="500" size={14}>
                 {item.name.length > 40 ? item.name.slice(0, 40) + "..." : item.name}
               </Text>
-              <Text size={14} color="accent">
+              <Text size={14} color="muted">
                 ₹{price(item).toFixed(2)}
               </Text>
             </View>
@@ -127,29 +123,15 @@ export default function Wishlist() {
         contentContainerStyle={styles.listContent}
       />
 
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={-1}
-        snapPoints={["50%"]}
-        enablePanDownToClose
-        handleIndicatorStyle={{ backgroundColor: themeColors.accent }}
-        handleStyle={{ backgroundColor: themeColors.background }}
-        backdropComponent={(props) => (
-          <BottomSheetBackdrop
-            {...props}
-            appearsOnIndex={0}
-            disappearsOnIndex={-1}
-            pressBehavior="close"
-          />
-        )}
+      <Sheet
+        visible={sheetOpen}
+        onClose={() => {
+          setSheetOpen(false);
+          setSelectedProduct(null);
+        }}
+        heightRatio={0.5}
       >
-        <BottomSheetView
-          style={{
-            padding: 20,
-            gap: 20,
-            backgroundColor: themeColors.background,
-          }}
-        >
+        <View style={styles.sheetBody}>
           {selectedProduct && (
             <>
               <View
@@ -166,7 +148,7 @@ export default function Wishlist() {
                     width: 140,
                     height: 140,
                     borderRadius: 12,
-                    backgroundColor: themeColors.card,
+                    backgroundColor: colors.surface,
                   }}
                 />
                 <View style={{ flex: 1, gap: 6 }}>
@@ -178,7 +160,7 @@ export default function Wishlist() {
                       <Text weight="600" size={18}>
                         ₹{selectedProduct.discountPrice.toFixed(2)}
                       </Text>
-                      <Text size={14} color="accent" style={{ textDecorationLine: "line-through" }}>
+                      <Text size={14} color="muted" style={{ textDecorationLine: "line-through" }}>
                         ₹{selectedProduct.price.toFixed(2)}
                       </Text>
                     </View>
@@ -187,7 +169,7 @@ export default function Wishlist() {
                       ₹{selectedProduct.price.toFixed(2)}
                     </Text>
                   )}
-                  <Text size={14} color="accent">
+                  <Text size={14} color="muted">
                     {selectedProduct.description?.slice(0, 100)}
                     {selectedProduct.description?.length > 100 ? "..." : ""}
                   </Text>
@@ -197,8 +179,8 @@ export default function Wishlist() {
               <Button text="Add to Cart" onPress={handleAddToCart} loading={isAddingToCart} />
             </>
           )}
-        </BottomSheetView>
-      </BottomSheet>
+        </View>
+      </Sheet>
     </Container>
   );
 }
@@ -243,5 +225,10 @@ const styles = StyleSheet.create({
     padding: 10,
     alignItems: "flex-start",
     gap: 5,
+  },
+  sheetBody: {
+    flex: 1,
+    padding: 20,
+    gap: 20,
   },
 });

@@ -66,7 +66,8 @@ export default function ResetPassword() {
       heading="Reset Password"
       description={`Enter the OTP sent to ${email}`}
       href="/login"
-      linkText="Back to Login"
+      prompt="Already reset it?"
+      action="Back to login"
     >
       <Input label="OTP" value={otp} onChangeText={setOtp} placeholder="Enter 6-digit OTP" />
       <Input

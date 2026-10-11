@@ -18,9 +18,12 @@ export const useLoginMutation = () => {
 
   return useMutation({
     mutationFn: postLogin,
-    onSuccess: (data) => {
-      if (data.token) setToken(data.token);
-      if (data.data) setUser(data.data);
+    onSuccess: (res) => {
+      // The token arrives on the payload object, not the response envelope.
+      const payload = res.data;
+
+      if (payload?.token) setToken(payload.token);
+      if (payload) setUser(payload);
     },
   });
 };
@@ -37,9 +40,11 @@ export const useVerifySignupOTPMutation = () => {
 
   return useMutation({
     mutationFn: ({ email, otp }: { email: string; otp: string }) => verifySignupOTP(email, otp),
-    onSuccess: (data) => {
-      if (data.token) setToken(data.token);
-      if (data.data) setUser(data.data);
+    onSuccess: (res) => {
+      const payload = res.data;
+
+      if (payload?.token) setToken(payload.token);
+      if (payload) setUser(payload);
     },
   });
 };

@@ -1,60 +1,41 @@
 import { CircleCheckIcon } from "@/assets/icons/CircleCheckIcon";
 import { CircleXIcon } from "@/assets/icons/CircleXIcon";
-import { colors } from "@/constant/color";
-import { useThemeStore } from "@/store/theme";
+import { colors, radius } from "@/constant/color";
 import { View, Text } from "react-native";
 import { BaseToastProps } from "react-native-toast-message";
 
+function buildToast(accent: string, Icon: typeof CircleCheckIcon) {
+  return ({ text1, text2 }: BaseToastProps) => (
+    <View
+      style={{
+        width: "90%",
+        maxWidth: 400,
+        minHeight: 56,
+        backgroundColor: colors.surface,
+        borderColor: colors.border,
+        borderWidth: 1,
+        gap: 12,
+        borderRadius: radius.md,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        flexDirection: "row",
+        alignItems: "center",
+      }}
+    >
+      <Icon color={accent} size={20} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={{ color: colors.foreground, fontSize: 15, fontWeight: "500" }}>
+          {text1}
+        </Text>
+        {text2 ? (
+          <Text style={{ color: colors.muted, fontSize: 13 }}>{text2}</Text>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
 export const toastConfig = {
-  success: ({ text1 }: BaseToastProps) => {
-    const { appliedTheme } = useThemeStore();
-    const themeColors = colors[appliedTheme];
-
-    return (
-      <View
-        style={{
-          height: 60,
-          width: "90%",
-          maxWidth: 400,
-          backgroundColor: themeColors.background,
-          borderColor: themeColors.border,
-          borderWidth: 1,
-          gap: 10,
-          borderRadius: 8,
-          paddingHorizontal: 20,
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
-        <CircleCheckIcon color={themeColors.primary} size={20} />
-        <Text style={{ color: themeColors.primary }}>{text1}</Text>
-      </View>
-    );
-  },
-
-  error: ({ text1 }: BaseToastProps) => {
-    const { appliedTheme } = useThemeStore();
-    const themeColors = colors[appliedTheme];
-
-    return (
-      <View
-        style={{
-          height: 60,
-          width: "90%",
-          maxWidth: 400,
-          backgroundColor: themeColors.background,
-          borderColor: themeColors.border,
-          borderWidth: 1,
-          gap: 10,
-          borderRadius: 8,
-          paddingHorizontal: 20,
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
-        <CircleXIcon color={themeColors.primary} size={20} />
-        <Text style={{ color: themeColors.primary }}>{text1}</Text>
-      </View>
-    );
-  },
+  success: buildToast(colors.success, CircleCheckIcon),
+  error: buildToast(colors.destructive, CircleXIcon),
 };

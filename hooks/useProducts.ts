@@ -27,11 +27,14 @@ export const useBestSellersQuery = () =>
     queryFn: getBestSellers,
   });
 
-export const useFilteredProductsQuery = (params: Record<string, string>) =>
+export const useFilteredProductsQuery = (
+  params: Record<string, string>,
+  options?: { enabled?: boolean }
+) =>
   useQuery({
     queryKey: ["products", "filtered", params],
     queryFn: () => getFilteredProducts(params),
-    enabled: Object.keys(params).length > 0,
+    enabled: (options?.enabled ?? true) && Object.keys(params).length > 0,
   });
 
 export const useSearchProductsQuery = (name: string) =>

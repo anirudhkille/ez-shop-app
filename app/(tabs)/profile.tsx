@@ -11,27 +11,21 @@ import {
 import React, { useState } from "react";
 import Container from "@/layout/Container";
 import { useRouter } from "expo-router";
-import { useThemeStore } from "@/store/theme";
-import { colors } from "@/constant/color";
+import { colors, fonts, radius } from "@/constant/color";
 import { Image } from "expo-image";
 import Text from "@/components/ui/Text";
 import { UserIcon } from "@/assets/icons/UserIcon";
-import { PaletteIcon } from "@/assets/icons/PaletteIcon";
 import { LogoutIcon } from "@/assets/icons/LogoutIcon";
 import { SettingsIcon } from "@/assets/icons/SettingsIcon";
 import { PackageIcon } from "@/assets/icons/PackageIcon";
 import { ChevronRightIcon } from "@/assets/icons/ChevronRightIcon";
-import ThemeToggle from "@/components/shared/ThemeToggle";
 import Button from "@/components/ui/Button";
 import { useProfileQuery, useLogoutMutation } from "@/hooks/useUser";
 import { useSubscribeNewsletterMutation } from "@/hooks/useNewsletter";
 import Toast from "react-native-toast-message";
 
 export default function Profile() {
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
   const router = useRouter();
-  const [sheetIndex, setSheetIndex] = useState(-1);
   const [newsletterEmail, setNewsletterEmail] = useState("");
 
   const { data: profileRes, isLoading, isError, refetch, isRefetching } = useProfileQuery();
@@ -70,16 +64,20 @@ export default function Profile() {
   if (isLoading) {
     return (
       <Container extraStyle={{ justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={themeColors.primary} />
+        <ActivityIndicator size="large" color={colors.brand} />
       </Container>
     );
   }
 
   if (isError) {
+    // An expired session clears the token, which the root guard turns into a
+    // redirect to login, so this only appears for genuinely transient failures.
     return (
       <Container extraStyle={{ justifyContent: "center", alignItems: "center", gap: 20 }}>
-        <Text align="center">Failed to load profile</Text>
-        <Button text="Retry" onPress={() => refetch()} />
+        <Text align="center" color="muted">
+          Could not load your profile.
+        </Text>
+        <Button text="Try again" variant="outline" onPress={() => refetch()} />
       </Container>
     );
   }
@@ -93,7 +91,7 @@ export default function Profile() {
             <RefreshControl
               refreshing={isRefetching}
               onRefresh={refetch}
-              tintColor={themeColors.primary}
+              tintColor={colors.brand}
             />
           }
         >
@@ -105,18 +103,13 @@ export default function Profile() {
                 style={[
                   styles.image,
                   {
-                    backgroundColor: themeColors.primary,
+                    backgroundColor: colors.brand,
                     justifyContent: "center",
                     alignItems: "center",
                   },
                 ]}
               >
-                <Text
-                  size={24}
-                  weight="600"
-                  color="accent"
-                  style={{ color: themeColors.background }}
-                >
+                <Text size={24} weight="600" color="muted" style={{ color: colors.background }}>
                   {(user?.name || user?.email || "U").charAt(0).toUpperCase()}
                 </Text>
               </View>
@@ -124,84 +117,72 @@ export default function Profile() {
             <Text size={24} weight="500" align="center">
               {user?.name || "User"}
             </Text>
-            <Text color="accent">{user?.email}</Text>
+            <Text color="muted">{user?.email}</Text>
           </View>
 
           <View style={styles.lists}>
             <MenuRow
               text="Your Profile"
-              icon={<UserIcon color={themeColors.primary} />}
+              icon={<UserIcon color={colors.muted} />}
               onPress={() => router.push("/profile/edit-profile")}
             />
             <MenuRow
               text="My Orders"
-              icon={<PackageIcon color={themeColors.primary} />}
+              icon={<PackageIcon color={colors.muted} />}
               onPress={() => router.push("/profile/my-orders")}
             />
             <MenuRow
               text="Manage Addresses"
-              icon={<UserIcon color={themeColors.primary} />}
+              icon={<UserIcon color={colors.muted} />}
               onPress={() => router.push("/profile/addresses")}
             />
             <MenuRow
               text="Change Password"
-              icon={<SettingsIcon color={themeColors.primary} />}
+              icon={<SettingsIcon color={colors.muted} />}
               onPress={() => router.push("/profile/change-password")}
             />
-            <MenuRow
-              text="Appearance"
-              icon={<PaletteIcon color={themeColors.primary} />}
-              onPress={() => setSheetIndex(0)}
-            />
 
-            <View
-              style={[
-                styles.list,
-                {
-                  backgroundColor: themeColors.card,
-                  flexDirection: "column",
-                  alignItems: "stretch",
-                  gap: 12,
-                },
-              ]}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                <LogoutIcon color={themeColors.primary} />
-                <Text color="primary">Newsletter</Text>
+            <View style={styles.newsletter}>
+              <View style={styles.newsletterHead}>
+                <Text size={12} weight="600" color="muted" style={styles.newsletterLabel}>
+                  NEWSLETTER
+                </Text>
+                <Text size={14} color="foreground">
+                  Sale drops and restocks, sent occasionally.
+                </Text>
               </View>
-              <View style={{ flexDirection: "row", gap: 10 }}>
+
+              <View style={styles.newsletterRow}>
                 <TextInput
-                  style={{
-                    flex: 1,
-                    borderWidth: 1,
-                    borderColor: themeColors.border,
-                    borderRadius: 8,
-                    paddingHorizontal: 12,
-                    paddingVertical: 8,
-                    color: themeColors.primary,
-                    backgroundColor: themeColors.background,
-                  }}
-                  placeholder="Enter email"
-                  placeholderTextColor={themeColors.accent}
+                  style={styles.newsletterInput}
+                  placeholder="you@example.com"
+                  placeholderTextColor={colors.subtle}
                   value={newsletterEmail}
                   onChangeText={setNewsletterEmail}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  autoComplete="email"
+                  returnKeyType="done"
+                  onSubmitEditing={handleSubscribe}
+                  accessibilityLabel="Email address"
                 />
-                <Button text="Subscribe" onPress={handleSubscribe} loading={isSubscribing} />
+                <Button
+                  text="Join"
+                  onPress={handleSubscribe}
+                  loading={isSubscribing}
+                  disabled={!newsletterEmail.trim()}
+                />
               </View>
             </View>
 
             <MenuRow
               text="Logout"
-              icon={<LogoutIcon color={themeColors.primary} />}
+              icon={<LogoutIcon color={colors.destructive} />}
               onPress={handleLogout}
             />
           </View>
         </ScrollView>
       </Container>
-
-      <ThemeToggle index={sheetIndex} onChangeIndex={(index) => setSheetIndex(index)} />
     </>
   );
 }
@@ -215,19 +196,13 @@ function MenuRow({
   icon: React.ReactNode;
   onPress: () => void;
 }) {
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
-
   return (
-    <TouchableOpacity
-      style={[styles.list, { backgroundColor: themeColors.card }]}
-      onPress={onPress}
-    >
+    <TouchableOpacity style={[styles.list, { backgroundColor: colors.surface }]} onPress={onPress}>
       <View style={{ gap: 10, alignItems: "center", flexDirection: "row" }}>
         {icon}
-        <Text color="primary">{text}</Text>
+        <Text color="foreground">{text}</Text>
       </View>
-      <ChevronRightIcon color={themeColors.accent} />
+      <ChevronRightIcon color={colors.muted} />
     </TouchableOpacity>
   );
 }
@@ -237,13 +212,44 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 999,
-    backgroundColor: "#0553",
+    backgroundColor: colors.brand,
     marginHorizontal: "auto",
   },
   lists: {
     marginTop: 10,
     gap: 20,
     paddingBottom: 40,
+  },
+  newsletter: {
+    gap: 14,
+    padding: 16,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  newsletterHead: {
+    gap: 4,
+  },
+  newsletterLabel: {
+    letterSpacing: 1.2,
+  },
+  newsletterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  newsletterInput: {
+    flex: 1,
+    height: 50,
+    paddingHorizontal: 14,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    color: colors.foreground,
+    fontFamily: fonts.body,
+    fontSize: 15,
   },
   list: {
     justifyContent: "space-between",

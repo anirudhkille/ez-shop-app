@@ -1,19 +1,20 @@
 import React from "react";
 import {
-  Text,
+  Text as RNText,
   StyleSheet,
   ViewStyle,
   TextStyle,
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { useThemeStore } from "@/store/theme";
-import { colors } from "@/constant/color";
+import { colors, radius } from "@/constant/color";
+
+export type ButtonVariant = "primary" | "outline" | "ghost" | "destructive";
 
 interface ButtonProps {
   text: string;
   onPress: () => void;
-  variant?: "primary" | "outline";
+  variant?: ButtonVariant;
   disabled?: boolean;
   loading?: boolean;
 }
@@ -25,76 +26,63 @@ export default function Button({
   disabled = false,
   loading = false,
 }: ButtonProps) {
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
-  const styles = getButtonStyles(variant, disabled, themeColors);
+  const inert = loading || disabled;
 
   return (
     <TouchableOpacity
       onPress={onPress}
-      disabled={loading || disabled}
-      style={[styles.button, { opacity: loading || disabled ? 0.6 : 1 }]}
+      disabled={inert}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: inert, busy: loading }}
+      style={[styles.button, variantStyles[variant].button, inert && styles.inert]}
     >
       {loading ? (
-        <ActivityIndicator size="small" color="#fff" />
+        <ActivityIndicator
+          size="small"
+          color={variant === "primary" || variant === "destructive" ? "#fff" : colors.foreground}
+        />
       ) : (
-        <Text style={styles.text}>{text}</Text>
+        <RNText style={[styles.text, variantStyles[variant].text]}>{text}</RNText>
       )}
     </TouchableOpacity>
   );
 }
 
-function getButtonStyles(
-  variant: "primary" | "outline",
-  disabled: boolean,
-  themeColors: { background: string; primary: string; accent: string }
-) {
-  const baseButton: ViewStyle = {
-    height: 50,
-    paddingHorizontal: 20,
-    borderRadius: 999,
+const styles = StyleSheet.create({
+  button: {
+    minHeight: 50,
+    paddingHorizontal: 28,
+    borderRadius: radius.md,
     alignItems: "center",
     justifyContent: "center",
-  };
-
-  const baseText: TextStyle = {
+  },
+  text: {
     fontWeight: "600",
-    fontSize: 16,
-  };
+    fontSize: 15,
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+  },
+  inert: { opacity: 0.45 },
+});
 
-  const variants = {
-    primary: {
-      button: {
-        backgroundColor: disabled ? "#b3d4fc" : themeColors.primary,
-      },
-      text: {
-        color: disabled ? "#d1d1d1" : themeColors.background,
-      },
-    },
-    outline: {
-      button: {
-        borderColor: themeColors.primary,
-        borderWidth: 1,
-      },
-      text: {
-        color: disabled ? "#d1d1d1" : themeColors.primary,
-      },
-    },
-    danger: {
-      button: {
-        backgroundColor: disabled ? "#f8d7da" : "#dc3545",
-      },
-      text: {
-        color: disabled ? "#d1d1d1" : "#ffffff",
-      },
-    },
-  };
+type VariantStyle = { button: ViewStyle; text: TextStyle };
 
-  return StyleSheet.create({
-    button: { ...baseButton, ...variants[variant].button },
-    text: { ...baseText, ...variants[variant].text },
-    pressed: {
-      opacity: 0.7,
-    },
-  });
-}
+const variantStyles: Record<ButtonVariant, VariantStyle> = {
+  primary: {
+    button: { backgroundColor: colors.brand },
+    text: { color: "#FFFFFF" },
+  },
+  outline: {
+    button: { borderColor: colors.border, borderWidth: 1, backgroundColor: colors.surface },
+    text: { color: colors.foreground },
+  },
+  ghost: {
+    button: { backgroundColor: "transparent" },
+    text: { color: colors.muted },
+  },
+  destructive: {
+    button: { backgroundColor: colors.destructive },
+    text: { color: "#FFFFFF" },
+  },
+};

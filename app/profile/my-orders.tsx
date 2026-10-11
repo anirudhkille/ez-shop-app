@@ -11,7 +11,6 @@ import Container from "@/layout/Container";
 import Header from "@/layout/Header";
 import Text from "@/components/ui/Text";
 import Button from "@/components/ui/Button";
-import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
 import { useMyOrdersQuery } from "@/hooks/useOrders";
 import { useRouter } from "expo-router";
@@ -28,8 +27,6 @@ const statusColors: Record<string, string> = {
 };
 
 export default function MyOrders() {
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
   const router = useRouter();
 
   const { data, isLoading, isError, refetch, isRefetching } = useMyOrdersQuery(1);
@@ -45,20 +42,20 @@ export default function MyOrders() {
 
     return (
       <TouchableOpacity
-        style={[styles.orderCard, { backgroundColor: themeColors.card }]}
+        style={[styles.orderCard, { backgroundColor: colors.surface }]}
         onPress={() => router.push(`/profile/order-detail/${item._id}`)}
       >
         <View style={styles.orderHeader}>
           <Text size={14} weight="600">
             #{item._id.slice(-8).toUpperCase()}
           </Text>
-          <Text size={14} color="accent">
+          <Text size={14} color="muted">
             {date}
           </Text>
         </View>
 
         <View style={styles.orderBody}>
-          <Text size={14} color="accent">
+          <Text size={14} color="muted">
             {item.products.length} item{item.products.length !== 1 ? "s" : ""}
           </Text>
           <Text size={16} weight="600">
@@ -103,9 +100,9 @@ export default function MyOrders() {
   if (isLoading) {
     return (
       <>
-        <Header title="My Orders" />
-        <Container extraStyle={{ justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={themeColors.primary} />
+        <Header />
+        <Container bottomInset extraStyle={{ justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color={colors.brand} />
         </Container>
       </>
     );
@@ -114,8 +111,11 @@ export default function MyOrders() {
   if (isError) {
     return (
       <>
-        <Header title="My Orders" />
-        <Container extraStyle={{ justifyContent: "center", alignItems: "center", gap: 20 }}>
+        <Header />
+        <Container
+          bottomInset
+          extraStyle={{ justifyContent: "center", alignItems: "center", gap: 20 }}
+        >
           <Text align="center">Failed to load orders</Text>
           <Button text="Retry" onPress={() => refetch()} />
         </Container>
@@ -125,12 +125,12 @@ export default function MyOrders() {
 
   return (
     <>
-      <Header title="My Orders" />
-      <Container extraStyle={{ paddingTop: 10 }}>
+      <Header />
+      <Container bottomInset extraStyle={{ paddingTop: 10 }}>
         {orders.length === 0 ? (
           <View style={{ flex: 1, justifyContent: "center", alignItems: "center", gap: 16 }}>
-            <PackageIcon color={themeColors.accent} size={48} />
-            <Text align="center" color="accent" size={18}>
+            <PackageIcon color={colors.muted} size={48} />
+            <Text align="center" color="muted" size={18}>
               No orders yet
             </Text>
             <Button text="Start Shopping" onPress={() => router.push("/shop")} />
@@ -145,7 +145,7 @@ export default function MyOrders() {
               <RefreshControl
                 refreshing={isRefetching}
                 onRefresh={refetch}
-                tintColor={themeColors.primary}
+                tintColor={colors.brand}
               />
             }
             showsVerticalScrollIndicator={false}

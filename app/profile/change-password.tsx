@@ -49,8 +49,8 @@ export default function ChangePassword() {
 
   return (
     <>
-      <Header title="Change Password" />
-      <Container extraStyle={styles.container}>
+      <Header />
+      <Container bottomInset extraStyle={styles.container}>
         <ScrollView showsVerticalScrollIndicator={false}>
           <Input
             label="Current Password"

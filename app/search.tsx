@@ -45,6 +45,7 @@ export default function SearchScreen() {
         </View>
       ) : (
         <FlatList
+          contentInsetAdjustmentBehavior="automatic"
           data={products}
           keyExtractor={(item: any) => item._id || item.id}
           numColumns={2}

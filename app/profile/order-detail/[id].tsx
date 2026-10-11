@@ -4,7 +4,6 @@ import Container from "@/layout/Container";
 import Header from "@/layout/Header";
 import Text from "@/components/ui/Text";
 import Button from "@/components/ui/Button";
-import { useThemeStore } from "@/store/theme";
 import { colors } from "@/constant/color";
 import { useOrderByIdQuery } from "@/hooks/useOrders";
 import { useLocalSearchParams } from "expo-router";
@@ -21,8 +20,6 @@ const statusColors: Record<string, string> = {
 const timelineSteps = ["processing", "shipped", "delivered"];
 
 export default function OrderDetail() {
-  const { appliedTheme } = useThemeStore();
-  const themeColors = colors[appliedTheme];
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const { data, isLoading, isError, refetch } = useOrderByIdQuery(id || "");
@@ -32,9 +29,9 @@ export default function OrderDetail() {
   if (isLoading) {
     return (
       <>
-        <Header title="Order Details" />
-        <Container extraStyle={{ justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={themeColors.primary} />
+        <Header />
+        <Container bottomInset extraStyle={{ justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color={colors.brand} />
         </Container>
       </>
     );
@@ -43,8 +40,11 @@ export default function OrderDetail() {
   if (isError || !order) {
     return (
       <>
-        <Header title="Order Details" />
-        <Container extraStyle={{ justifyContent: "center", alignItems: "center", gap: 20 }}>
+        <Header />
+        <Container
+          bottomInset
+          extraStyle={{ justifyContent: "center", alignItems: "center", gap: 20 }}
+        >
           <Text align="center">Failed to load order details</Text>
           <Button text="Retry" onPress={() => refetch()} />
         </Container>
@@ -62,27 +62,27 @@ export default function OrderDetail() {
 
   return (
     <>
-      <Header title="Order Details" />
-      <Container extraStyle={{ paddingTop: 10 }}>
+      <Header />
+      <Container bottomInset extraStyle={{ paddingTop: 10 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ gap: 20, paddingBottom: 40 }}
         >
-          <View style={[styles.section, { backgroundColor: themeColors.card }]}>
+          <View style={[styles.section, { backgroundColor: colors.surface }]}>
             <View style={styles.row}>
-              <Text size={14} color="accent">
+              <Text size={14} color="muted">
                 Order ID
               </Text>
               <Text weight="600">#{order._id.slice(-8).toUpperCase()}</Text>
             </View>
             <View style={styles.row}>
-              <Text size={14} color="accent">
+              <Text size={14} color="muted">
                 Date
               </Text>
               <Text>{date}</Text>
             </View>
             <View style={styles.row}>
-              <Text size={14} color="accent">
+              <Text size={14} color="muted">
                 Payment
               </Text>
               <View style={styles.statusRow}>
@@ -96,30 +96,30 @@ export default function OrderDetail() {
               </View>
             </View>
             <View style={styles.row}>
-              <Text size={14} color="accent">
+              <Text size={14} color="muted">
                 Payment Type
               </Text>
               <Text>{order.paymentType?.toUpperCase()}</Text>
             </View>
           </View>
 
-          <View style={[styles.section, { backgroundColor: themeColors.card }]}>
+          <View style={[styles.section, { backgroundColor: colors.surface }]}>
             <Text weight="600" size={18}>
               Delivery Address
             </Text>
             <Text style={{ marginTop: 8 }}>{order.address?.name}</Text>
-            <Text color="accent">{order.address?.addressLine1}</Text>
+            <Text color="muted">{order.address?.addressLine1}</Text>
             {order.address?.addressLine2 ? (
-              <Text color="accent">{order.address?.addressLine2}</Text>
+              <Text color="muted">{order.address?.addressLine2}</Text>
             ) : null}
-            <Text color="accent">
+            <Text color="muted">
               {order.address?.city}, {order.address?.state} {order.address?.zipCode}
             </Text>
-            <Text color="accent">{order.address?.country}</Text>
-            <Text color="accent">{order.address?.phone}</Text>
+            <Text color="muted">{order.address?.country}</Text>
+            <Text color="muted">{order.address?.phone}</Text>
           </View>
 
-          <View style={[styles.section, { backgroundColor: themeColors.card }]}>
+          <View style={[styles.section, { backgroundColor: colors.surface }]}>
             <Text weight="600" size={18}>
               Order Items
             </Text>
@@ -130,7 +130,7 @@ export default function OrderDetail() {
                   styles.productRow,
                   index < order.products.length - 1 && {
                     borderBottomWidth: 1,
-                    borderBottomColor: themeColors.border,
+                    borderBottomColor: colors.border,
                     paddingBottom: 12,
                   },
                 ]}
@@ -139,7 +139,7 @@ export default function OrderDetail() {
                   <Text weight="500">
                     {typeof item.product === "object" ? item.product.name : `Product #${index + 1}`}
                   </Text>
-                  <Text size={14} color="accent">
+                  <Text size={14} color="muted">
                     Qty: {item.quantity}
                   </Text>
                 </View>
@@ -148,13 +148,13 @@ export default function OrderDetail() {
             ))}
           </View>
 
-          <View style={[styles.section, { backgroundColor: themeColors.card }]}>
+          <View style={[styles.section, { backgroundColor: colors.surface }]}>
             <View style={styles.row}>
-              <Text color="accent">Subtotal</Text>
+              <Text color="muted">Subtotal</Text>
               <Text>${order.subtotal?.toFixed(2)}</Text>
             </View>
             <View style={styles.row}>
-              <Text color="accent">Delivery</Text>
+              <Text color="muted">Delivery</Text>
               <Text>${order.deliveryCharge?.toFixed(2)}</Text>
             </View>
             <View
@@ -162,7 +162,7 @@ export default function OrderDetail() {
                 styles.row,
                 {
                   borderTopWidth: 1,
-                  borderTopColor: themeColors.border,
+                  borderTopColor: colors.border,
                   paddingTop: 12,
                   marginTop: 4,
                 },
@@ -177,7 +177,7 @@ export default function OrderDetail() {
             </View>
           </View>
 
-          <View style={[styles.section, { backgroundColor: themeColors.card }]}>
+          <View style={[styles.section, { backgroundColor: colors.surface }]}>
             <Text weight="600" size={18}>
               Order Timeline
             </Text>
@@ -192,7 +192,7 @@ export default function OrderDetail() {
                         style={[
                           styles.timelineDot,
                           {
-                            backgroundColor: isCompleted ? statusColors[step] : themeColors.border,
+                            backgroundColor: isCompleted ? statusColors[step] : colors.border,
                             borderColor: isCurrent ? statusColors[step] : "transparent",
                           },
                         ]}
@@ -202,9 +202,7 @@ export default function OrderDetail() {
                           style={[
                             styles.timelineLine,
                             {
-                              backgroundColor: isCompleted
-                                ? statusColors[step]
-                                : themeColors.border,
+                              backgroundColor: isCompleted ? statusColors[step] : colors.border,
                             },
                           ]}
                         />
@@ -218,7 +216,7 @@ export default function OrderDetail() {
                     >
                       <Text
                         weight={isCompleted ? "600" : "400"}
-                        color={isCompleted ? "primary" : "accent"}
+                        color={isCompleted ? "brand" : "subtle"}
                         style={{ textTransform: "capitalize" }}
                       >
                         {step}
