@@ -9,7 +9,10 @@
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anirudhkille.ezshopapp"
+      "bundleIdentifier": "com.anirudhkille.ezshopapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,10 +20,6 @@
         "backgroundColor": "#000000"
       },
       "package": "com.anirudhkille.ezshopapp"
-    },
-    "androidNavigationBar": {
-      "backgroundColor": "#0D0D0D",
-      "barStyle": "light-content"
     },
     "androidStatusBar": {
       "backgroundColor": "#FF5500",
