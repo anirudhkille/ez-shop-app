@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
@@ -8,7 +8,10 @@ import Header from "@/layout/Header";
 import Input from "@/components/ui/Input";
 import Text from "@/components/ui/Text";
 import Button from "@/components/ui/Button";
+import EmptyState from "@/components/ui/EmptyState";
+import { ListSkeleton } from "@/components/ui/Skeleton";
 import { CircleCheckIcon } from "@/assets/icons/CircleCheckIcon";
+import { MapPinIcon } from "@/assets/icons/MapPinIcon";
 import { colors, radius } from "@/constant/color";
 import {
   useAddressesQuery,
@@ -21,44 +24,29 @@ const LABELS = ["Home", "Work", "Other"] as const;
 
 type Label = (typeof LABELS)[number];
 
-export default function AddAddress() {
+/**
+ * The form holds the draft, so it is mounted only once the address it edits is
+ * known. Seeding the fields from an effect meant an empty form flashed first
+ * and any early typing was overwritten when the record arrived.
+ */
+function AddressForm({ address }: { address?: IAddress }) {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
-
-  const { data: addressesRes } = useAddressesQuery();
   const createAddress = useCreateAddressMutation();
   const updateAddress = useUpdateAddressMutation();
 
-  const editing = Boolean(id);
+  const editing = Boolean(address);
   const busy = createAddress.isPending || updateAddress.isPending;
 
-  const [label, setLabel] = useState<Label>("Home");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [addressLine1, setAddressLine1] = useState("");
-  const [addressLine2, setAddressLine2] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [zipCode, setZipCode] = useState("");
-  const [country, setCountry] = useState("India");
-  const [isDefault, setIsDefault] = useState(false);
-
-  useEffect(() => {
-    if (!id || !addressesRes?.data) return;
-    const existing = addressesRes.data.find((a: IAddress) => a._id === id);
-    if (!existing) return;
-
-    setLabel((existing.label as Label) ?? "Home");
-    setName(existing.name ?? "");
-    setPhone(existing.phone ?? "");
-    setAddressLine1(existing.addressLine1 ?? "");
-    setAddressLine2(existing.addressLine2 ?? "");
-    setCity(existing.city ?? "");
-    setState(existing.state ?? "");
-    setZipCode(existing.zipCode ?? "");
-    setCountry(existing.country ?? "");
-    setIsDefault(Boolean(existing.isDefault));
-  }, [id, addressesRes]);
+  const [label, setLabel] = useState<Label>((address?.label as Label) ?? "Home");
+  const [name, setName] = useState(address?.name ?? "");
+  const [phone, setPhone] = useState(address?.phone ?? "");
+  const [addressLine1, setAddressLine1] = useState(address?.addressLine1 ?? "");
+  const [addressLine2, setAddressLine2] = useState(address?.addressLine2 ?? "");
+  const [city, setCity] = useState(address?.city ?? "");
+  const [state, setState] = useState(address?.state ?? "");
+  const [zipCode, setZipCode] = useState(address?.zipCode ?? "");
+  const [country, setCountry] = useState(address?.country ?? "India");
+  const [isDefault, setIsDefault] = useState(Boolean(address?.isDefault));
 
   const handleSave = () => {
     const required: [string, string][] = [
@@ -98,8 +86,8 @@ export default function AddAddress() {
 
     // Editing used to run the create mutation, which quietly added a second
     // copy of the address instead of changing the one that was opened.
-    if (editing && id) {
-      updateAddress.mutate({ id, data: payload }, { onSuccess, onError });
+    if (address) {
+      updateAddress.mutate({ id: address._id, data: payload }, { onSuccess, onError });
     } else {
       createAddress.mutate(payload, { onSuccess, onError });
     }
@@ -223,6 +211,37 @@ export default function AddAddress() {
       </Container>
     </>
   );
+}
+
+export default function AddAddress() {
+  const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
+
+  const { data: addressesRes, isLoading } = useAddressesQuery();
+  const existing = id ? addressesRes?.data?.find((item: IAddress) => item._id === id) : undefined;
+
+  if (id && !existing) {
+    return (
+      <>
+        <Header title="Edit address" />
+        <Container bottomInset>
+          {isLoading ? (
+            <ListSkeleton count={3} height={64} />
+          ) : (
+            <EmptyState
+              title="Address not found"
+              body="It may have been removed. Go back and pick another address."
+              icon={<MapPinIcon color={colors.muted} size={24} />}
+              actionLabel="Go back"
+              onAction={() => router.back()}
+            />
+          )}
+        </Container>
+      </>
+    );
+  }
+
+  return <AddressForm key={existing?._id ?? "new"} address={existing} />;
 }
 
 const styles = StyleSheet.create({

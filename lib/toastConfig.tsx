@@ -5,40 +5,45 @@ import { colors, radius } from "@/constant/color";
 import { View } from "react-native";
 import { BaseToastProps } from "react-native-toast-message";
 
-function buildToast(accent: string, Icon: typeof CircleCheckIcon) {
-  return ({ text1, text2 }: BaseToastProps) => (
-    <View
-      style={{
-        width: "90%",
-        maxWidth: 400,
-        minHeight: 56,
-        backgroundColor: colors.surface,
-        borderColor: colors.border,
-        borderWidth: 1,
-        gap: 12,
-        borderRadius: radius.md,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        flexDirection: "row",
-        alignItems: "center",
-      }}
-    >
-      <Icon color={accent} size={20} />
-      <View style={{ flex: 1, gap: 2 }}>
-        <Text size={14} weight="500">
-          {text1}
-        </Text>
-        {text2 ? (
-          <Text size={12} color="muted">
-            {text2}
+function buildToast(name: string, accent: string, Icon: typeof CircleCheckIcon) {
+  function Toast({ text1, text2 }: BaseToastProps) {
+    return (
+      <View
+        style={{
+          width: "90%",
+          maxWidth: 400,
+          minHeight: 56,
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          borderWidth: 1,
+          gap: 12,
+          borderRadius: radius.md,
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
+      >
+        <Icon color={accent} size={20} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text size={14} weight="500">
+            {text1}
           </Text>
-        ) : null}
+          {text2 ? (
+            <Text size={12} color="muted">
+              {text2}
+            </Text>
+          ) : null}
+        </View>
       </View>
-    </View>
-  );
+    );
+  }
+
+  Toast.displayName = `${name}Toast`;
+  return Toast;
 }
 
 export const toastConfig = {
-  success: buildToast(colors.success, CircleCheckIcon),
-  error: buildToast(colors.destructive, CircleXIcon),
+  success: buildToast("Success", colors.success, CircleCheckIcon),
+  error: buildToast("Error", colors.destructive, CircleXIcon),
 };

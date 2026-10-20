@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Animated, StyleSheet, View, ViewStyle } from "react-native";
 
 import { colors, radius } from "@/constant/color";
@@ -12,7 +12,9 @@ interface SkeletonProps {
 
 /** A single pulsing block. Used to build list placeholders. */
 export function Skeleton({ width = "100%", height = 14, rounded = 6, style }: SkeletonProps) {
-  const pulse = useRef(new Animated.Value(0)).current;
+  // Animated.Value is a mutable animation node rather than render state, so it
+  // is memoised for a stable identity instead of being pulled off a ref.
+  const pulse = useMemo(() => new Animated.Value(0), []);
 
   useEffect(() => {
     const loop = Animated.loop(

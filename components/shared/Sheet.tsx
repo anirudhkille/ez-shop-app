@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import { Animated, Modal, Pressable, StyleSheet, View, ViewStyle } from "react-native";
+import React, { useEffect, useMemo } from "react";
+import { Animated, Modal, Pressable, StyleSheet, ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, radius } from "@/constant/color";
@@ -26,46 +26,24 @@ export default function Sheet({
   contentStyle,
 }: SheetProps) {
   const insets = useSafeAreaInsets();
-  const progress = useRef(new Animated.Value(0)).current;
-  const dragY = useRef(new Animated.Value(0)).current;
+  // The animation driver is a mutable node rather than render state, so it is
+  // memoised instead of being read off a ref during render.
+  const progress = useMemo(() => new Animated.Value(0), []);
 
   useEffect(() => {
-    if (visible) {
-      dragY.setValue(0);
-      Animated.timing(progress, {
-        toValue: 1,
-        duration: 220,
-        useNativeDriver: true,
-      }).start();
-    } else {
-      Animated.timing(progress, {
-        toValue: 0,
-        duration: 180,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [visible, progress, dragY]);
+    Animated.timing(progress, {
+      toValue: visible ? 1 : 0,
+      duration: visible ? 220 : 180,
+      useNativeDriver: true,
+    }).start();
+  }, [visible, progress]);
 
-  const translateY = Animated.add(
-    progress.interpolate({ inputRange: [0, 1], outputRange: [600, 0] }),
-    dragY
-  );
+  const translateY = progress.interpolate({ inputRange: [0, 1], outputRange: [600, 0] });
 
   const backdropOpacity = progress.interpolate({
     inputRange: [0, 1],
     outputRange: [0, 1],
   });
-
-  const close = () => {
-    Animated.timing(dragY, {
-      toValue: 400,
-      duration: 160,
-      useNativeDriver: true,
-    }).start(() => {
-      dragY.setValue(0);
-      onClose();
-    });
-  };
 
   return (
     <Modal

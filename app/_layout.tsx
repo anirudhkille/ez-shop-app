@@ -8,6 +8,7 @@ import { useFonts } from "expo-font";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useAuthStore } from "@/store/auth";
+import { useAuthHydrated } from "@/hooks/useAuthHydrated";
 import { ApiAuthError } from "@/api/client";
 import { toastConfig } from "@/lib/toastConfig";
 import { colors, fonts } from "@/constant/color";
@@ -46,12 +47,7 @@ export default function RootLayout() {
     Outfit_700Bold: require("../assets/fonts/Outfit-Bold.ttf"),
   });
 
-  const [hydrated, setHydrated] = useState(useAuthStore.persist.hasHydrated());
-
-  useEffect(() => {
-    if (useAuthStore.persist.hasHydrated()) setHydrated(true);
-    return useAuthStore.persist.onFinishHydration(() => setHydrated(true));
-  }, []);
+  const hydrated = useAuthHydrated();
 
   useEffect(() => {
     if (fontsLoaded) SplashScreen.hideAsync().catch(() => {});

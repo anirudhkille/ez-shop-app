@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 
 import Container from "@/layout/Container";
-import Text from "@/components/ui/Text";
 import ScreenHeader from "@/components/ui/ScreenHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import ProductCard from "@/components/shared/ProductCard";

@@ -25,7 +25,7 @@ import { SearchIcon } from "@/assets/icons/SearchIcon";
 import { TuneIcon } from "@/assets/icons/TuneIcon";
 import { CircleCheckIcon } from "@/assets/icons/CircleCheckIcon";
 import { PackageIcon } from "@/assets/icons/PackageIcon";
-import { useFilteredProductsQuery, useSearchProductsQuery } from "@/hooks/useProducts";
+import { useInfiniteFilteredProductsQuery, useSearchProductsQuery } from "@/hooks/useProducts";
 import { useCategoriesQuery } from "@/hooks/useCategories";
 import { titleCase } from "@/lib/format";
 import { IProduct } from "@/types/api";
@@ -141,8 +141,6 @@ export default function Shop() {
   const [category, setCategory] = useState<string>("");
   const [gender, setGender] = useState<GenderFilter>("all");
   const [sort, setSort] = useState<SortOption>("newest");
-  const [page, setPage] = useState(1);
-  const [accumulated, setAccumulated] = useState<IProduct[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -158,42 +156,37 @@ export default function Shop() {
     refetch: refetchSearch,
   } = useSearchProductsQuery(debounced);
 
+  // `page` is deliberately absent: the infinite query appends it per request,
+  // so changing a filter starts a fresh key instead of mutating a page counter.
   const params = useMemo(() => {
-    const next: Record<string, string> = { sort, page: String(page), limit: String(PAGE_SIZE) };
+    const next: Record<string, string> = { sort, limit: String(PAGE_SIZE) };
     if (category) next.category = category; // ObjectId: the server rejects slugs here
     if (gender !== "all") next.gender = gender;
     return next;
-  }, [category, gender, sort, page]);
+  }, [category, gender, sort]);
 
   const {
     data: filteredData,
     isLoading: filterLoading,
-    isFetching: filterFetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
     isError: filterError,
     refetch: refetchFiltered,
-  } = useFilteredProductsQuery(params);
+  } = useInfiniteFilteredProductsQuery(params);
 
-  const pageItems = useMemo(() => filteredData?.data || [], [filteredData]);
-  const pagination = filteredData?.pagination;
+  const pageItems = useMemo(
+    () => filteredData?.pages.flatMap((page) => page.data ?? []) ?? [],
+    [filteredData],
+  );
+  const pagination = filteredData?.pages[0]?.pagination;
   const searchResults = searchData?.data || [];
-
-  // A new filter invalidates everything fetched so far.
-  useEffect(() => {
-    setAccumulated([]);
-    setPage(1);
-  }, [category, gender, sort]);
-
-  useEffect(() => {
-    if (!pageItems.length) return;
-    setAccumulated((prev) => (page === 1 ? pageItems : [...prev, ...pageItems]));
-  }, [pageItems, page]);
 
   const handleQuery = useCallback((text: string) => {
     setQuery(text);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       setDebounced(text.trim());
-      setPage(1);
     }, 350);
   }, []);
 
@@ -205,20 +198,20 @@ export default function Shop() {
   );
 
   const searching = debounced.length > 0;
-  const results = searching ? searchResults : accumulated;
+  const results = searching ? searchResults : pageItems;
   const hasFilters = category !== "" || gender !== "all" || sort !== "newest";
 
-  const total = searching ? searchResults.length : (pagination?.total ?? accumulated.length);
-  const shown = searching ? searchResults.length : accumulated.length;
+  const total = searching ? searchResults.length : (pagination?.total ?? pageItems.length);
+  const shown = results.length;
 
-  const busy = searching ? searchFetching : filterFetching;
+  const busy = searching ? searchFetching : isFetchingNextPage;
   const firstLoad = searching ? searchLoading : filterLoading;
 
-  const hasMore = !searching && pagination ? page < pagination.totalPages : false;
+  const hasMore = !searching && !!hasNextPage;
 
   const loadMore = useCallback(() => {
-    if (!searching && hasMore && !filterFetching) setPage((p) => p + 1);
-  }, [searching, hasMore, filterFetching]);
+    if (!searching && hasNextPage && !isFetchingNextPage) fetchNextPage();
+  }, [searching, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const resetAll = useCallback(() => {
     setCategory("");
@@ -226,7 +219,6 @@ export default function Shop() {
     setSort("newest");
     setQuery("");
     setDebounced("");
-    setPage(1);
   }, []);
 
   const activeCategoryName = categories.find((c) => c._id === category)?.name ?? "";

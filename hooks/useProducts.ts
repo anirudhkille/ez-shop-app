@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
   getProducts,
   getFeaturedProducts,
@@ -35,6 +35,25 @@ export const useFilteredProductsQuery = (
     queryKey: ["products", "filtered", params],
     queryFn: () => getFilteredProducts(params),
     enabled: (options?.enabled ?? true) && Object.keys(params).length > 0,
+  });
+
+/**
+ * Endless catalogue for the shop grid.
+ *
+ * The pages come back as one cached list, so changing a filter simply points
+ * the key at a new query instead of the screen having to clear and re-append
+ * its own copy of the results.
+ */
+export const useInfiniteFilteredProductsQuery = (params: Record<string, string>) =>
+  useInfiniteQuery({
+    queryKey: ["products", "filtered", params],
+    queryFn: ({ pageParam }) => getFilteredProducts({ ...params, page: String(pageParam) }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage.pagination;
+      return pagination.page < pagination.totalPages ? pagination.page + 1 : undefined;
+    },
+    enabled: Object.keys(params).length > 0,
   });
 
 export const useSearchProductsQuery = (name: string) =>

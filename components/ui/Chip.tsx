@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, TouchableOpacity, ViewStyle } from "react-native";
 
-import { colors, fonts } from "@/constant/color";
+import { colors } from "@/constant/color";
 import Text from "@/components/ui/Text";
 
 interface ChipProps {

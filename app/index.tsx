@@ -1,16 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "expo-router";
 import { useAuthStore } from "@/store/auth";
+import { useAuthHydrated } from "@/hooks/useAuthHydrated";
 
 export default function Index() {
   const router = useRouter();
   const token = useAuthStore((s) => s.token);
-  const [hydrated, setHydrated] = useState(useAuthStore.persist.hasHydrated());
-
-  useEffect(() => {
-    if (useAuthStore.persist.hasHydrated()) setHydrated(true);
-    return useAuthStore.persist.onFinishHydration(() => setHydrated(true));
-  }, []);
+  const hydrated = useAuthHydrated();
 
   useEffect(() => {
     if (!hydrated) return;

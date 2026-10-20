@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 
 import Header from "@/layout/Header";
 import Container from "@/layout/Container";
-import Text from "@/components/ui/Text";
 import EmptyState from "@/components/ui/EmptyState";
 import ProductCard from "@/components/shared/ProductCard";
 import { ProductGridSkeleton } from "@/components/ui/Skeleton";
