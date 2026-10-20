@@ -17,12 +17,12 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#FF640A"
       },
       "package": "com.anirudhkille.ezshopapp"
     },
     "androidStatusBar": {
-      "backgroundColor": "#FF5500",
+      "backgroundColor": "#FF640A",
       "barStyle": "light-content"
     },
     "web": {
@@ -41,10 +41,11 @@
           "backgroundColor": "#0D0D0D"
         }
       ],
-      "expo-web-browser",
       "expo-font",
       "expo-image",
-      "expo-status-bar"
+      "expo-secure-store",
+      ["@stripe/stripe-react-native", {}],
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true

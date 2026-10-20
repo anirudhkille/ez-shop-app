@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
   },
   labelChipActive: {
     borderColor: colors.brand,
-    backgroundColor: "rgba(255,85,0,0.1)",
+    backgroundColor: "rgba(255,100,10,0.1)",
   },
   pair: {
     flexDirection: "row",

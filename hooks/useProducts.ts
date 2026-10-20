@@ -1,6 +1,5 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
-  getProducts,
   getFeaturedProducts,
   getBestSellers,
   getFilteredProducts,
@@ -8,12 +7,6 @@ import {
   getSimilarProducts,
   getProductById,
 } from "@/api/products";
-
-export const useProductsQuery = (params?: Record<string, string>) =>
-  useQuery({
-    queryKey: ["products", params],
-    queryFn: () => getProducts(params),
-  });
 
 export const useFeaturedProductsQuery = () =>
   useQuery({

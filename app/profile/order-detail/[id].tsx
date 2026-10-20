@@ -64,6 +64,8 @@ export default function OrderDetail() {
 
   const currentStep = TIMELINE.indexOf(order.orderStatus as (typeof TIMELINE)[number]);
   const addressLines = order.address ? formatAddressLines(order.address) : [];
+  // Card orders are only settled by the Stripe webhook.
+  const awaitingPayment = order.paymentType === "card" && order.paymentStatus === "pending";
 
   return (
     <>
@@ -92,7 +94,7 @@ export default function OrderDetail() {
                 variant="soft"
               />
               <Badge
-                label={order.paymentStatus}
+                label={awaitingPayment ? "Awaiting payment" : order.paymentStatus}
                 tone={STATUS_TONE[order.paymentStatus] ?? "neutral"}
                 variant="soft"
               />

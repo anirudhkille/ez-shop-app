@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { placeCODOrder, getMyOrders, getOrderById, getOrderBySessionId } from "@/api/orders";
+import { placeCODOrder, getMyOrders, getOrderById } from "@/api/orders";
 import { useAuthStore } from "@/store/auth";
 
 const useToken = () => useAuthStore((s) => s.token);
@@ -19,15 +19,17 @@ export const useOrderByIdQuery = (id: string) => {
     queryKey: ["order", id],
     queryFn: () => getOrderById(token, id),
     enabled: !!token && !!id,
+    // Card orders are only settled by the Stripe webhook, so a pending one is
+    // refreshed for a couple of minutes while the customer is looking at it.
+    refetchInterval: (query) => {
+      const order = query.state.data?.data;
+
+      if (order?.paymentType !== "card" || order.paymentStatus !== "pending") return false;
+
+      return query.state.dataUpdateCount > 40 ? false : 3000;
+    },
   });
 };
-
-export const useOrderBySessionIdQuery = (sessionId: string) =>
-  useQuery({
-    queryKey: ["order", "session", sessionId],
-    queryFn: () => getOrderBySessionId(sessionId),
-    enabled: !!sessionId,
-  });
 
 export const usePlaceCODOrderMutation = () => {
   const token = useToken();

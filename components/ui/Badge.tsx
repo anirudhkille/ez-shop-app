@@ -28,7 +28,7 @@ const solid: Record<BadgeTone, string> = {
 };
 
 const soft: Record<BadgeTone, { bg: string; fg: string }> = {
-  brand: { bg: "rgba(255,85,0,0.16)", fg: "#FF8340" },
+  brand: { bg: "rgba(255,100,10,0.16)", fg: colors.brandGlow },
   success: { bg: "rgba(48,164,108,0.16)", fg: "#4ADE80" },
   danger: { bg: "rgba(229,72,77,0.16)", fg: "#FF6B6B" },
   warning: { bg: "rgba(245,165,36,0.16)", fg: "#F5A524" },
@@ -50,13 +50,7 @@ export default function Badge({ label, tone = "neutral", variant = "solid", styl
   const isSoft = variant === "soft";
 
   return (
-    <View
-      style={[
-        styles.badge,
-        { backgroundColor: isSoft ? soft[tone].bg : solid[tone] },
-        style,
-      ]}
-    >
+    <View style={[styles.badge, { backgroundColor: isSoft ? soft[tone].bg : solid[tone] }, style]}>
       <Text
         size={10}
         weight="700"

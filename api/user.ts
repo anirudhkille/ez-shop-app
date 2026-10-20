@@ -8,15 +8,30 @@ export const postSignup = (formData: ISignUp) =>
   });
 
 export const verifySignupOTP = (email: string, otp: string) =>
-  apiClient<IApiResponse & { data: IUser; token: string }>("/user/verify-signup-otp", {
-    method: "POST",
-    body: JSON.stringify({ email, otp }),
-  });
+  apiClient<IApiResponse<IUser & { token: string; refreshToken?: string }>>(
+    "/user/verify-signup-otp",
+    {
+      method: "POST",
+      body: JSON.stringify({ email, otp, client: "app" }),
+    }
+  );
 
 export const postLogin = (formData: ILogin) =>
-  apiClient<IApiResponse<IUser & { token: string }>>("/user/login", {
+  apiClient<IApiResponse<IUser & { token: string; refreshToken?: string }>>("/user/login", {
     method: "POST",
-    body: JSON.stringify(formData),
+    body: JSON.stringify({ ...formData, client: "app" }),
+  });
+
+export const postGoogleMobile = (idToken: string) =>
+  apiClient<
+    IApiResponse<{
+      accessToken: string;
+      refreshToken: string;
+      user: IUser;
+    }>
+  >("/user/google/mobile", {
+    method: "POST",
+    body: JSON.stringify({ idToken }),
   });
 
 export const forgotPassword = (email: string) =>
@@ -50,14 +65,9 @@ export const updatePassword = (token: string, currentPassword: string, newPasswo
     body: JSON.stringify({ currentPassword, newPassword }),
   });
 
-export const logoutUser = (token: string) =>
+export const logoutUser = (token: string, refreshToken: string) =>
   apiClient<IApiResponse>("/user/logout", {
     method: "POST",
     token,
-  });
-
-export const refreshToken = () =>
-  apiClient<IApiResponse & { token: string }>("/user/refresh", {
-    method: "GET",
-    credentials: "include",
+    body: JSON.stringify({ client: "app", refreshToken }),
   });

@@ -1,16 +1,18 @@
 import { useMutation } from "@tanstack/react-query";
-import { createCheckoutSession, createGuestCheckoutSession } from "@/api/payment";
+import { abandonPaymentIntent, createPaymentIntent } from "@/api/payment";
 import { useAuthStore } from "@/store/auth";
 
-export const useCreateCheckoutSessionMutation = () => {
+export const useCreatePaymentIntentMutation = () => {
   const token = useAuthStore((s) => s.token);
   return useMutation({
     mutationFn: (data: { addressId: string; deliveryMethod: string }) =>
-      createCheckoutSession(token, data),
+      createPaymentIntent(token, data),
   });
 };
 
-export const useCreateGuestCheckoutSessionMutation = () =>
-  useMutation({
-    mutationFn: createGuestCheckoutSession,
+export const useAbandonPaymentMutation = () => {
+  const token = useAuthStore((s) => s.token);
+  return useMutation({
+    mutationFn: (orderId: string) => abandonPaymentIntent(token, orderId),
   });
+};

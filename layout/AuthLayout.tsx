@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import { colors } from "@/constant/color";
 import Text from "@/components/ui/Text";
+import { BrandLogo } from "@/assets/icons/BrandLogo";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -57,7 +58,7 @@ export default function AuthLayout({
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.brandRow}>
-            <View style={styles.brandDot} />
+            <BrandLogo size={24} />
             <Text size={13} weight="700" variant="display" color="brand" style={styles.brand}>
               EZ Shop
             </Text>
@@ -105,14 +106,8 @@ const styles = StyleSheet.create({
   brandRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 7,
+    gap: 9,
     marginBottom: 34,
-  },
-  brandDot: {
-    width: 3,
-    height: 15,
-    borderRadius: 1.5,
-    backgroundColor: colors.brand,
   },
   brand: {
     letterSpacing: 2,

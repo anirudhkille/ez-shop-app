@@ -1,14 +1,9 @@
 import React, { useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from "react-native";
 import { Image } from "expo-image";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Container from "@/layout/Container";
 import Header from "@/layout/Header";
@@ -44,6 +39,7 @@ export default function ProductDetail() {
   const { slug, id } = useLocalSearchParams<{ slug: string; id: string }>();
   const router = useRouter();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   const [selectedVariant, setSelectedVariant] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
@@ -63,7 +59,7 @@ export default function ProductDetail() {
   const { mutate: addToCart, isPending: cartPending } = useAddToCartMutation();
 
   const wishlistIds = (wishlistData?.data?.products ?? []).map((entry: any) =>
-    typeof entry === "string" ? entry : entry?._id,
+    typeof entry === "string" ? entry : entry?._id
   );
   const saved = product ? wishlistIds.includes(product._id) : false;
 
@@ -72,7 +68,9 @@ export default function ProductDetail() {
   const displayImage = variant?.images?.[0] || product?.image || "";
 
   const unitPrice = product
-    ? (discountPercent(product.price, product.discountPrice) ? product.discountPrice : product.price)
+    ? discountPercent(product.price, product.discountPrice)
+      ? product.discountPrice
+      : product.price
     : 0;
   const saving = product ? discountPercent(product.price, product.discountPrice) : null;
 
@@ -88,7 +86,7 @@ export default function ProductDetail() {
         onSuccess: () => Toast.show({ type: "success", text1: "Added to cart" }),
         onError: (err: any) =>
           Toast.show({ type: "error", text1: err?.message || "Could not add to cart" }),
-      },
+      }
     );
   };
 
@@ -141,12 +139,14 @@ export default function ProductDetail() {
     <>
       {/*
         The product hero is the page's own header: a solid bar above it only
-        produced a dead band between the status bar and the photograph. The back
-        control floats over the image instead.
+        produced a dead band between the status bar and the photograph. The
+        container reserves the status-bar inset so the photo and the floating
+        back control sit below the clock and battery, and the control floats
+        over the image instead.
       */}
       <Stack.Screen options={{ headerShown: false }} />
 
-      <Container bottomInset extraStyle={styles.noPad}>
+      <Container topInset bottomInset extraStyle={styles.noPad}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
           <View style={[styles.imageWrap, { height: width }]}>
             <Image
@@ -239,10 +239,7 @@ export default function ProductDetail() {
                         style={[styles.colorRing, active && styles.colorRingActive]}
                       >
                         <View
-                          style={[
-                            styles.colorDot,
-                            { backgroundColor: v.colorCode || v.color },
-                          ]}
+                          style={[styles.colorDot, { backgroundColor: v.colorCode || v.color }]}
                         />
                       </TouchableOpacity>
                     );
@@ -279,7 +276,11 @@ export default function ProductDetail() {
                           size={13}
                           weight="600"
                           style={{
-                            color: active ? "#FFFFFF" : outOfStock ? colors.subtle : colors.foreground,
+                            color: active
+                              ? "#FFFFFF"
+                              : outOfStock
+                                ? colors.subtle
+                                : colors.foreground,
                             lineHeight: 17,
                             flexShrink: 0,
                           }}
@@ -399,7 +400,7 @@ export default function ProductDetail() {
 
         <TouchableOpacity
           onPress={() => router.back()}
-          style={styles.back}
+          style={[styles.back, { top: insets.top + 20 }]}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
           accessibilityLabel="Go back"
@@ -437,7 +438,6 @@ const styles = StyleSheet.create({
   },
   back: {
     position: "absolute",
-    top: 12,
     left: 14,
     width: 40,
     height: 40,
@@ -483,8 +483,8 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   wishlistBtnActive: {
-    borderColor: "rgba(255,85,0,0.45)",
-    backgroundColor: "rgba(255,85,0,0.12)",
+    borderColor: "rgba(255,100,10,0.45)",
+    backgroundColor: "rgba(255,100,10,0.12)",
   },
 
   priceRow: {

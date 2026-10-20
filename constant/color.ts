@@ -10,7 +10,8 @@ export const colors = {
   muted: "#8C8C8C",
   subtle: "#575757",
 
-  brand: "#FF5500",
+  brand: "#FF640A",
+  brandGlow: "#FF843D",
 
   destructive: "#E5484D",
   success: "#30A46C",

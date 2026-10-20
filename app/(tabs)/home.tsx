@@ -57,7 +57,13 @@ function CategoryTile({
       </View>
 
       <View style={styles.categoryLabel}>
-        <Text size={12} weight="700" variant="display" numberOfLines={1} style={styles.categoryName}>
+        <Text
+          size={12}
+          weight="700"
+          variant="display"
+          numberOfLines={1}
+          style={styles.categoryName}
+        >
           {titleCase(category.name)}
         </Text>
       </View>
@@ -115,6 +121,7 @@ export default function Home() {
           <ScreenHeader
             title="EZ Shop"
             eyebrow="Everything, delivered"
+            logo
             right={
               <TouchableOpacity
                 onPress={() => router.push("/(tabs)/cart")}

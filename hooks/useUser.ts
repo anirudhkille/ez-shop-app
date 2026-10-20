@@ -13,8 +13,7 @@ import {
 import { useAuthStore } from "@/store/auth";
 
 export const useLoginMutation = () => {
-  const setToken = useAuthStore((s) => s.setToken);
-  const setUser = useAuthStore((s) => s.setUser);
+  const setSession = useAuthStore((s) => s.setSession);
 
   return useMutation({
     mutationFn: postLogin,
@@ -22,8 +21,13 @@ export const useLoginMutation = () => {
       // The token arrives on the payload object, not the response envelope.
       const payload = res.data;
 
-      if (payload?.token) setToken(payload.token);
-      if (payload) setUser(payload);
+      if (payload?.token) {
+        setSession({
+          token: payload.token,
+          refreshToken: payload.refreshToken,
+          user: payload,
+        });
+      }
     },
   });
 };
@@ -35,16 +39,20 @@ export const useSignupMutation = () => {
 };
 
 export const useVerifySignupOTPMutation = () => {
-  const setToken = useAuthStore((s) => s.setToken);
-  const setUser = useAuthStore((s) => s.setUser);
+  const setSession = useAuthStore((s) => s.setSession);
 
   return useMutation({
     mutationFn: ({ email, otp }: { email: string; otp: string }) => verifySignupOTP(email, otp),
     onSuccess: (res) => {
       const payload = res.data;
 
-      if (payload?.token) setToken(payload.token);
-      if (payload) setUser(payload);
+      if (payload?.token) {
+        setSession({
+          token: payload.token,
+          refreshToken: payload.refreshToken ?? undefined,
+          user: payload,
+        });
+      }
     },
   });
 };
@@ -105,12 +113,14 @@ export const useUpdatePasswordMutation = () => {
 
 export const useLogoutMutation = () => {
   const token = useAuthStore((s) => s.token);
+  const refreshToken = useAuthStore((s) => s.refreshToken);
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => logoutUser(token),
-    onSuccess: () => {
+    mutationFn: () => logoutUser(token, refreshToken),
+    // Local sign-out must happen even when the revoke call fails.
+    onSettled: () => {
       clearAuth();
       queryClient.clear();
     },

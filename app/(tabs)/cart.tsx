@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
-import * as WebBrowser from "expo-web-browser";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 
@@ -28,7 +27,8 @@ import {
 } from "@/hooks/useCart";
 import { useAddressesQuery } from "@/hooks/useAddress";
 import { usePlaceCODOrderMutation } from "@/hooks/useOrders";
-import { useCreateCheckoutSessionMutation } from "@/hooks/usePayment";
+import { useCreatePaymentIntentMutation, useAbandonPaymentMutation } from "@/hooks/usePayment";
+import { useStripe } from "@/lib/stripe";
 import { ICartProduct, IProduct, IAddress } from "@/types/api";
 
 const DELIVERY_OPTIONS = [
@@ -82,8 +82,10 @@ export default function Cart() {
   const { mutate: removeFromCart } = useRemoveFromCartMutation();
   const { data: addressesResponse } = useAddressesQuery();
   const { mutate: placeCODOrder, isPending: isPlacingCOD } = usePlaceCODOrderMutation();
-  const { mutate: createCheckoutSession, isPending: isCreatingSession } =
-    useCreateCheckoutSessionMutation();
+  const { mutate: createPaymentIntent, isPending: isCreatingIntent } =
+    useCreatePaymentIntentMutation();
+  const { mutate: abandonPayment } = useAbandonPaymentMutation();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
@@ -91,6 +93,7 @@ export default function Cart() {
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "card">("cod");
   const [checkoutStep, setCheckoutStep] = useState<CheckoutStep>("address");
   const [error, setError] = useState("");
+  const [isPaying, setPaying] = useState(false);
 
   const cart = (cartResponse as any)?.data;
   const addresses = ((addressesResponse as any)?.data || []) as IAddress[];
@@ -146,23 +149,57 @@ export default function Cart() {
           },
         },
       );
-    } else {
-      setCheckoutStep("confirming");
-      createCheckoutSession(
-        { addressId: selectedAddressId, deliveryMethod: selectedDelivery },
-        {
-          onSuccess: (res: any) => {
-            const url = res?.url || res?.data?.url;
-            if (url) WebBrowser.openBrowserAsync(url);
-            setCheckoutOpen(false);
-          },
-          onError: (err: any) => {
-            setError(err?.message || "Failed to create checkout session");
-            setCheckoutStep("payment");
-          },
-        },
-      );
+      return;
     }
+
+    setCheckoutStep("confirming");
+
+    createPaymentIntent(
+      { addressId: selectedAddressId, deliveryMethod: selectedDelivery },
+      {
+        onSuccess: async (res) => {
+          const details = res.data;
+          setPaying(true);
+
+          try {
+            const { error: initError } = await initPaymentSheet({
+              merchantDisplayName: "EZ Shop",
+              paymentIntentClientSecret: details.clientSecret,
+              returnURL: `ezshop://payment/success?orderId=${details.orderId}`,
+            });
+
+            if (initError) {
+              setError(initError.message);
+              // The intent cannot be paid now; release the order server-side.
+              abandonPayment(details.orderId);
+              setCheckoutStep("payment");
+              return;
+            }
+
+            const { error: presentError } = await presentPaymentSheet();
+
+            if (presentError) {
+              if (presentError.code !== "Canceled") setError(presentError.message);
+              abandonPayment(details.orderId);
+              setCheckoutStep("payment");
+              return;
+            }
+
+            setCheckoutOpen(false);
+            router.push({
+              pathname: "/payment/success",
+              params: { orderId: details.orderId },
+            });
+          } finally {
+            setPaying(false);
+          }
+        },
+        onError: (err: any) => {
+          setError(err?.message || "Failed to start card payment");
+          setCheckoutStep("payment");
+        },
+      },
+    );
   };
 
   /** Shared money block - the sheet and the list footer must match exactly. */
@@ -477,7 +514,7 @@ export default function Cart() {
                 <Button
                   text={paymentMethod === "cod" ? "Place order" : "Pay now"}
                   onPress={handlePlaceOrder}
-                  loading={isPlacingCOD || isCreatingSession}
+                  loading={isPlacingCOD || isCreatingIntent || isPaying}
                 />
                 <Button
                   text="Back"

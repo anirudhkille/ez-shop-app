@@ -39,32 +39,44 @@ export class ApiAuthError extends Error {
 
 const REFRESH_PATH = "/user/refresh-token";
 
-/**
- * Single in-flight refresh. Several screens can fire requests at the same
- * moment when the access token has just expired; without this they would each
- * ask for a new token and all but one would fail.
- */
-let refreshPromise: Promise<string | null> | null = null;
+let refreshPromise: Promise<boolean> | null = null;
 
-const requestNewToken = async (): Promise<string | null> => {
+const requestNewToken = async (): Promise<boolean> => {
+  const { refreshToken } = useAuthStore.getState();
+  if (!refreshToken) return false;
+
   try {
     const res = await fetch(`${API_URL}${REFRESH_PATH}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
+      body: JSON.stringify({ client: "app", refreshToken }),
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      // A rejected refresh token cannot be salvaged; a network error can.
+      if (res.status === 401 || res.status === 403) {
+        useAuthStore.getState().clearAuth();
+      }
+      return false;
+    }
 
     const body = await res.json();
     const token: string | undefined = body?.data?.token;
-    return token ?? null;
+    if (!token) return false;
+
+    // The server rotates on every use, so the new token must be kept.
+    useAuthStore.getState().setSession({
+      token,
+      refreshToken: body?.data?.refreshToken,
+    });
+    return true;
   } catch {
-    return null;
+    return false;
   }
 };
 
-const refreshAccessToken = async (): Promise<string | null> => {
+/** One shared in-flight refresh; parallel 401s must not rotate twice. */
+export const refreshSession = (): Promise<boolean> => {
   if (!refreshPromise) {
     refreshPromise = requestNewToken().finally(() => {
       refreshPromise = null;
@@ -104,14 +116,12 @@ export async function apiClient<T = any>(endpoint: string, options: FetchOptions
   let res = await doRequest(token);
 
   if (!res.ok && res.status === 401 && token) {
-    // The access token lives for 15 minutes. Rather than dropping the user back
-    // to the login screen mid-session, exchange the refresh cookie once and
-    // replay the request.
-    const fresh = await refreshAccessToken();
+    // Access tokens last 15 minutes; exchange the stored refresh token once
+    // and replay the request instead of bouncing the user to login.
+    const refreshed = await refreshSession();
 
-    if (fresh) {
-      useAuthStore.getState().setToken(fresh);
-      res = await doRequest(fresh);
+    if (refreshed) {
+      res = await doRequest(useAuthStore.getState().token);
     }
   }
 

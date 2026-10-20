@@ -5,19 +5,31 @@ import { StatusBar } from "react-native";
 import { useEffect, useState } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { StripeProvider } from "@/lib/stripe";
 import { useAuthStore } from "@/store/auth";
 import { useAuthHydrated } from "@/hooks/useAuthHydrated";
+import { useSessionBootstrap } from "@/hooks/useSessionBootstrap";
 import { ApiAuthError } from "@/api/client";
 import { toastConfig } from "@/lib/toastConfig";
 import { colors, fonts } from "@/constant/color";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 /** Reachable without a token. Everything else requires sign-in. */
 const PUBLIC_ROUTES = ["login", "signup", "forgot-password", "reset-password", "verify-otp"];
+
+/**
+ * The toast is absolutely positioned from the top of the window, so a fixed
+ * offset put it underneath the status bar (clock, battery, notch). Measure the
+ * real inset instead so it always lands just below the system UI.
+ */
+function AppToast() {
+  const insets = useSafeAreaInsets();
+
+  return <Toast position="top" topOffset={insets.top + 8} config={toastConfig} />;
+}
 
 /** No point retrying a request the server refused on auth grounds. */
 const retryUnlessAuthError = (failureCount: number, error: unknown) => {
@@ -48,13 +60,14 @@ export default function RootLayout() {
   });
 
   const hydrated = useAuthHydrated();
+  const bootstrapped = useSessionBootstrap(hydrated);
 
   useEffect(() => {
     if (fontsLoaded) SplashScreen.hideAsync().catch(() => {});
   }, [fontsLoaded]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !bootstrapped) return;
 
     // The index route yields no segment, so `segments[0]` is undefined there.
     // `includes(undefined)` is false, which correctly treats "/" as protected.
@@ -65,38 +78,42 @@ export default function RootLayout() {
     } else if (token && isPublic) {
       router.replace("/home");
     }
-  }, [hydrated, token, segments, router]);
+  }, [hydrated, bootstrapped, token, segments, router]);
 
-  if (!fontsLoaded || !hydrated) return null;
+  if (!fontsLoaded || !hydrated || !bootstrapped) return null;
+
+  const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
+
+  const app = (
+    <QueryClientProvider client={queryClient}>
+      <StatusBar backgroundColor={colors.brand} barStyle="light-content" />
+      <Stack
+        screenOptions={{
+          headerTitleAlign: "center",
+          headerStyle: { backgroundColor: colors.background },
+          // Titles were inheriting the system UI font while every heading in
+          // the app runs in Barlow Condensed, so pushed screens looked like a
+          // different app from the tab screens.
+          headerTitleStyle: {
+            color: colors.foreground,
+            fontFamily: fonts.display,
+            fontSize: 19,
+          },
+          headerTintColor: colors.foreground,
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+          animation: "fade",
+        }}
+      >
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+      <AppToast />
+    </QueryClientProvider>
+  );
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <StatusBar backgroundColor={colors.brand} barStyle="light-content" />
-          <Stack
-            screenOptions={{
-              headerTitleAlign: "center",
-              headerStyle: { backgroundColor: colors.background },
-              // Titles were inheriting the system UI font while every heading in
-              // the app runs in Barlow Condensed, so pushed screens looked like a
-              // different app from the tab screens.
-              headerTitleStyle: {
-                color: colors.foreground,
-                fontFamily: fonts.display,
-                fontSize: 19,
-              },
-              headerTintColor: colors.foreground,
-              headerShown: false,
-              contentStyle: { backgroundColor: colors.background },
-              animation: "fade",
-            }}
-          >
-            <Stack.Screen name="(tabs)" />
-          </Stack>
-          <Toast position="top" topOffset={20} config={toastConfig} />
-        </QueryClientProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <SafeAreaProvider style={{ flex: 1, backgroundColor: colors.background }}>
+      <StripeProvider publishableKey={publishableKey}>{app}</StripeProvider>
+    </SafeAreaProvider>
   );
 }

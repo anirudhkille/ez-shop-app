@@ -1,11 +1,6 @@
 import { apiClient } from "./client";
 import { IApiResponse, IProduct, IPagination } from "@/types/api";
 
-export const getProducts = (params?: Record<string, string>) => {
-  const query = params ? "?" + new URLSearchParams(params).toString() : "";
-  return apiClient<IApiResponse<IProduct[]> & { pagintion?: IPagination }>(`/product${query}`);
-};
-
 export const getProductById = (slug: string, id: string) =>
   apiClient<IApiResponse<IProduct>>(`/product/${slug}/${id}`);
 

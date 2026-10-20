@@ -3,6 +3,7 @@ import { StyleSheet, View } from "react-native";
 
 import { colors } from "@/constant/color";
 import Text from "@/components/ui/Text";
+import { BrandLogo } from "@/assets/icons/BrandLogo";
 
 interface ScreenHeaderProps {
   title: string;
@@ -11,6 +12,8 @@ interface ScreenHeaderProps {
   right?: ReactNode;
   /** Brand eyebrow above the title. */
   eyebrow?: string;
+  /** Shows the EZ Shop mark beside the title, matching the web storefront. */
+  logo?: boolean;
 }
 
 /**
@@ -19,7 +22,13 @@ interface ScreenHeaderProps {
  * device the first row of content sat under the status bar, and every screen
  * started flush against the bezel.
  */
-export default function ScreenHeader({ title, subtitle, right, eyebrow }: ScreenHeaderProps) {
+export default function ScreenHeader({
+  title,
+  subtitle,
+  right,
+  eyebrow,
+  logo = false,
+}: ScreenHeaderProps) {
   return (
     <View style={styles.header}>
       <View style={styles.left}>
@@ -29,9 +38,13 @@ export default function ScreenHeader({ title, subtitle, right, eyebrow }: Screen
           </Text>
         ) : null}
 
-        <Text size={26} weight="700" variant="display" style={styles.title} numberOfLines={1}>
-          {title}
-        </Text>
+        <View style={styles.titleRow}>
+          {logo ? <BrandLogo size={26} /> : null}
+
+          <Text size={26} weight="700" variant="display" style={styles.title} numberOfLines={1}>
+            {title}
+          </Text>
+        </View>
 
         {subtitle ? (
           <Text size={13} color="muted" numberOfLines={1}>
@@ -56,6 +69,11 @@ const styles = StyleSheet.create({
   left: {
     flexShrink: 1,
     gap: 1,
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 9,
   },
   eyebrow: {
     letterSpacing: 1.4,
