@@ -18,6 +18,14 @@
       },
       "package": "com.anirudhkille.ezshopapp"
     },
+    "androidNavigationBar": {
+      "backgroundColor": "#0D0D0D",
+      "barStyle": "light-content"
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#FF5500",
+      "barStyle": "light-content"
+    },
     "web": {
       "bundler": "metro",
       "output": "single",

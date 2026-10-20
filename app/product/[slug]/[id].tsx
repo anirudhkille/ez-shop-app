@@ -1,40 +1,49 @@
 import React, { useState } from "react";
-import { useWindowDimensions } from "react-native";
-import { View, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { Image } from "expo-image";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
-import { colors } from "@/constant/color";
+
 import Container from "@/layout/Container";
+import Header from "@/layout/Header";
+import { ChevronLeftIcon } from "@/assets/icons/ChevronLeftIcon";
 import Text from "@/components/ui/Text";
 import Button from "@/components/ui/Button";
-import Header from "@/layout/Header";
+import Badge, { BadgeTone } from "@/components/ui/Badge";
+import Stars from "@/components/ui/Stars";
+import SectionHeading from "@/components/ui/SectionHeading";
+import EmptyState from "@/components/ui/EmptyState";
+import ProductCard from "@/components/shared/ProductCard";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { HeartIcon } from "@/assets/icons/HeartIcon";
+import { MinusIcon } from "@/assets/icons/MinusIcon";
+import { PlusIcon } from "@/assets/icons/PlusIcon";
+import { PackageIcon } from "@/assets/icons/PackageIcon";
+import { colors, radius } from "@/constant/color";
+import { formatPrice, discountPercent } from "@/lib/format";
 import { useProductByIdQuery, useSimilarProductsQuery } from "@/hooks/useProducts";
-import { useToggleWishlistMutation } from "@/hooks/useWishlist";
+import { useToggleWishlistMutation, useWishlistQuery } from "@/hooks/useWishlist";
 import { useAddToCartMutation } from "@/hooks/useCart";
 import { useReviewsByProductQuery } from "@/hooks/useReviews";
 
-const { width } = useWindowDimensions();
-
-function StarRow({ rating, count }: { rating: number; count?: number }) {
-  return (
-    <View style={styles.starRow}>
-      <Text size={14} color="muted">
-        {"★".repeat(Math.round(rating))}
-        {"☆".repeat(5 - Math.round(rating))}
-      </Text>
-      <Text size={14} color="muted">
-        {rating.toFixed(1)}
-        {count ? ` (${count})` : ""}
-      </Text>
-    </View>
-  );
-}
+const TAG_TONE: Record<string, BadgeTone> = {
+  New: "brand",
+  "Best Seller": "brand",
+  Hot: "danger",
+  Sale: "success",
+  Limited: "warning",
+};
 
 export default function ProductDetail() {
   const { slug, id } = useLocalSearchParams<{ slug: string; id: string }>();
   const router = useRouter();
+  const { width } = useWindowDimensions();
 
   const [selectedVariant, setSelectedVariant] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
@@ -50,71 +59,79 @@ export default function ProductDetail() {
   const reviews = reviewsData?.data || [];
 
   const { mutate: toggleWishlist, isPending: wishlistPending } = useToggleWishlistMutation();
+  const { data: wishlistData } = useWishlistQuery();
   const { mutate: addToCart, isPending: cartPending } = useAddToCartMutation();
+
+  const wishlistIds = (wishlistData?.data?.products ?? []).map((entry: any) =>
+    typeof entry === "string" ? entry : entry?._id,
+  );
+  const saved = product ? wishlistIds.includes(product._id) : false;
 
   const variant = product?.variants?.[selectedVariant];
   const sizes = variant?.sizes || [];
   const displayImage = variant?.images?.[0] || product?.image || "";
 
+  const unitPrice = product
+    ? (discountPercent(product.price, product.discountPrice) ? product.discountPrice : product.price)
+    : 0;
+  const saving = product ? discountPercent(product.price, product.discountPrice) : null;
+
   const handleAddToCart = () => {
     if (!product) return;
     if (!selectedSize && sizes.length > 0) {
-      Toast.show({ type: "error", text1: "Please select a size" });
+      Toast.show({ type: "error", text1: "Choose a size first" });
       return;
     }
     addToCart(
+      { productId: product._id, variantId: variant?._id, size: selectedSize, quantity },
       {
-        productId: product._id,
-        variantId: variant?._id,
-        size: selectedSize,
-        quantity,
+        onSuccess: () => Toast.show({ type: "success", text1: "Added to cart" }),
+        onError: (err: any) =>
+          Toast.show({ type: "error", text1: err?.message || "Could not add to cart" }),
       },
-      {
-        onSuccess: () => {
-          Toast.show({ type: "success", text1: "Added to cart" });
-        },
-        onError: (err: any) => {
-          Toast.show({
-            type: "error",
-            text1: err?.message || "Failed to add to cart",
-          });
-        },
-      }
     );
   };
 
   const handleToggleWishlist = () => {
     if (!product) return;
     toggleWishlist(product._id, {
-      onSuccess: () => {
-        Toast.show({ type: "success", text1: "Wishlist updated" });
-      },
-      onError: (err: any) => {
+      onSuccess: () =>
         Toast.show({
-          type: "error",
-          text1: err?.message || "Failed to update wishlist",
-        });
-      },
+          type: "success",
+          text1: saved ? "Removed from wishlist" : "Saved to wishlist",
+        }),
+      onError: (err: any) =>
+        Toast.show({ type: "error", text1: err?.message || "Could not update wishlist" }),
     });
   };
 
   if (isLoading) {
     return (
-      <Container bottomInset extraStyle={{ justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={colors.brand} />
-      </Container>
+      <>
+        <Header title="Product" />
+        <Container bottomInset extraStyle={styles.loadingWrap}>
+          <Skeleton height={width - 40} rounded={radius.lg} />
+          <Skeleton width="70%" height={20} />
+          <Skeleton width="40%" height={18} />
+          <Skeleton width="100%" height={14} />
+          <Skeleton width="90%" height={14} />
+        </Container>
+      </>
     );
   }
 
   if (isError || !product) {
     return (
       <>
-        <Header />
-        <Container bottomInset extraStyle={{ justifyContent: "center", alignItems: "center" }}>
-          <Text align="center" color="muted">
-            Failed to load product.
-          </Text>
-          <Button text="Go Back" onPress={() => router.back()} />
+        <Header title="Product" />
+        <Container bottomInset extraStyle={styles.noPad}>
+          <EmptyState
+            title="Product unavailable"
+            body="This product may have sold out or been removed."
+            icon={<PackageIcon color={colors.muted} size={24} />}
+            actionLabel="Back to shop"
+            onAction={() => router.replace("/(tabs)/shop")}
+          />
         </Container>
       </>
     );
@@ -122,113 +139,149 @@ export default function ProductDetail() {
 
   return (
     <>
-      <Header />
-      <Container bottomInset extraStyle={styles.container}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={[styles.imageWrapper, { backgroundColor: colors.surface }]}>
+      {/*
+        The product hero is the page's own header: a solid bar above it only
+        produced a dead band between the status bar and the photograph. The back
+        control floats over the image instead.
+      */}
+      <Stack.Screen options={{ headerShown: false }} />
+
+      <Container bottomInset extraStyle={styles.noPad}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+          <View style={[styles.imageWrap, { height: width }]}>
             <Image
               source={displayImage}
-              style={styles.mainImage}
-              contentFit="cover"
-              transition={300}
+              style={StyleSheet.absoluteFill}
+              contentFit="contain"
+              transition={250}
+              cachePolicy="memory-disk"
             />
+
+            {product.tag ? (
+              <Badge
+                label={product.tag}
+                tone={TAG_TONE[product.tag] ?? "neutral"}
+                style={styles.imageTag}
+              />
+            ) : null}
           </View>
 
-          <View style={styles.detailsSection}>
+          <View style={styles.details}>
             <View style={styles.titleRow}>
-              <View style={{ flex: 1 }}>
-                <Text size={22} weight="600">
+              <View style={styles.titleText}>
+                <Text size={24} weight="700" variant="display" style={styles.name}>
                   {product.name}
                 </Text>
-                {product.tag ? (
-                  <View style={[styles.tagBadge, { backgroundColor: colors.brand + "15" }]}>
-                    <Text size={14} weight="500">
-                      {product.tag}
-                    </Text>
-                  </View>
-                ) : null}
+
+                <View style={styles.ratingRow}>
+                  <Stars rating={product.rating} reviews={product.reviewsCount} />
+                </View>
               </View>
+
               <TouchableOpacity
                 onPress={handleToggleWishlist}
                 disabled={wishlistPending}
-                style={[styles.wishlistBtn, { backgroundColor: colors.surface }]}
+                style={[styles.wishlistBtn, saved && styles.wishlistBtnActive]}
+                accessibilityRole="button"
+                accessibilityLabel={saved ? "Remove from wishlist" : "Save to wishlist"}
+                accessibilityState={{ selected: saved }}
               >
-                <HeartIcon color={colors.brand} size={22} />
+                <HeartIcon
+                  color={saved ? colors.brand : colors.foreground}
+                  fill={saved ? colors.brand : "none"}
+                  size={20}
+                />
               </TouchableOpacity>
             </View>
 
             <View style={styles.priceRow}>
-              <Text size={24} weight="600">
-                ₹{product.discountPrice || product.price}
+              <Text size={28} weight="700" variant="display" style={styles.price}>
+                {formatPrice(unitPrice)}
               </Text>
-              {product.discountPrice > 0 && (
-                <Text size={16} color="muted" style={styles.strikethrough}>
-                  ₹{product.price}
-                </Text>
-              )}
+
+              {saving ? (
+                <>
+                  <Text size={15} color="muted" style={styles.wasPrice}>
+                    {formatPrice(product.price)}
+                  </Text>
+                  <Badge label={`\u2212${saving}%`} tone="success" variant="soft" />
+                </>
+              ) : null}
             </View>
 
-            <StarRow rating={product.rating} count={product.reviewsCount} />
+            {product.description ? (
+              <Text size={14} color="muted" style={styles.description}>
+                {product.description}
+              </Text>
+            ) : null}
 
-            <Text size={16} color="muted" style={styles.description}>
-              {product.description}
-            </Text>
-
-            {product.variants && product.variants.length > 0 && (
-              <View style={styles.variantSection}>
-                <Text size={16} weight="600">
+            {product.variants && product.variants.length > 0 ? (
+              <View style={styles.field}>
+                <Text size={11} weight="700" color="muted" style={styles.fieldLabel}>
                   Color
+                  {variant?.color ? ` \u00B7 ${variant.color}` : ""}
                 </Text>
+
                 <View style={styles.colorRow}>
-                  {product.variants.map((v, idx) => (
-                    <TouchableOpacity
-                      key={v._id || idx}
-                      onPress={() => {
-                        setSelectedVariant(idx);
-                        setSelectedSize("");
-                      }}
-                      style={[
-                        styles.colorCircle,
-                        {
-                          backgroundColor: v.colorCode || v.color,
-                          borderColor: selectedVariant === idx ? colors.brand : colors.border,
-                          borderWidth: selectedVariant === idx ? 2.5 : 1,
-                        },
-                      ]}
-                    />
-                  ))}
+                  {product.variants.map((v, index) => {
+                    const active = selectedVariant === index;
+                    return (
+                      <TouchableOpacity
+                        key={v._id || index}
+                        onPress={() => {
+                          setSelectedVariant(index);
+                          setSelectedSize("");
+                        }}
+                        activeOpacity={0.8}
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected: active }}
+                        accessibilityLabel={v.color}
+                        style={[styles.colorRing, active && styles.colorRingActive]}
+                      >
+                        <View
+                          style={[
+                            styles.colorDot,
+                            { backgroundColor: v.colorCode || v.color },
+                          ]}
+                        />
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </View>
-            )}
+            ) : null}
 
-            {sizes.length > 0 && (
-              <View style={styles.variantSection}>
-                <Text size={16} weight="600">
+            {sizes.length > 0 ? (
+              <View style={styles.field}>
+                <Text size={11} weight="700" color="muted" style={styles.fieldLabel}>
                   Size
                 </Text>
+
                 <View style={styles.sizeRow}>
                   {sizes.map((s) => {
                     const outOfStock = s.stock === 0;
+                    const active = selectedSize === s.size;
+
                     return (
                       <TouchableOpacity
                         key={s.size}
                         onPress={() => !outOfStock && setSelectedSize(s.size)}
                         disabled={outOfStock}
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected: active, disabled: outOfStock }}
                         style={[
                           styles.sizeChip,
-                          {
-                            backgroundColor:
-                              selectedSize === s.size ? colors.brand : colors.surface,
-                            borderColor: colors.border,
-                            opacity: outOfStock ? 0.35 : 1,
-                          },
+                          active && styles.sizeChipActive,
+                          outOfStock && styles.sizeChipDisabled,
                         ]}
                       >
                         <Text
-                          size={14}
-                          weight="500"
+                          size={13}
+                          weight="600"
                           style={{
-                            color: selectedSize === s.size ? colors.background : colors.brand,
+                            color: active ? "#FFFFFF" : outOfStock ? colors.subtle : colors.foreground,
+                            lineHeight: 17,
+                            flexShrink: 0,
                           }}
                         >
                           {s.size}
@@ -238,224 +291,351 @@ export default function ProductDetail() {
                   })}
                 </View>
               </View>
-            )}
+            ) : null}
 
-            <View style={styles.quantityRow}>
-              <Text size={16} weight="600">
+            <View style={styles.field}>
+              <Text size={11} weight="700" color="muted" style={styles.fieldLabel}>
                 Quantity
               </Text>
-              <View style={[styles.quantityControl, { borderColor: colors.border }]}>
+
+              <View style={styles.stepper}>
                 <TouchableOpacity
                   onPress={() => setQuantity(Math.max(1, quantity - 1))}
-                  style={styles.qtyBtn}
+                  style={styles.stepperBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Decrease quantity"
                 >
-                  <Text size={20} weight="600">
-                    -
-                  </Text>
+                  <MinusIcon color={colors.foreground} size={14} />
                 </TouchableOpacity>
-                <Text size={18} weight="600">
+
+                <Text size={15} weight="600" style={styles.stepperValue}>
                   {quantity}
                 </Text>
-                <TouchableOpacity onPress={() => setQuantity(quantity + 1)} style={styles.qtyBtn}>
-                  <Text size={20} weight="600">
-                    +
-                  </Text>
+
+                <TouchableOpacity
+                  onPress={() => setQuantity(quantity + 1)}
+                  style={styles.stepperBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Increase quantity"
+                >
+                  <PlusIcon color={colors.foreground} size={14} />
                 </TouchableOpacity>
               </View>
             </View>
-
-            <Button text="Add to Cart" onPress={handleAddToCart} loading={cartPending} />
           </View>
 
-          {similarProducts.length > 0 && (
+          {similarProducts.length > 0 ? (
             <View style={styles.section}>
-              <Text size={20} weight="600">
-                Similar Products
-              </Text>
+              <View style={styles.sectionHead}>
+                <SectionHeading title="You may also like" />
+              </View>
+
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.similarScroll}
+                contentContainerStyle={styles.rail}
               >
                 {similarProducts.map((p) => (
-                  <TouchableOpacity
+                  <ProductCard
                     key={p._id}
+                    product={p}
+                    variant="rail"
+                    width={156}
                     onPress={() => router.replace(`/product/${p.slug}/${p._id}`)}
-                    style={[styles.similarCard, { backgroundColor: colors.surface }]}
-                    activeOpacity={0.7}
-                  >
-                    <Image
-                      source={p.image}
-                      style={styles.similarImage}
-                      contentFit="cover"
-                      transition={300}
-                    />
-                    <View style={styles.similarInfo}>
-                      <Text size={14} weight="500">
-                        {p.name}
-                      </Text>
-                      <Text size={14} weight="600">
-                        ₹{p.discountPrice || p.price}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
+                  />
                 ))}
               </ScrollView>
             </View>
-          )}
+          ) : null}
 
-          {reviews.length > 0 && (
+          {reviews.length > 0 ? (
             <View style={styles.section}>
-              <Text size={20} weight="600">
-                Reviews ({reviews.length})
-              </Text>
-              <View style={styles.reviewsList}>
-                {reviews.map((r) => (
-                  <View key={r._id} style={[styles.reviewCard, { borderColor: colors.border }]}>
-                    <View style={styles.reviewHeader}>
-                      <Text size={14} weight="600">
-                        {r.user || "Anonymous"}
+              <View style={styles.sectionHead}>
+                <SectionHeading title={`Reviews (${reviews.length})`} />
+              </View>
+
+              <View style={styles.reviews}>
+                {reviews.map((review) => (
+                  <View key={review._id} style={styles.reviewCard}>
+                    <View style={styles.reviewHead}>
+                      <Text size={13} weight="600" numberOfLines={1} style={styles.reviewUser}>
+                        {typeof review.user === "object"
+                          ? (review.user as any)?.name || "Customer"
+                          : "Customer"}
                       </Text>
-                      <StarRow rating={r.rating} />
+                      <Stars rating={review.rating} size={11} compact />
                     </View>
-                    {r.comment ? (
-                      <Text size={14} color="muted">
-                        {r.comment}
+
+                    {review.comment ? (
+                      <Text size={13} color="muted" style={styles.reviewBody}>
+                        {review.comment}
                       </Text>
                     ) : null}
                   </View>
                 ))}
               </View>
             </View>
-          )}
+          ) : null}
         </ScrollView>
+
+        <View style={styles.bar}>
+          <View style={styles.barPrice}>
+            <Text size={11} weight="700" color="muted" style={styles.barLabel}>
+              Total
+            </Text>
+            <Text size={22} weight="700" variant="display" style={styles.barValue}>
+              {formatPrice(unitPrice * quantity)}
+            </Text>
+          </View>
+
+          <Button
+            text="Add to cart"
+            size="lg"
+            onPress={handleAddToCart}
+            loading={cartPending}
+            style={styles.barButton}
+          />
+        </View>
+
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.back}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <ChevronLeftIcon color={colors.foreground} size={24} />
+        </TouchableOpacity>
       </Container>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  noPad: {
     paddingHorizontal: 0,
-    paddingTop: 0,
   },
-  imageWrapper: {
-    width: width,
-    height: width,
-  },
-  mainImage: {
-    width: "100%",
-    height: "100%",
-  },
-  detailsSection: {
-    padding: 20,
+  loadingWrap: {
     gap: 14,
+    paddingTop: 12,
+  },
+  scroll: {
+    paddingBottom: 20,
+  },
+
+  imageWrap: {
+    width: "100%",
+    backgroundColor: colors.surfaceRaised,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  imageTag: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    zIndex: 2,
+  },
+  back: {
+    position: "absolute",
+    top: 12,
+    left: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.55)",
+    zIndex: 30,
+  },
+
+  details: {
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    gap: 18,
   },
   titleRow: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 12,
   },
-  tagBadge: {
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginTop: 6,
+  titleText: {
+    flex: 1,
+    gap: 6,
   },
-  wishlistBtn: {
-    padding: 10,
-    borderRadius: 999,
+  name: {
+    letterSpacing: 0.5,
+    lineHeight: 28,
+    textTransform: "uppercase",
   },
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    gap: 8,
-  },
-  strikethrough: {
-    textDecorationLine: "line-through",
-  },
-  starRow: {
+  ratingRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
   },
-  description: {
-    lineHeight: 22,
+  wishlistBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
-  variantSection: {
+  wishlistBtnActive: {
+    borderColor: "rgba(255,85,0,0.45)",
+    backgroundColor: "rgba(255,85,0,0.12)",
+  },
+
+  priceRow: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
   },
+  price: {
+    letterSpacing: 0.3,
+  },
+  wasPrice: {
+    textDecorationLine: "line-through",
+  },
+  description: {
+    lineHeight: 21,
+  },
+
+  field: {
+    gap: 10,
+  },
+  fieldLabel: {
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+  },
+
   colorRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
   },
-  colorCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  colorRing: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
   },
+  colorRingActive: {
+    borderColor: colors.brand,
+    borderWidth: 2,
+  },
+  colorDot: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+  },
+
   sizeRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
   },
   sizeChip: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 8,
+    minWidth: 52,
+    height: 42,
+    paddingHorizontal: 14,
+    borderRadius: 10,
     borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
-  quantityRow: {
+  sizeChipActive: {
+    backgroundColor: colors.brand,
+    borderColor: colors.brand,
+  },
+  sizeChipDisabled: {
+    opacity: 0.4,
+  },
+
+  stepper: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-  },
-  quantityControl: {
-    flexDirection: "row",
-    alignItems: "center",
+    alignSelf: "flex-start",
     borderWidth: 1,
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-  qtyBtn: {
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-  },
-  section: {
-    padding: 20,
-    paddingTop: 0,
-    gap: 12,
-  },
-  similarScroll: {
-    gap: 12,
-    paddingVertical: 4,
-  },
-  similarCard: {
-    width: 140,
+    borderColor: colors.border,
     borderRadius: 10,
     overflow: "hidden",
   },
-  similarImage: {
-    width: 140,
-    height: 140,
+  stepperBtn: {
+    width: 42,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  similarInfo: {
-    padding: 8,
-    gap: 3,
+  stepperValue: {
+    minWidth: 36,
+    textAlign: "center",
   },
-  reviewsList: {
+
+  section: {
+    marginTop: 28,
+    gap: 14,
+  },
+  sectionHead: {
+    paddingHorizontal: 20,
+  },
+  rail: {
+    paddingHorizontal: 20,
     gap: 12,
+  },
+
+  reviews: {
+    paddingHorizontal: 20,
+    gap: 10,
   },
   reviewCard: {
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderRadius: 10,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     padding: 14,
     gap: 6,
   },
-  reviewHeader: {
+  reviewHead: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  reviewUser: {
+    flexShrink: 1,
+  },
+  reviewBody: {
+    lineHeight: 19,
+  },
+
+  bar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+    backgroundColor: colors.background,
+  },
+  barPrice: {
+    gap: 0,
+  },
+  barLabel: {
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+  },
+  barValue: {
+    letterSpacing: 0.3,
+  },
+  barButton: {
+    flex: 1,
   },
 });

@@ -1,33 +1,30 @@
-import {
-  StyleSheet,
-  View,
-  FlatList,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
 import React from "react";
+import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useRouter } from "expo-router";
+import Toast from "react-native-toast-message";
+
 import Container from "@/layout/Container";
 import Header from "@/layout/Header";
 import Text from "@/components/ui/Text";
 import Button from "@/components/ui/Button";
-import { colors } from "@/constant/color";
+import Badge from "@/components/ui/Badge";
+import EmptyState from "@/components/ui/EmptyState";
+import { ListSkeleton } from "@/components/ui/Skeleton";
+import { MapPinIcon } from "@/assets/icons/MapPinIcon";
+import { colors, radius } from "@/constant/color";
+import { formatAddressLines } from "@/lib/format";
 import { useAddressesQuery, useDeleteAddressMutation } from "@/hooks/useAddress";
-import { useRouter } from "expo-router";
 import { IAddress } from "@/types/api";
-import { UserIcon } from "@/assets/icons/UserIcon";
-import Toast from "react-native-toast-message";
 
 export default function Addresses() {
   const router = useRouter();
-
   const { data, isLoading, isError, refetch } = useAddressesQuery();
   const { mutate: deleteAddress } = useDeleteAddressMutation();
 
   const addresses: IAddress[] = data?.data || [];
 
   const handleDelete = (id: string) => {
-    Alert.alert("Delete Address", "Are you sure you want to delete this address?", [
+    Alert.alert("Delete address", "This address will be removed from your account.", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
@@ -36,62 +33,80 @@ export default function Addresses() {
           deleteAddress(id, {
             onSuccess: () => Toast.show({ type: "success", text1: "Address deleted" }),
             onError: (err: any) =>
-              Toast.show({ type: "error", text1: err?.message || "Delete failed" }),
+              Toast.show({ type: "error", text1: err?.message || "Could not delete address" }),
           }),
       },
     ]);
   };
 
-  const renderAddress = ({ item }: { item: IAddress }) => (
-    <View style={[styles.card, { backgroundColor: colors.surface }]}>
-      <View style={styles.cardHeader}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Text weight="600">{item.label}</Text>
-          {item.isDefault && (
-            <View style={[styles.defaultBadge, { backgroundColor: colors.brand }]}>
-              <Text size={14} weight="500" style={{ color: colors.background }}>
-                Default
-              </Text>
-            </View>
-          )}
+  const renderAddress = ({ item }: { item: IAddress }) => {
+    const lines = formatAddressLines(item);
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHead}>
+          <View style={styles.labelRow}>
+            <Text size={14} weight="600" style={styles.label}>
+              {item.label}
+            </Text>
+            {item.isDefault ? <Badge label="Default" tone="brand" variant="soft" /> : null}
+          </View>
+        </View>
+
+        <Text size={14} weight="500">
+          {item.name}
+        </Text>
+
+        <View style={styles.lines}>
+          {lines.map((line) => (
+            <Text key={line} size={13} color="muted" style={styles.line}>
+              {line}
+            </Text>
+          ))}
+          {item.phone ? (
+            <Text size={13} color="muted" style={styles.line}>
+              {item.phone}
+            </Text>
+          ) : null}
+        </View>
+
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={[styles.actionBtn, { borderColor: colors.border }]}
+            onPress={() => router.push(`/profile/add-address?id=${item._id}`)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`Edit ${item.label} address`}
+          >
+            <Text size={13} weight="600">
+              Edit
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionBtn, { borderColor: "rgba(229,72,77,0.5)" }]}
+            onPress={() => handleDelete(item._id)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`Delete ${item.label} address`}
+          >
+            <Text size={13} weight="600" color="destructive">
+              Delete
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
-      <Text style={{ marginTop: 4 }}>{item.name}</Text>
-      <Text color="muted">{item.addressLine1}</Text>
-      {item.addressLine2 ? <Text color="muted">{item.addressLine2}</Text> : null}
-      <Text color="muted">
-        {item.city}, {item.state} {item.zipCode}
-      </Text>
-      <Text color="muted">{item.country}</Text>
-      <Text color="muted">{item.phone}</Text>
-
-      <View style={[styles.cardActions, { borderTopColor: colors.border }]}>
-        <TouchableOpacity
-          style={[styles.actionBtn, { borderColor: colors.border }]}
-          onPress={() => router.push(`/profile/add-address?id=${item._id}`)}
-        >
-          <Text size={14} color="foreground">
-            Edit
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionBtn, { borderColor: "#ef4444" }]}
-          onPress={() => handleDelete(item._id)}
-        >
-          <Text size={14} style={{ color: "#ef4444" }}>
-            Delete
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
+  };
 
   if (isLoading) {
     return (
       <>
-        <Header />
-        <Container bottomInset extraStyle={{ justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color={colors.brand} />
+        <Header title="Saved addresses" />
+        <Container bottomInset extraStyle={styles.noPad}>
+          <View style={styles.listPad}>
+            <ListSkeleton count={2} height={168} />
+          </View>
         </Container>
       </>
     );
@@ -100,13 +115,32 @@ export default function Addresses() {
   if (isError) {
     return (
       <>
-        <Header />
-        <Container
-          bottomInset
-          extraStyle={{ justifyContent: "center", alignItems: "center", gap: 20 }}
-        >
-          <Text align="center">Failed to load addresses</Text>
-          <Button text="Retry" onPress={() => refetch()} />
+        <Header title="Saved addresses" />
+        <Container bottomInset extraStyle={styles.noPad}>
+          <EmptyState
+            title="Could not load addresses"
+            body="Check your connection and try again."
+            icon={<MapPinIcon color={colors.muted} size={24} />}
+            actionLabel="Try again"
+            onAction={() => refetch()}
+          />
+        </Container>
+      </>
+    );
+  }
+
+  if (addresses.length === 0) {
+    return (
+      <>
+        <Header title="Saved addresses" />
+        <Container bottomInset extraStyle={styles.noPad}>
+          <EmptyState
+            title="No addresses yet"
+            body="Save an address so checkout takes one tap next time."
+            icon={<MapPinIcon color={colors.muted} size={24} />}
+            actionLabel="Add address"
+            onAction={() => router.push("/profile/add-address")}
+          />
         </Container>
       </>
     );
@@ -114,63 +148,82 @@ export default function Addresses() {
 
   return (
     <>
-      <Header />
-      <Container bottomInset extraStyle={{ paddingTop: 10 }}>
-        {addresses.length === 0 ? (
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", gap: 16 }}>
-            <UserIcon color={colors.muted} size={48} />
-            <Text align="center" color="muted" size={18}>
-              No addresses saved
-            </Text>
-            <Button text="Add Address" onPress={() => router.push("/profile/add-address")} />
-          </View>
-        ) : (
-          <>
-            <FlatList
-              data={addresses}
-              keyExtractor={(item) => item._id}
-              renderItem={renderAddress}
-              contentContainerStyle={{ gap: 12, paddingBottom: 20 }}
-              showsVerticalScrollIndicator={false}
-            />
-            <View style={{ paddingVertical: 16 }}>
-              <Button text="Add Address" onPress={() => router.push("/profile/add-address")} />
-            </View>
-          </>
-        )}
+      <Header title="Saved addresses" />
+      <Container bottomInset extraStyle={styles.noPad}>
+        <FlatList
+          data={addresses}
+          keyExtractor={(item) => item._id}
+          renderItem={renderAddress}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.list}
+        />
+
+        <View style={styles.footer}>
+          <Button text="Add address" onPress={() => router.push("/profile/add-address")} />
+        </View>
       </Container>
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  noPad: {
+    paddingHorizontal: 0,
+  },
+  listPad: {
+    paddingHorizontal: 20,
+  },
+  list: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+    gap: 12,
+  },
   card: {
-    borderRadius: 12,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     padding: 16,
     gap: 4,
   },
-  cardHeader: {
+  cardHead: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 4,
   },
-  defaultBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  cardActions: {
+  labelRow: {
     flexDirection: "row",
-    gap: 12,
+    alignItems: "center",
+    gap: 8,
+  },
+  label: {
+    letterSpacing: 1,
+    textTransform: "uppercase",
+  },
+  lines: {
+    gap: 1,
+    marginTop: 2,
+  },
+  line: {
+    lineHeight: 19,
+  },
+  actions: {
+    flexDirection: "row",
+    gap: 10,
     marginTop: 12,
     paddingTop: 12,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
   },
   actionBtn: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
   },
 });

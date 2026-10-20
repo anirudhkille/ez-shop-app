@@ -1,90 +1,82 @@
 import React, { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import Toast from "react-native-toast-message";
+
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import AuthLayout from "@/layout/AuthLayout";
-import { useRouter, useLocalSearchParams } from "expo-router";
 import { useResetPasswordMutation } from "@/hooks/useUser";
-import Toast from "react-native-toast-message";
 
 export default function ResetPassword() {
   const router = useRouter();
   const { email } = useLocalSearchParams<{ email: string }>();
   const { mutate, isPending } = useResetPasswordMutation();
+
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleReset = () => {
     if (!otp || otp.length < 6) {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Please enter a valid OTP",
-      });
+      Toast.show({ type: "error", text1: "Enter the 6-digit code from your email" });
       return;
     }
-    if (!newPassword) {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Please enter a new password",
-      });
+    if (newPassword.length < 6) {
+      Toast.show({ type: "error", text1: "Use at least 6 characters" });
       return;
     }
     if (newPassword !== confirmPassword) {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Passwords do not match",
-      });
+      Toast.show({ type: "error", text1: "The passwords do not match" });
       return;
     }
+
     mutate(
       { email, otp, newPassword },
       {
-        onSuccess: (data) => {
-          Toast.show({
-            type: "success",
-            text1: "Success",
-            text2: data?.message || "Password reset successfully",
-          });
-          router.push("/login");
+        onSuccess: () => {
+          Toast.show({ type: "success", text1: "Password reset. Sign in to continue." });
+          router.replace("/login");
         },
-        onError: (error: any) => {
-          Toast.show({
-            type: "error",
-            text1: "Error",
-            text2: error?.message || "Something went wrong",
-          });
-        },
-      }
+        onError: (error: any) =>
+          Toast.show({ type: "error", text1: error?.message || "Could not reset the password" }),
+      },
     );
   };
 
   return (
     <AuthLayout
-      heading="Reset Password"
-      description={`Enter the OTP sent to ${email}`}
+      heading="Reset password"
+      description={email ? `Enter the code sent to ${email} and pick a new password.` : "Enter your code and pick a new password."}
       href="/login"
-      prompt="Already reset it?"
+      prompt="Changed your mind?"
       action="Back to login"
     >
-      <Input label="OTP" value={otp} onChangeText={setOtp} placeholder="Enter 6-digit OTP" />
       <Input
-        label="New Password"
+        label="Verification code"
+        placeholder="123456"
+        value={otp}
+        onChangeText={setOtp}
+        keyboardType="number-pad"
+        maxLength={6}
+        autoComplete="one-time-code"
+      />
+      <Input
+        label="New password"
+        placeholder="At least 6 characters"
         value={newPassword}
         onChangeText={setNewPassword}
         secureTextEntry
-        placeholder="Enter new password"
+        autoComplete="new-password"
       />
       <Input
-        label="Confirm Password"
+        label="Confirm new password"
+        placeholder="Repeat the new password"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry
-        placeholder="Confirm new password"
+        autoComplete="new-password"
       />
-      <Button text="Reset Password" onPress={handleReset} loading={isPending} />
+      <Button text="Reset password" size="lg" onPress={handleReset} loading={isPending} />
     </AuthLayout>
   );
 }

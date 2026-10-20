@@ -1,234 +1,114 @@
-import React, { useState } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
-import { Image } from "expo-image";
+import React from "react";
+import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
+
 import Container from "@/layout/Container";
 import Text from "@/components/ui/Text";
-import Button from "@/components/ui/Button";
-import EmptyCart from "@/components/shared/EmptyCart";
-import Sheet from "@/components/shared/Sheet";
+import ScreenHeader from "@/components/ui/ScreenHeader";
+import EmptyState from "@/components/ui/EmptyState";
+import ProductCard from "@/components/shared/ProductCard";
+import { ProductGridSkeleton } from "@/components/ui/Skeleton";
 import { HeartIcon } from "@/assets/icons/HeartIcon";
 import { colors } from "@/constant/color";
 import { useWishlistDetailsQuery, useToggleWishlistMutation } from "@/hooks/useWishlist";
-import { useAddToCartMutation } from "@/hooks/useCart";
 import { IProduct } from "@/types/api";
 
 export default function Wishlist() {
+  const router = useRouter();
   const { data: wishlistResponse, isLoading } = useWishlistDetailsQuery();
   const { mutate: toggleWishlist } = useToggleWishlistMutation();
-  const { mutate: addToCart, isPending: isAddingToCart } = useAddToCartMutation();
-
-  const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
 
   const products: IProduct[] =
     ((wishlistResponse as any)?.data?.products || []).filter(
-      (p: any): p is IProduct => typeof p === "object"
+      (p: any): p is IProduct => typeof p === "object",
     ) || [];
-
-  const handleItemPress = (product: IProduct) => {
-    setSelectedProduct(product);
-    setSheetOpen(true);
-  };
 
   const handleToggleWishlist = (productId: string) => {
     toggleWishlist(productId, {
       onSuccess: (res: any) => {
         const action = res?.data?.action || res?.action;
-        if (action === "removed") {
-          Toast.show({ type: "success", text1: "Removed from wishlist" });
-        } else if (action === "added") {
-          Toast.show({ type: "success", text1: "Added to wishlist" });
-        }
+        if (action === "removed") Toast.show({ type: "success", text1: "Removed from wishlist" });
+        else if (action === "added") Toast.show({ type: "success", text1: "Saved to wishlist" });
       },
-      onError: () => {
-        Toast.show({ type: "error", text1: "Failed to update wishlist" });
-      },
+      onError: () => Toast.show({ type: "error", text1: "Could not update your wishlist" }),
     });
   };
 
-  const handleAddToCart = () => {
-    if (!selectedProduct) return;
-    addToCart(
-      { productId: selectedProduct._id, quantity: 1 },
-      {
-        onSuccess: () => {
-          Toast.show({
-            type: "success",
-            text1: `${selectedProduct.name} added to cart`,
-          });
-          setSheetOpen(false);
-          setSelectedProduct(null);
-        },
-        onError: () => {
-          Toast.show({ type: "error", text1: "Failed to add to cart" });
-        },
-      }
-    );
-  };
-
-  if (isLoading) {
-    return (
-      <Container extraStyle={styles.center}>
-        <ActivityIndicator size="large" color={colors.brand} />
-      </Container>
-    );
-  }
-
-  if (!products.length) {
-    return (
-      <EmptyCart
-        text1="Your Wishlist is empty."
-        text2="Save your favorite items and they'll appear here."
-        Icon={HeartIcon}
-      />
-    );
-  }
-
-  const price = (p: IProduct) => p.discountPrice ?? p.price;
+  const subtitle = isLoading
+    ? "Loading"
+    : `${products.length} ${products.length === 1 ? "saved item" : "saved items"}`;
 
   return (
-    <Container extraStyle={styles.container}>
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item._id}
-        numColumns={2}
-        scrollEnabled
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => handleItemPress(item)}
-            style={[styles.itemContainer, { backgroundColor: colors.background }]}
-          >
-            <View style={[styles.imageContainer, { backgroundColor: colors.surface }]}>
-              <Image contentFit="cover" source={item.image} style={styles.image} transition={300} />
-              <TouchableOpacity
-                onPress={() => handleToggleWishlist(item._id)}
-                style={[styles.heart, { backgroundColor: colors.background }]}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <HeartIcon color={colors.brand} fill={colors.brand} size={18} />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.textContainer}>
-              <Text weight="500" size={14}>
-                {item.name.length > 40 ? item.name.slice(0, 40) + "..." : item.name}
-              </Text>
-              <Text size={14} color="muted">
-                ₹{price(item).toFixed(2)}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        columnWrapperStyle={{ justifyContent: "space-between" }}
-        contentContainerStyle={styles.listContent}
-      />
+    <Container topInset extraStyle={styles.noPad}>
+      <View style={styles.gutter}>
+        <ScreenHeader title="Wishlist" subtitle={subtitle} />
+      </View>
 
-      <Sheet
-        visible={sheetOpen}
-        onClose={() => {
-          setSheetOpen(false);
-          setSelectedProduct(null);
-        }}
-        heightRatio={0.5}
-      >
-        <View style={styles.sheetBody}>
-          {selectedProduct && (
-            <>
-              <View
-                style={{
-                  flexDirection: "row",
-                  gap: 12,
-                  alignItems: "flex-start",
-                }}
-              >
-                <Image
-                  source={selectedProduct.image}
-                  contentFit="cover"
-                  style={{
-                    width: 140,
-                    height: 140,
-                    borderRadius: 12,
-                    backgroundColor: colors.surface,
-                  }}
-                />
-                <View style={{ flex: 1, gap: 6 }}>
-                  <Text weight="600" size={18}>
-                    {selectedProduct.name}
-                  </Text>
-                  {selectedProduct.discountPrice ? (
-                    <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-                      <Text weight="600" size={18}>
-                        ₹{selectedProduct.discountPrice.toFixed(2)}
-                      </Text>
-                      <Text size={14} color="muted" style={{ textDecorationLine: "line-through" }}>
-                        ₹{selectedProduct.price.toFixed(2)}
-                      </Text>
-                    </View>
-                  ) : (
-                    <Text weight="600" size={18}>
-                      ₹{selectedProduct.price.toFixed(2)}
-                    </Text>
-                  )}
-                  <Text size={14} color="muted">
-                    {selectedProduct.description?.slice(0, 100)}
-                    {selectedProduct.description?.length > 100 ? "..." : ""}
-                  </Text>
-                </View>
-              </View>
-
-              <Button text="Add to Cart" onPress={handleAddToCart} loading={isAddingToCart} />
-            </>
+      {isLoading ? (
+        <ProductGridSkeleton count={4} />
+      ) : products.length === 0 ? (
+        <EmptyState
+          title="Nothing saved yet"
+          body="Tap the heart on any product to keep it here for later."
+          icon={<HeartIcon color={colors.muted} size={24} />}
+          actionLabel="Browse products"
+          onAction={() => router.push("/(tabs)/shop")}
+        />
+      ) : (
+        <FlatList
+          data={products}
+          keyExtractor={(item) => item._id}
+          numColumns={2}
+          showsVerticalScrollIndicator={false}
+          columnWrapperStyle={styles.row}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => (
+            <ProductCard
+              product={item}
+              onPress={() => router.push(`/product/${item.slug}/${item._id}`)}
+              overlayAction={
+                <TouchableOpacity
+                  onPress={() => handleToggleWishlist(item._id)}
+                  style={styles.heart}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove ${item.name} from wishlist`}
+                >
+                  <HeartIcon color={colors.brand} fill={colors.brand} size={16} />
+                </TouchableOpacity>
+              }
+            />
           )}
-        </View>
-      </Sheet>
+        />
+      )}
     </Container>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 5,
+  noPad: {
+    paddingHorizontal: 0,
   },
-  center: {
-    justifyContent: "center",
-    alignItems: "center",
+  gutter: {
+    paddingHorizontal: 20,
   },
-  listContent: {
-    paddingBottom: 20,
+  row: {
+    gap: 12,
+    paddingHorizontal: 20,
   },
-  itemContainer: {
-    flex: 1,
-    marginHorizontal: 5,
-    marginBottom: 20,
-    borderRadius: 8,
-    overflow: "hidden",
-    position: "relative",
-  },
-  imageContainer: {
-    width: "100%",
-    aspectRatio: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  image: {
-    width: "100%",
-    height: "100%",
+  list: {
+    gap: 12,
+    paddingBottom: 24,
   },
   heart: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    padding: 6,
-    borderRadius: 999,
-  },
-  textContainer: {
-    padding: 10,
-    alignItems: "flex-start",
-    gap: 5,
-  },
-  sheetBody: {
-    flex: 1,
-    padding: 20,
-    gap: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(13,13,13,0.78)",
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

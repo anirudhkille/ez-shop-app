@@ -1,16 +1,17 @@
-import { StyleSheet, ScrollView } from "react-native";
 import React, { useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { useRouter } from "expo-router";
+import Toast from "react-native-toast-message";
+
 import Container from "@/layout/Container";
 import Header from "@/layout/Header";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { useUpdatePasswordMutation } from "@/hooks/useUser";
-import { useRouter } from "expo-router";
-import Toast from "react-native-toast-message";
 
 export default function ChangePassword() {
   const router = useRouter();
-  const { mutate: updatePassword, isPending } = useUpdatePasswordMutation();
+  const updatePassword = useUpdatePasswordMutation();
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -22,63 +23,85 @@ export default function ChangePassword() {
       return;
     }
     if (newPassword !== confirmPassword) {
-      Toast.show({ type: "error", text1: "New passwords do not match" });
+      Toast.show({ type: "error", text1: "The new passwords do not match" });
       return;
     }
     if (newPassword.length < 6) {
-      Toast.show({ type: "error", text1: "Password must be at least 6 characters" });
+      Toast.show({ type: "error", text1: "Use at least 6 characters" });
       return;
     }
 
-    updatePassword(
+    updatePassword.mutate(
       { currentPassword, newPassword },
       {
         onSuccess: () => {
-          Toast.show({ type: "success", text1: "Password updated successfully" });
+          Toast.show({ type: "success", text1: "Password updated" });
           router.back();
         },
-        onError: (err: any) => {
-          Toast.show({
-            type: "error",
-            text1: err?.message || "Failed to update password",
-          });
-        },
-      }
+        onError: (err: any) =>
+          Toast.show({ type: "error", text1: err?.message || "Could not update your password" }),
+      },
     );
   };
 
   return (
     <>
-      <Header />
-      <Container bottomInset extraStyle={styles.container}>
-        <ScrollView showsVerticalScrollIndicator={false}>
+      <Header title="Change password" />
+
+      <Container bottomInset extraStyle={styles.noPad}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
           <Input
-            label="Current Password"
+            label="Current password"
+            placeholder="Enter your current password"
             value={currentPassword}
             onChangeText={setCurrentPassword}
             secureTextEntry
           />
           <Input
-            label="New Password"
+            label="New password"
+            placeholder="At least 6 characters"
             value={newPassword}
             onChangeText={setNewPassword}
             secureTextEntry
           />
           <Input
-            label="Confirm New Password"
+            label="Confirm new password"
+            placeholder="Repeat the new password"
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
           />
-          <Button text="Update Password" onPress={handleSubmit} loading={isPending} />
         </ScrollView>
+
+        <View style={styles.footer}>
+          <Button
+            text="Update password"
+            size="lg"
+            onPress={handleSubmit}
+            loading={updatePassword.isPending}
+          />
+        </View>
       </Container>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: 20,
+  noPad: {
+    paddingHorizontal: 0,
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 24,
+    gap: 18,
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
   },
 });

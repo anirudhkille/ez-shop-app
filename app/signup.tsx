@@ -1,65 +1,72 @@
 import React, { useState } from "react";
+import { useRouter } from "expo-router";
+import Toast from "react-native-toast-message";
+
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import AuthLayout from "@/layout/AuthLayout";
-import { useRouter } from "expo-router";
 import { useSignupMutation } from "@/hooks/useUser";
-import Toast from "react-native-toast-message";
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function Signup() {
   const router = useRouter();
   const { mutate, isPending } = useSignupMutation();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
 
-  const handleChange = (key: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  };
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSignup = () => {
-    mutate(formData, {
-      onSuccess: (data) => {
-        Toast.show({
-          type: "success",
-          text1: "Success",
-          text2: data?.message,
-        });
-        router.push(`/verify-otp?email=${formData.email}`);
+    if (!EMAIL.test(email.trim())) {
+      Toast.show({ type: "error", text1: "Enter a valid email address" });
+      return;
+    }
+    if (password.length < 6) {
+      Toast.show({ type: "error", text1: "Use at least 6 characters" });
+      return;
+    }
+
+    mutate(
+      { email: email.trim(), password },
+      {
+        onSuccess: () => {
+          Toast.show({ type: "success", text1: "Check your inbox for the code" });
+          router.push(`/verify-otp?email=${encodeURIComponent(email.trim())}`);
+        },
+        onError: (error: any) =>
+          Toast.show({ type: "error", text1: error?.message || "Could not create the account" }),
       },
-      onError: (error: any) => {
-        Toast.show({
-          type: "error",
-          text1: "Error",
-          text2: error?.message || "Something went wrong",
-        });
-      },
-    });
+    );
   };
 
   return (
     <AuthLayout
       heading="Create an account"
-      description="Enter your details to create a new account"
+      description="One account for orders, saved addresses and wishlists."
       href="/login"
       prompt="Already have an account?"
       action="Login"
     >
       <Input
-        value={formData.email}
         label="Email"
-        onChangeText={(text) => handleChange("email", text)}
+        placeholder="you@example.com"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoComplete="email"
       />
 
       <Input
         label="Password"
-        value={formData.password}
-        onChangeText={(text) => handleChange("password", text)}
+        placeholder="At least 6 characters"
+        value={password}
+        onChangeText={setPassword}
         secureTextEntry
+        autoComplete="new-password"
       />
 
-      <Button text="Create an account" onPress={handleSignup} loading={isPending} />
+      <Button text="Create an account" size="lg" onPress={handleSignup} loading={isPending} />
     </AuthLayout>
   );
 }

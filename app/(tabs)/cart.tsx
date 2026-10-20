@@ -1,21 +1,26 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Sheet from "@/components/shared/Sheet";
 import { Image } from "expo-image";
 import * as WebBrowser from "expo-web-browser";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
+
 import Container from "@/layout/Container";
 import Text from "@/components/ui/Text";
 import Button from "@/components/ui/Button";
-import EmptyCart from "@/components/shared/EmptyCart";
+import Badge from "@/components/ui/Badge";
+import ScreenHeader from "@/components/ui/ScreenHeader";
+import EmptyState from "@/components/ui/EmptyState";
+import { ListSkeleton } from "@/components/ui/Skeleton";
+import Sheet from "@/components/shared/Sheet";
 import { ShoppingBagIcon } from "@/assets/icons/ShoppingBagIcon";
 import { CircleXIcon } from "@/assets/icons/CircleXIcon";
 import { MinusIcon } from "@/assets/icons/MinusIcon";
 import { PlusIcon } from "@/assets/icons/PlusIcon";
 import { CircleCheckIcon } from "@/assets/icons/CircleCheckIcon";
-import { colors } from "@/constant/color";
+import { PackageIcon } from "@/assets/icons/PackageIcon";
+import { colors, radius } from "@/constant/color";
+import { formatPrice } from "@/lib/format";
 import {
   useCartQuery,
   useUpdateCartQuantityMutation,
@@ -40,6 +45,35 @@ function getProduct(item: ICartProduct): IProduct | null {
   return null;
 }
 
+/** Selected-state card shared by the address, delivery and payment steps. */
+function OptionCard({
+  selected,
+  onPress,
+  children,
+  trailing,
+}: {
+  selected: boolean;
+  onPress: () => void;
+  children: React.ReactNode;
+  trailing?: React.ReactNode;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      style={[styles.option, selected && styles.optionSelected]}
+    >
+      <View style={styles.optionBody}>{children}</View>
+      {trailing ? <View style={styles.optionTrailing}>{trailing}</View> : null}
+      <View style={[styles.radio, selected && styles.radioSelected]}>
+        {selected ? <View style={styles.radioDot} /> : null}
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 export default function Cart() {
   const router = useRouter();
 
@@ -60,7 +94,7 @@ export default function Cart() {
 
   const cart = (cartResponse as any)?.data;
   const addresses = ((addressesResponse as any)?.data || []) as IAddress[];
-  const cartItems = cart?.products || [];
+  const cartItems: ICartProduct[] = cart?.products || [];
 
   const openCheckout = () => {
     setSelectedAddressId(addresses.find((a: IAddress) => a.isDefault)?._id || null);
@@ -105,14 +139,12 @@ export default function Cart() {
       placeCODOrder(
         { addressId: selectedAddressId, deliveryMethod: selectedDelivery },
         {
-          onSuccess: (res) => {
-            setCheckoutStep("success");
-          },
+          onSuccess: () => setCheckoutStep("success"),
           onError: (err: any) => {
             setError(err?.message || "Failed to place order");
             setCheckoutStep("payment");
           },
-        }
+        },
       );
     } else {
       setCheckoutStep("confirming");
@@ -121,481 +153,596 @@ export default function Cart() {
         {
           onSuccess: (res: any) => {
             const url = res?.url || res?.data?.url;
-            if (url) {
-              WebBrowser.openBrowserAsync(url);
-            }
+            if (url) WebBrowser.openBrowserAsync(url);
             setCheckoutOpen(false);
           },
           onError: (err: any) => {
             setError(err?.message || "Failed to create checkout session");
             setCheckoutStep("payment");
           },
-        }
+        },
       );
     }
   };
+
+  /** Shared money block - the sheet and the list footer must match exactly. */
+  const summaryRows = (
+    <>
+      <View style={styles.summaryRow}>
+        <Text size={14} color="muted">
+          Subtotal
+        </Text>
+        <Text size={14}>{formatPrice(cart?.subtotal)}</Text>
+      </View>
+
+      {(cart?.discountTotal ?? 0) > 0 && (
+        <View style={styles.summaryRow}>
+          <Text size={14} color="muted">
+            Discount
+          </Text>
+          <Text size={14} color="success">
+            {"\u2212"}
+            {formatPrice(cart?.discountTotal)}
+          </Text>
+        </View>
+      )}
+
+      <View style={styles.summaryRow}>
+        <Text size={14} color="muted">
+          Delivery
+        </Text>
+        <Text size={14} color={getDeliveryCharge() === 0 ? "success" : "foreground"}>
+          {getDeliveryCharge() === 0 ? "Free" : formatPrice(getDeliveryCharge())}
+        </Text>
+      </View>
+
+      <View style={styles.summaryDivider} />
+
+      <View style={styles.summaryRow}>
+        <Text size={15} weight="600">
+          Total
+        </Text>
+        <Text size={20} weight="700" variant="display" style={styles.totalValue}>
+          {formatPrice(getTotal())}
+        </Text>
+      </View>
+    </>
+  );
 
   const renderItem = ({ item }: { item: ICartProduct }) => {
     const product = getProduct(item);
     const name = product?.name || "Product";
     const image = product?.image || "";
     const price = item.discountPriceAtPurchase ?? item.priceAtPurchase;
-    const itemTotal = price * item.quantity;
+    const lineTotal = price * item.quantity;
 
     return (
-      <View style={[styles.cartItem, { backgroundColor: colors.surface }]}>
-        <Image source={image} contentFit="cover" style={styles.itemImage} transition={300} />
+      <View style={styles.item}>
+        <View style={styles.itemImageWrap}>
+          <PackageIcon color={colors.borderStrong} size={22} />
+          <Image source={image} style={StyleSheet.absoluteFill} contentFit="contain" transition={200} />
+        </View>
+
         <View style={styles.itemDetails}>
-          <Text weight="500" size={14} style={{ flex: 1 }}>
-            {name}
-          </Text>
-          {item.size && (
-            <Text size={14} color="muted">
-              Size: {item.size}
-            </Text>
-          )}
-          <Text weight="600" size={16}>
-            ₹{itemTotal.toFixed(2)}
-          </Text>
-          <View style={styles.stepper}>
-            <TouchableOpacity
-              onPress={() => handleQuantityChange(item, -1)}
-              style={[styles.stepperBtn, { borderColor: colors.border }]}
-            >
-              <MinusIcon color={colors.brand} size={16} />
-            </TouchableOpacity>
-            <Text weight="500" size={16} style={styles.stepperQty}>
-              {item.quantity}
+          <View style={styles.itemTop}>
+            <Text size={15} weight="500" numberOfLines={2} style={styles.itemName}>
+              {name}
             </Text>
             <TouchableOpacity
-              onPress={() => handleQuantityChange(item, 1)}
-              style={[styles.stepperBtn, { borderColor: colors.border }]}
+              onPress={() => handleDelete(item._id)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityRole="button"
+              accessibilityLabel={`Remove ${name} from cart`}
             >
-              <PlusIcon color={colors.brand} size={16} />
+              <CircleXIcon color={colors.subtle} size={18} />
             </TouchableOpacity>
           </View>
+
+          {item.size ? (
+            <Text size={12} color="muted">
+              Size {item.size}
+            </Text>
+          ) : null}
+
+          <View style={styles.itemBottom}>
+            <View style={styles.stepper}>
+              <TouchableOpacity
+                onPress={() => handleQuantityChange(item, -1)}
+                style={styles.stepperBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Decrease quantity"
+              >
+                <MinusIcon color={colors.foreground} size={14} />
+              </TouchableOpacity>
+
+              <Text size={14} weight="600" style={styles.stepperQty}>
+                {item.quantity}
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => handleQuantityChange(item, 1)}
+                style={styles.stepperBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Increase quantity"
+              >
+                <PlusIcon color={colors.foreground} size={14} />
+              </TouchableOpacity>
+            </View>
+
+            <Text size={17} weight="700" variant="display" style={styles.lineTotal}>
+              {formatPrice(lineTotal)}
+            </Text>
+          </View>
         </View>
-        <TouchableOpacity
-          onPress={() => handleDelete(item._id)}
-          style={styles.deleteBtn}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <CircleXIcon color={colors.muted} size={20} />
-        </TouchableOpacity>
       </View>
     );
   };
 
   if (isLoading) {
     return (
-      <Container extraStyle={styles.center}>
-        <ActivityIndicator size="large" color={colors.brand} />
+      <Container topInset extraStyle={styles.noPad}>
+        <View style={styles.gutter}>
+          <ScreenHeader title="Cart" />
+        </View>
+        <ListSkeleton count={3} />
       </Container>
     );
   }
 
   if (!cartItems.length) {
     return (
-      <EmptyCart
-        text1="Your Bag is empty."
-        text2="When you add products, they'll appear here."
-        Icon={ShoppingBagIcon}
-      />
+      <Container topInset extraStyle={styles.noPad}>
+        <View style={styles.gutter}>
+          <ScreenHeader title="Cart" subtitle="0 items" />
+        </View>
+        <EmptyState
+          title="Your bag is empty"
+          body="Once you add something, it will show up here ready to check out."
+          icon={<ShoppingBagIcon color={colors.muted} size={24} />}
+          actionLabel="Start shopping"
+          onAction={() => router.push("/(tabs)/shop")}
+        />
+      </Container>
     );
   }
 
+  const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={["bottom"]}>
-      <Container extraStyle={styles.container}>
-        <FlatList
-          data={cartItems}
-          keyExtractor={(item) => item._id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          ListFooterComponent={
-            <View style={[styles.summary, { borderTopColor: colors.border }]}>
-              <View style={styles.summaryRow}>
-                <Text color="muted">Subtotal</Text>
-                <Text>₹{(cart?.subtotal || 0).toFixed(2)}</Text>
-              </View>
-              {(cart?.discountTotal ?? 0) > 0 && (
-                <View style={styles.summaryRow}>
-                  <Text color="muted">Discount</Text>
-                  <Text color="muted">-₹{(cart?.discountTotal || 0).toFixed(2)}</Text>
-                </View>
-              )}
-              <View style={styles.summaryRow}>
-                <Text color="muted">Delivery</Text>
-                <Text color="muted">
-                  {getDeliveryCharge() === 0 ? "Free" : `₹${getDeliveryCharge().toFixed(2)}`}
-                </Text>
-              </View>
-              <View style={[styles.summaryDivider, { borderColor: colors.border }]} />
-              <View style={styles.summaryRow}>
-                <Text weight="600" size={18}>
-                  Total
-                </Text>
-                <Text weight="600" size={18}>
-                  ₹{getTotal().toFixed(2)}
-                </Text>
-              </View>
-            </View>
-          }
+    <Container topInset extraStyle={styles.noPad}>
+      <View style={styles.gutter}>
+        <ScreenHeader
+          title="Cart"
+          subtitle={`${itemCount} ${itemCount === 1 ? "item" : "items"}`}
         />
+      </View>
 
-        <View style={styles.checkoutBtn}>
-          <Button text="Proceed to Checkout" onPress={openCheckout} />
-        </View>
-      </Container>
+      <FlatList
+        data={cartItems}
+        keyExtractor={(item) => item._id}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.list}
+        ListFooterComponent={
+          <View style={styles.summary}>
+            <Text size={11} weight="700" color="muted" style={styles.summaryLabel}>
+              Order summary
+            </Text>
+            {summaryRows}
+          </View>
+        }
+      />
 
-      <Sheet visible={checkoutOpen} onClose={() => setCheckoutOpen(false)} heightRatio={0.7}>
+      <View style={styles.footer}>
+        <Button text="Proceed to checkout" size="lg" onPress={openCheckout} />
+      </View>
+
+      <Sheet visible={checkoutOpen} onClose={() => setCheckoutOpen(false)} heightRatio={0.78}>
         <View style={styles.sheetContent}>
           {checkoutStep === "address" && (
-            <View style={{ flex: 1 }}>
-              <Text weight="600" size={20} style={{ marginBottom: 16 }}>
-                Select Address
-              </Text>
+            <>
+              <SheetTitle title="Delivery address" step="1 of 3" />
+
               {addresses.length === 0 ? (
-                <View style={styles.center}>
+                <View style={styles.sheetEmpty}>
                   <Text color="muted" align="center">
-                    No addresses found. Please add one in your profile.
+                    No saved addresses yet.
                   </Text>
+                  <Button
+                    text="Add an address"
+                    variant="outline"
+                    size="sm"
+                    onPress={() => {
+                      setCheckoutOpen(false);
+                      router.push("/profile/add-address");
+                    }}
+                  />
                 </View>
               ) : (
                 <FlatList
                   data={addresses}
                   keyExtractor={(a: IAddress) => a._id}
                   showsVerticalScrollIndicator={false}
-                  renderItem={({ item }) => {
-                    const isSelected = selectedAddressId === item._id;
-                    return (
-                      <TouchableOpacity
-                        onPress={() => setSelectedAddressId(item._id)}
-                        style={[
-                          styles.addressItem,
-                          {
-                            backgroundColor: colors.surface,
-                            borderColor: isSelected ? colors.brand : colors.border,
-                          },
-                        ]}
-                      >
-                        <View style={{ flex: 1 }}>
-                          <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-                            <Text weight="600">{item.label}</Text>
-                            {item.isDefault && (
-                              <View
-                                style={[styles.defaultBadge, { backgroundColor: colors.brand }]}
-                              >
-                                <Text
-                                  size={14}
-                                  color="foreground"
-                                  style={{ color: colors.background }}
-                                >
-                                  Default
-                                </Text>
-                              </View>
-                            )}
-                          </View>
-                          <Text size={14}>{item.name}</Text>
-                          <Text size={14} color="muted">
-                            {item.addressLine1}, {item.city}, {item.state} - {item.zipCode}
-                          </Text>
-                          <Text size={14} color="muted">
-                            {item.phone}
-                          </Text>
-                        </View>
-                        {isSelected && <CircleCheckIcon color={colors.brand} size={22} />}
-                      </TouchableOpacity>
-                    );
-                  }}
-                  ListFooterComponent={
-                    <View style={{ marginTop: "auto", gap: 8 }}>
-                      {error ? (
-                        <Text color="foreground" style={styles.errorText}>
-                          {error}
+                  contentContainerStyle={styles.sheetList}
+                  renderItem={({ item }) => (
+                    <OptionCard
+                      selected={selectedAddressId === item._id}
+                      onPress={() => setSelectedAddressId(item._id)}
+                    >
+                      <View style={styles.addressHead}>
+                        <Text size={14} weight="600">
+                          {item.label}
+                        </Text>
+                        {item.isDefault ? (
+                          <Badge label="Default" tone="brand" variant="soft" />
+                        ) : null}
+                      </View>
+                      <Text size={13} color="muted">
+                        {[item.addressLine1, item.city, item.state].filter(Boolean).join(", ")}
+                        {item.zipCode ? ` ${item.zipCode}` : ""}
+                      </Text>
+                      {item.phone ? (
+                        <Text size={13} color="muted">
+                          {item.phone}
                         </Text>
                       ) : null}
-                      <Button
-                        text="Continue"
-                        onPress={() => setCheckoutStep("delivery")}
-                        disabled={!selectedAddressId}
-                      />
-                    </View>
-                  }
+                    </OptionCard>
+                  )}
                 />
               )}
-            </View>
+
+              <View style={styles.sheetFooter}>
+                {error ? <Text color="destructive" align="center" size={13}>{error}</Text> : null}
+                <Button
+                  text="Continue"
+                  onPress={() => setCheckoutStep("delivery")}
+                  disabled={!selectedAddressId}
+                />
+              </View>
+            </>
           )}
 
           {checkoutStep === "delivery" && (
-            <View style={{ flex: 1 }}>
-              <Text weight="600" size={20} style={{ marginBottom: 16 }}>
-                Delivery Method
-              </Text>
-              <View style={{ gap: 12 }}>
-                {DELIVERY_OPTIONS.map((opt) => {
-                  const isSelected = selectedDelivery === opt.key;
-                  return (
-                    <TouchableOpacity
-                      key={opt.key}
-                      onPress={() => setSelectedDelivery(opt.key)}
-                      style={[
-                        styles.deliveryItem,
-                        {
-                          backgroundColor: colors.surface,
-                          borderColor: isSelected ? colors.brand : colors.border,
-                        },
-                      ]}
-                    >
-                      <View style={{ flex: 1 }}>
-                        <Text weight="600">{opt.label}</Text>
-                        <Text size={14} color="muted">
-                          {opt.days}
-                        </Text>
-                      </View>
-                      <Text weight="600">
-                        {opt.charge === 0 ? "Free" : `₹${opt.charge.toFixed(2)}`}
+            <>
+              <SheetTitle title="Delivery method" step="2 of 3" />
+
+              <View style={styles.sheetList}>
+                {DELIVERY_OPTIONS.map((opt) => (
+                  <OptionCard
+                    key={opt.key}
+                    selected={selectedDelivery === opt.key}
+                    onPress={() => setSelectedDelivery(opt.key)}
+                    trailing={
+                      <Text size={14} weight="600" color={opt.charge === 0 ? "success" : "foreground"}>
+                        {opt.charge === 0 ? "Free" : formatPrice(opt.charge)}
                       </Text>
-                      {isSelected && (
-                        <View style={{ marginLeft: 8 }}>
-                          <CircleCheckIcon color={colors.brand} size={22} />
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
+                    }
+                  >
+                    <Text size={15} weight="600">
+                      {opt.label}
+                    </Text>
+                    <Text size={13} color="muted">
+                      {opt.days}
+                    </Text>
+                  </OptionCard>
+                ))}
               </View>
-              <View style={{ marginTop: "auto", gap: 8 }}>
+
+              <View style={styles.sheetFooter}>
                 <Button text="Continue" onPress={() => setCheckoutStep("payment")} />
-                <Button text="Back" variant="outline" onPress={() => setCheckoutStep("address")} />
+                <Button
+                  text="Back"
+                  variant="ghost"
+                  size="sm"
+                  onPress={() => setCheckoutStep("address")}
+                />
               </View>
-            </View>
+            </>
           )}
 
           {checkoutStep === "payment" && (
-            <View style={{ flex: 1 }}>
-              <Text weight="600" size={20} style={{ marginBottom: 16 }}>
-                Payment Method
-              </Text>
-              <View style={{ gap: 12 }}>
-                <TouchableOpacity
+            <>
+              <SheetTitle title="Payment" step="3 of 3" />
+
+              <View style={styles.sheetList}>
+                <OptionCard
+                  selected={paymentMethod === "cod"}
                   onPress={() => setPaymentMethod("cod")}
-                  style={[
-                    styles.paymentItem,
-                    {
-                      backgroundColor: colors.surface,
-                      borderColor: paymentMethod === "cod" ? colors.brand : colors.border,
-                    },
-                  ]}
                 >
-                  <Text weight="500">Cash on Delivery</Text>
-                  {paymentMethod === "cod" && <CircleCheckIcon color={colors.brand} size={22} />}
-                </TouchableOpacity>
-                <TouchableOpacity
+                  <Text size={15} weight="600">
+                    Cash on delivery
+                  </Text>
+                  <Text size={13} color="muted">
+                    Pay the courier when it arrives
+                  </Text>
+                </OptionCard>
+
+                <OptionCard
+                  selected={paymentMethod === "card"}
                   onPress={() => setPaymentMethod("card")}
-                  style={[
-                    styles.paymentItem,
-                    {
-                      backgroundColor: colors.surface,
-                      borderColor: paymentMethod === "card" ? colors.brand : colors.border,
-                    },
-                  ]}
                 >
-                  <Text weight="500">Pay with Card (Stripe)</Text>
-                  {paymentMethod === "card" && <CircleCheckIcon color={colors.brand} size={22} />}
-                </TouchableOpacity>
+                  <Text size={15} weight="600">
+                    Card
+                  </Text>
+                  <Text size={13} color="muted">
+                    Secure checkout with Stripe
+                  </Text>
+                </OptionCard>
               </View>
 
-              <View style={[styles.summary, { borderTopColor: colors.border, marginTop: 20 }]}>
-                <View style={styles.summaryRow}>
-                  <Text color="muted">Subtotal</Text>
-                  <Text>₹{(cart?.subtotal || 0).toFixed(2)}</Text>
-                </View>
-                {(cart?.discountTotal ?? 0) > 0 && (
-                  <View style={styles.summaryRow}>
-                    <Text color="muted">Discount</Text>
-                    <Text color="muted">-₹{(cart?.discountTotal || 0).toFixed(2)}</Text>
-                  </View>
-                )}
-                <View style={styles.summaryRow}>
-                  <Text color="muted">Delivery</Text>
-                  <Text color="muted">
-                    {getDeliveryCharge() === 0 ? "Free" : `₹${getDeliveryCharge().toFixed(2)}`}
-                  </Text>
-                </View>
-                <View style={[styles.summaryDivider, { borderColor: colors.border }]} />
-                <View style={styles.summaryRow}>
-                  <Text weight="600" size={18}>
-                    Total
-                  </Text>
-                  <Text weight="600" size={18}>
-                    ₹{getTotal().toFixed(2)}
-                  </Text>
-                </View>
-              </View>
+              <View style={styles.sheetSummary}>{summaryRows}</View>
 
-              <View style={{ marginTop: "auto", gap: 8 }}>
-                {error ? (
-                  <Text color="foreground" style={styles.errorText}>
-                    {error}
-                  </Text>
-                ) : null}
+              <View style={styles.sheetFooter}>
+                {error ? <Text color="destructive" align="center" size={13}>{error}</Text> : null}
                 <Button
-                  text={paymentMethod === "cod" ? "Place Order (COD)" : "Pay with Card"}
+                  text={paymentMethod === "cod" ? "Place order" : "Pay now"}
                   onPress={handlePlaceOrder}
                   loading={isPlacingCOD || isCreatingSession}
                 />
-                <Button text="Back" variant="outline" onPress={() => setCheckoutStep("delivery")} />
+                <Button
+                  text="Back"
+                  variant="ghost"
+                  size="sm"
+                  onPress={() => setCheckoutStep("delivery")}
+                />
               </View>
-            </View>
+            </>
           )}
 
           {checkoutStep === "confirming" && (
-            <View style={[styles.center, { flex: 1 }]}>
-              <ActivityIndicator size="large" color={colors.brand} />
-              <Text style={{ marginTop: 16 }} color="muted">
-                Processing your order...
-              </Text>
+            <View style={styles.sheetCenter}>
+              <ActivityIndicator color={colors.brand} />
+              <Text color="muted">Placing your order…</Text>
             </View>
           )}
 
           {checkoutStep === "success" && (
-            <View style={[styles.center, { flex: 1, gap: 12 }]}>
-              <CircleCheckIcon color={colors.brand} size={64} />
-              <Text weight="600" size={20} align="center">
-                Order Placed Successfully!
+            <View style={styles.sheetCenter}>
+              <CircleCheckIcon color={colors.brand} size={56} />
+              <Text size={22} weight="700" variant="display" align="center" style={styles.successTitle}>
+                Order placed
               </Text>
               <Text color="muted" align="center">
-                Thank you for your purchase. You will receive a confirmation shortly.
+                We have sent a confirmation. You can follow it from My orders.
               </Text>
-              <View style={{ width: "100%", marginTop: 20 }}>
-                <Button
-                  text="Continue Shopping"
-                  onPress={() => {
-                    setCheckoutOpen(false);
-                    router.push("/shop");
-                  }}
-                />
-              </View>
+              <Button
+                text="Keep shopping"
+                style={styles.successButton}
+                onPress={() => {
+                  setCheckoutOpen(false);
+                  router.push("/(tabs)/shop");
+                }}
+              />
             </View>
           )}
         </View>
       </Sheet>
-    </SafeAreaView>
+    </Container>
+  );
+}
+
+function SheetTitle({ title, step }: { title: string; step: string }) {
+  return (
+    <View style={styles.sheetHeader}>
+      <Text size={22} weight="700" variant="display" style={styles.sheetTitle}>
+        {title}
+      </Text>
+      <Text size={12} color="muted">
+        {step}
+      </Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
+  noPad: {
+    paddingHorizontal: 0,
   },
-  container: {
-    paddingHorizontal: 16,
+  gutter: {
+    paddingHorizontal: 20,
   },
-  center: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
+
   list: {
-    paddingBottom: 16,
-  },
-  cartItem: {
-    flexDirection: "row",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
     gap: 12,
-    position: "relative",
   },
-  itemImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    backgroundColor: "#f0f0f0",
+
+  item: {
+    flexDirection: "row",
+    gap: 14,
+    padding: 12,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  itemImageWrap: {
+    width: 84,
+    height: 84,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceRaised,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    flexShrink: 0,
   },
   itemDetails: {
     flex: 1,
-    gap: 4,
+    gap: 5,
+    justifyContent: "space-between",
   },
+  itemTop: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+  },
+  itemName: {
+    flex: 1,
+    lineHeight: 19,
+  },
+  itemBottom: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+    marginTop: 2,
+  },
+  lineTotal: {
+    letterSpacing: 0.3,
+  },
+
   stepper: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 0,
-    marginTop: 4,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    overflow: "hidden",
   },
   stepperBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 6,
-    borderWidth: 1,
+    width: 32,
+    height: 30,
     alignItems: "center",
     justifyContent: "center",
   },
   stepperQty: {
-    minWidth: 36,
+    minWidth: 30,
     textAlign: "center",
   },
-  deleteBtn: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-  },
+
   summary: {
     marginTop: 8,
-    paddingTop: 16,
-    borderTopWidth: 1,
+    padding: 16,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     gap: 8,
+  },
+  summaryLabel: {
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    marginBottom: 4,
   },
   summaryRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 12,
   },
   summaryDivider: {
-    borderTopWidth: 1,
-    marginVertical: 4,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+    marginVertical: 6,
   },
-  checkoutBtn: {
-    marginTop: 8,
-    paddingBottom: 8,
+  totalValue: {
+    letterSpacing: 0.3,
   },
+
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+  },
+
   sheetContent: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 4,
+    paddingBottom: 20,
   },
-  addressItem: {
+  sheetHeader: {
     flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
-    borderWidth: 1,
-    gap: 10,
-  },
-  defaultBadge: {
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  deliveryItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-  },
-  paymentItem: {
-    flexDirection: "row",
+    alignItems: "baseline",
     justifyContent: "space-between",
-    alignItems: "center",
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
+    gap: 12,
+    marginBottom: 14,
   },
-  errorText: {
-    color: "#dc3545",
-    textAlign: "center",
-    marginBottom: 8,
+  sheetTitle: {
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    lineHeight: 26,
+  },
+  sheetList: {
+    gap: 10,
+    paddingBottom: 8,
+  },
+  sheetEmpty: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 16,
+    paddingHorizontal: 24,
+  },
+  sheetFooter: {
+    marginTop: "auto",
+    paddingTop: 14,
+    gap: 8,
+  },
+  sheetSummary: {
+    marginTop: 16,
+    paddingTop: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+    gap: 8,
+  },
+  sheetCenter: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 14,
+  },
+  successTitle: {
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  successButton: {
+    marginTop: 10,
+    alignSelf: "stretch",
+  },
+
+  option: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 14,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  optionSelected: {
+    borderColor: colors.brand,
+  },
+  optionBody: {
+    flex: 1,
+    gap: 2,
+  },
+  radio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: colors.borderStrong,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  optionTrailing: {
+    alignItems: "flex-end",
+    flexShrink: 0,
+  },
+  radioSelected: {
+    borderColor: colors.brand,
+  },
+  radioDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.brand,
+  },
+  addressHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
   },
 });

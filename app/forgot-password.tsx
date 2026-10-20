@@ -1,10 +1,13 @@
 import React, { useState } from "react";
+import { useRouter } from "expo-router";
+import Toast from "react-native-toast-message";
+
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import AuthLayout from "@/layout/AuthLayout";
-import { useRouter } from "expo-router";
 import { useForgotPasswordMutation } from "@/hooks/useUser";
-import Toast from "react-native-toast-message";
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function ForgotPassword() {
   const router = useRouter();
@@ -12,43 +15,39 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState("");
 
   const handleSubmit = () => {
-    if (!email) {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Please enter your email",
-      });
+    if (!EMAIL.test(email.trim())) {
+      Toast.show({ type: "error", text1: "Enter a valid email address" });
       return;
     }
-    mutate(email, {
-      onSuccess: (data) => {
-        Toast.show({
-          type: "success",
-          text1: "Success",
-          text2: data?.message || "OTP sent to your email",
-        });
-        router.push(`/reset-password?email=${email}`);
+
+    mutate(email.trim(), {
+      onSuccess: () => {
+        Toast.show({ type: "success", text1: "Your reset code is on the way" });
+        router.push(`/reset-password?email=${encodeURIComponent(email.trim())}`);
       },
-      onError: (error: any) => {
-        Toast.show({
-          type: "error",
-          text1: "Error",
-          text2: error?.message || "Something went wrong",
-        });
-      },
+      onError: (error: any) =>
+        Toast.show({ type: "error", text1: error?.message || "Could not send the code" }),
     });
   };
 
   return (
     <AuthLayout
-      heading="Forgot Password"
-      description="Enter your email to receive an OTP"
+      heading="Forgot password"
+      description="We will email you a 6-digit code to reset it."
       href="/login"
-      prompt="Already remembered it?"
+      prompt="Remembered it?"
       action="Back to login"
     >
-      <Input label="Email" value={email} onChangeText={setEmail} placeholder="Enter your email" />
-      <Button text="Send OTP" onPress={handleSubmit} loading={isPending} />
+      <Input
+        label="Email"
+        placeholder="you@example.com"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoComplete="email"
+      />
+      <Button text="Send code" size="lg" onPress={handleSubmit} loading={isPending} />
     </AuthLayout>
   );
 }

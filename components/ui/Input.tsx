@@ -1,6 +1,6 @@
-import { View, TextInput, StyleSheet, TextInputProps } from "react-native";
+import { View, TextInput, StyleSheet, TextInputProps, Platform } from "react-native";
 import React from "react";
-import { colors, radius } from "@/constant/color";
+import { colors, fonts, radius } from "@/constant/color";
 import { Text } from "./Text";
 
 interface InputProps extends Omit<TextInputProps, "style"> {
@@ -55,7 +55,11 @@ export default function Input({
             setFocused(false);
             onBlur?.(e);
           }}
-          style={styles.input}
+          style={[
+            styles.input,
+            // react-native-web otherwise draws the browser focus ring inside the field.
+            Platform.OS === "web" && ({ outlineStyle: "none" } as object),
+          ]}
           placeholderTextColor={colors.subtle}
         />
       </View>
@@ -98,7 +102,8 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     color: colors.foreground,
-    fontSize: 16,
+    fontFamily: fonts.body,
+    fontSize: 15,
     height: "100%",
   },
 });

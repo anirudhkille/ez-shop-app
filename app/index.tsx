@@ -14,7 +14,7 @@ export default function Index() {
 
   useEffect(() => {
     if (!hydrated) return;
-    router.replace(token ? "/(tabs)" : "/login");
+    router.replace(token ? "/home" : "/login");
   }, [hydrated, token, router]);
 
   return null;

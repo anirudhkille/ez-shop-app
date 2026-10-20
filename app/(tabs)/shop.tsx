@@ -4,30 +4,37 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
+  TextInput,
   Modal,
   Pressable,
-  Text as RNText,
-  TextInput,
+  Platform,
 } from "react-native";
-import { Image } from "expo-image";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { colors, fonts, radius, tagBadge } from "@/constant/color";
+import { colors, fonts, radius } from "@/constant/color";
 import Text from "@/components/ui/Text";
 import Button from "@/components/ui/Button";
+import Chip from "@/components/ui/Chip";
+import Badge from "@/components/ui/Badge";
+import EmptyState from "@/components/ui/EmptyState";
+import ScreenHeader, { headerIconButton } from "@/components/ui/ScreenHeader";
+import ProductCard from "@/components/shared/ProductCard";
+import { ProductGridSkeleton } from "@/components/ui/Skeleton";
 import { SearchIcon } from "@/assets/icons/SearchIcon";
 import { TuneIcon } from "@/assets/icons/TuneIcon";
 import { CircleCheckIcon } from "@/assets/icons/CircleCheckIcon";
+import { PackageIcon } from "@/assets/icons/PackageIcon";
 import { useFilteredProductsQuery, useSearchProductsQuery } from "@/hooks/useProducts";
 import { useCategoriesQuery } from "@/hooks/useCategories";
+import { titleCase } from "@/lib/format";
 import { IProduct } from "@/types/api";
 
 type SortOption = "price-low" | "price-high" | "newest" | "rating";
 type GenderFilter = "men" | "women" | "unisex" | "all";
 
 const SORT_OPTIONS: { label: string; value: SortOption }[] = [
-  { label: "Newest", value: "newest" },
+  { label: "Newest first", value: "newest" },
   { label: "Price: low to high", value: "price-low" },
   { label: "Price: high to low", value: "price-high" },
   { label: "Top rated", value: "rating" },
@@ -41,141 +48,6 @@ const GENDER_OPTIONS: { label: string; value: GenderFilter }[] = [
 ];
 
 const PAGE_SIZE = 10;
-
-function Stars({ rating }: { rating: number }) {
-  const filled = Math.round(rating);
-
-  return (
-    <View style={styles.starRow}>
-      <RNText style={[styles.starGlyph, { color: colors.warning }]}>
-        {"\u2605".repeat(filled)}
-      </RNText>
-      {filled < 5 ? (
-        <RNText style={[styles.starGlyph, { color: colors.subtle }]}>
-          {"\u2605".repeat(5 - filled)}
-        </RNText>
-      ) : null}
-      <RNText style={styles.starCount}>{rating.toFixed(1)}</RNText>
-    </View>
-  );
-}
-
-function ProductItem({ product, onPress }: { product: IProduct; onPress: () => void }) {
-  const badge = product.tag ? tagBadge[product.tag] : undefined;
-  const categoryName = typeof product.category === "string" ? "" : (product.category?.name ?? "");
-  const onSale = product.discountPrice > 0 && product.discountPrice < product.price;
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={styles.card}
-      activeOpacity={0.75}
-      accessibilityRole="button"
-      accessibilityLabel={`${product.name}, ${product.discountPrice || product.price} rupees`}
-    >
-      <View style={styles.imageWrap}>
-        {badge ? (
-          <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-            <RNText style={[styles.badgeText, { color: badge.fg }]}>{product.tag}</RNText>
-          </View>
-        ) : null}
-
-        <Image source={product.image} style={styles.image} contentFit="contain" transition={180} />
-
-        {onSale ? (
-          <View style={styles.savePill}>
-            <RNText style={styles.saveText}>
-              {Math.round((1 - product.discountPrice / product.price) * 100)}% off
-            </RNText>
-          </View>
-        ) : null}
-      </View>
-
-      <View style={styles.cardBody}>
-        {categoryName ? (
-          <RNText style={styles.eyebrow} numberOfLines={1}>
-            {categoryName}
-          </RNText>
-        ) : null}
-
-        <RNText style={styles.name} numberOfLines={2}>
-          {product.name}
-        </RNText>
-
-        <View style={styles.priceRow}>
-          <RNText style={styles.price}>
-            {"\u20B9"}
-            {product.discountPrice || product.price}
-          </RNText>
-          {onSale ? (
-            <RNText style={styles.wasPrice}>
-              {"\u20B9"}
-              {product.price}
-            </RNText>
-          ) : null}
-        </View>
-
-        <Stars rating={product.rating} />
-      </View>
-    </TouchableOpacity>
-  );
-}
-
-function ProductGrid({
-  products,
-  onPressProduct,
-  onEndReached,
-  footer,
-}: {
-  products: IProduct[];
-  onPressProduct: (product: IProduct) => void;
-  onEndReached?: () => void;
-  footer?: React.ReactElement | null;
-}) {
-  return (
-    <FlatList
-      data={products}
-      keyExtractor={(item) => item._id}
-      numColumns={2}
-      showsVerticalScrollIndicator={false}
-      columnWrapperStyle={styles.gridRow}
-      contentContainerStyle={styles.gridContent}
-      renderItem={({ item }) => <ProductItem product={item} onPress={() => onPressProduct(item)} />}
-      onEndReached={onEndReached}
-      onEndReachedThreshold={0.4}
-      ListFooterComponent={footer}
-      keyboardShouldPersistTaps="handled"
-    />
-  );
-}
-
-function EmptyState({ message, onReset }: { message: string; onReset?: () => void }) {
-  return (
-    <View style={styles.centerState}>
-      <Text align="center" color="muted" size={15}>
-        {message}
-      </Text>
-      {onReset ? (
-        <View style={styles.retryWrap}>
-          <Button text="Clear filters" variant="outline" onPress={onReset} />
-        </View>
-      ) : null}
-    </View>
-  );
-}
-
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <View style={styles.centerState}>
-      <Text align="center" color="muted" size={15}>
-        {message}
-      </Text>
-      <View style={styles.retryWrap}>
-        <Button text="Try again" variant="outline" onPress={onRetry} />
-      </View>
-    </View>
-  );
-}
 
 function FilterSheet({
   visible,
@@ -194,73 +66,63 @@ function FilterSheet({
   onChangeGender: (g: GenderFilter) => void;
   onClear: () => void;
 }) {
+  const groups = [
+    { label: "Sort by", options: SORT_OPTIONS, active: sort, onSelect: onChangeSort },
+    {
+      label: "Department",
+      options: GENDER_OPTIONS,
+      active: gender,
+      onSelect: onChangeGender,
+    },
+  ] as const;
+
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.sheetBackdrop} onPress={onClose} />
+      <Pressable style={styles.sheetBackdrop} onPress={onClose} accessibilityLabel="Close filters" />
 
       <View style={styles.sheet}>
         <View style={styles.grabber} />
 
         <View style={styles.sheetHeader}>
-          <Text size={22} weight="700" variant="displaySemi">
-            FILTERS
+          <Text size={22} weight="700" variant="display" style={styles.sheetTitle}>
+            Filters
           </Text>
-          <Pressable onPress={onClear} hitSlop={10} accessibilityRole="button">
+          <TouchableOpacity onPress={onClear} hitSlop={10} accessibilityRole="button">
             <Text size={14} weight="600" color="brand">
               Reset
             </Text>
-          </Pressable>
+          </TouchableOpacity>
         </View>
 
-        <Text size={12} weight="600" color="muted" style={styles.sheetLabel}>
-          SORT BY
-        </Text>
-        {SORT_OPTIONS.map((opt) => {
-          const active = sort === opt.value;
-          return (
-            <Pressable
-              key={opt.value}
-              onPress={() => onChangeSort(opt.value)}
-              style={styles.sheetRow}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: active }}
-            >
-              <Text
-                size={15}
-                color={active ? "foreground" : "muted"}
-                weight={active ? "600" : "400"}
-              >
-                {opt.label}
-              </Text>
-              {active ? <CircleCheckIcon color={colors.brand} size={20} /> : null}
-            </Pressable>
-          );
-        })}
+        {groups.map((group) => (
+          <View key={group.label}>
+            <Text size={11} weight="700" color="muted" style={styles.sheetLabel}>
+              {group.label}
+            </Text>
 
-        <Text size={12} weight="600" color="muted" style={styles.sheetLabel}>
-          DEPARTMENT
-        </Text>
-        {GENDER_OPTIONS.map((opt) => {
-          const active = gender === opt.value;
-          return (
-            <Pressable
-              key={opt.value}
-              onPress={() => onChangeGender(opt.value)}
-              style={styles.sheetRow}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: active }}
-            >
-              <Text
-                size={15}
-                color={active ? "foreground" : "muted"}
-                weight={active ? "600" : "400"}
-              >
-                {opt.label}
-              </Text>
-              {active ? <CircleCheckIcon color={colors.brand} size={20} /> : null}
-            </Pressable>
-          );
-        })}
+            {group.options.map((option) => {
+              const active = group.active === option.value;
+              return (
+                <Pressable
+                  key={option.value}
+                  onPress={() => group.onSelect(option.value as never)}
+                  style={styles.sheetRow}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: active }}
+                >
+                  <Text
+                    size={15}
+                    color={active ? "foreground" : "muted"}
+                    weight={active ? "600" : "400"}
+                  >
+                    {option.label}
+                  </Text>
+                  {active ? <CircleCheckIcon color={colors.brand} size={20} /> : null}
+                </Pressable>
+              );
+            })}
+          </View>
+        ))}
 
         <View style={styles.sheetFooter}>
           <Button text="Show results" onPress={onClose} />
@@ -272,6 +134,7 @@ function FilterSheet({
 
 export default function Shop() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -292,7 +155,6 @@ export default function Shop() {
     isLoading: searchLoading,
     isFetching: searchFetching,
     isError: searchError,
-    error: searchErrorDetail,
     refetch: refetchSearch,
   } = useSearchProductsQuery(debounced);
 
@@ -308,7 +170,6 @@ export default function Shop() {
     isLoading: filterLoading,
     isFetching: filterFetching,
     isError: filterError,
-    error: filterErrorDetail,
     refetch: refetchFiltered,
   } = useFilteredProductsQuery(params);
 
@@ -340,7 +201,7 @@ export default function Shop() {
     () => () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     },
-    []
+    [],
   );
 
   const searching = debounced.length > 0;
@@ -369,125 +230,166 @@ export default function Shop() {
   }, []);
 
   const activeCategoryName = categories.find((c) => c._id === category)?.name ?? "";
+  const filterCount = (category ? 1 : 0) + (gender !== "all" ? 1 : 0) + (sort !== "newest" ? 1 : 0);
+  const openProduct = (product: IProduct) => router.push(`/product/${product.slug}/${product._id}`);
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.header}>
-        <View style={styles.searchField}>
-          <SearchIcon color={colors.muted} size={18} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search products"
-            placeholderTextColor={colors.subtle}
-            value={query}
-            onChangeText={handleQuery}
-            returnKeyType="search"
-            autoCorrect={false}
-            clearButtonMode="while-editing"
-            accessibilityLabel="Search products"
+    <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
+      <View style={styles.top}>
+        <View style={styles.headerPad}>
+          <ScreenHeader
+            title="Shop"
+            subtitle={
+              firstLoad
+                ? "Loading the catalogue"
+                : searching
+                  ? `${total} ${total === 1 ? "match" : "matches"} for "${debounced}"`
+                  : `${total} products`
+            }
+            right={
+              <TouchableOpacity
+                onPress={() => setSheetOpen(true)}
+                style={[headerIconButton, hasFilters && styles.filterBtnActive]}
+                accessibilityRole="button"
+                accessibilityLabel="Filters and sorting"
+              >
+                <TuneIcon color={hasFilters ? colors.brand : colors.foreground} size={19} />
+              </TouchableOpacity>
+            }
           />
         </View>
 
-        <TouchableOpacity
-          onPress={() => setSheetOpen(true)}
-          style={styles.filterBtn}
-          accessibilityRole="button"
-          accessibilityLabel="Filters and sorting"
-        >
-          <TuneIcon color={hasFilters ? colors.brand : colors.foreground} size={19} />
-        </TouchableOpacity>
-      </View>
+        <View style={[styles.searchRow, styles.headerPad]}>
+          <View style={styles.searchField}>
+            <SearchIcon color={colors.muted} size={18} />
+            <TextInput
+              style={[
+                styles.searchInput,
+                Platform.OS === "web" && ({ outlineStyle: "none" } as object),
+              ]}
+              placeholder="Search products"
+              placeholderTextColor={colors.subtle}
+              value={query}
+              onChangeText={handleQuery}
+              returnKeyType="search"
+              autoCorrect={false}
+              clearButtonMode="while-editing"
+              accessibilityLabel="Search products"
+            />
+          </View>
 
-      {!searching && categories.length > 0 ? (
-        <FlatList
-          horizontal
-          data={categories}
-          keyExtractor={(item) => item._id}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.rail}
-          renderItem={({ item }) => {
-            const active = category === item._id;
-            return (
-              <TouchableOpacity
-                onPress={() => setCategory(active ? "" : item._id)}
-                style={[
-                  styles.railChip,
-                  active
-                    ? { backgroundColor: colors.brand, borderColor: colors.brand }
-                    : { backgroundColor: colors.surface, borderColor: colors.border },
-                ]}
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-              >
-                <RNText style={[styles.railText, active && { color: "#FFFFFF" }]} numberOfLines={1}>
-                  {item.name}
-                </RNText>
-              </TouchableOpacity>
-            );
-          }}
-        />
-      ) : null}
+          {hasFilters ? <Badge label={`${filterCount} active`} tone="brand" variant="soft" /> : null}
+        </View>
 
-      <View style={styles.metaRow}>
-        <RNText style={styles.metaText} numberOfLines={1}>
-          {searching
-            ? `${total} ${total === 1 ? "match" : "matches"}`
-            : activeCategoryName || "All products"}
-        </RNText>
-        {!searching && pagination ? (
-          <RNText style={styles.metaCount}>
-            {firstLoad ? "Loading" : `${shown} of ${pagination.total}`}
-          </RNText>
+        {!searching && categories.length > 0 ? (
+          <FlatList
+            horizontal
+            data={categories}
+            keyExtractor={(item) => item._id}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.rail}
+            ListHeaderComponent={
+              <Chip
+                label="All"
+                active={category === ""}
+                onPress={() => setCategory("")}
+                style={styles.railItem}
+              />
+            }
+            renderItem={({ item }) => (
+              <Chip
+                label={titleCase(item.name)}
+                active={category === item._id}
+                onPress={() => setCategory(category === item._id ? "" : item._id)}
+                style={styles.railItem}
+              />
+            )}
+          />
+        ) : null}
+
+        {!searching ? (
+          <View style={[styles.metaRow, styles.headerPad]}>
+            <Text size={14} weight="600" numberOfLines={1} style={styles.metaText}>
+              {activeCategoryName || "All products"}
+            </Text>
+            {pagination ? (
+              <Text size={12} color="muted" numberOfLines={1}>
+                {firstLoad ? "" : `Showing ${shown} of ${pagination.total}`}
+              </Text>
+            ) : null}
+          </View>
         ) : null}
       </View>
 
       {firstLoad ? (
-        <View style={styles.centerState}>
-          <ActivityIndicator color={colors.brand} />
-        </View>
+        <ProductGridSkeleton count={4} />
       ) : searching ? (
         searchError ? (
-          <ErrorState
-            message={String(searchErrorDetail?.message ?? "Search failed")}
-            onRetry={() => refetchSearch()}
+          <EmptyState
+            title="Search failed"
+            body="We could not reach the catalogue. Check your connection and try again."
+            icon={<PackageIcon color={colors.muted} size={24} />}
+            actionLabel="Try again"
+            onAction={() => refetchSearch()}
           />
         ) : results.length === 0 ? (
           <EmptyState
-            message={`No products match "${debounced}".`}
-            onReset={() => {
+            title="No matches"
+            body={`Nothing matches "${debounced}". Try a different word or browse the categories.`}
+            icon={<SearchIcon color={colors.muted} size={24} />}
+            actionLabel="Clear search"
+            onAction={() => {
               setQuery("");
               setDebounced("");
             }}
           />
         ) : (
-          <ProductGrid
-            products={results}
-            onPressProduct={(p) => router.push(`/product/${p.slug}/${p._id}`)}
+          <FlatList
+            data={results}
+            keyExtractor={(item) => item._id}
+            numColumns={2}
+            showsVerticalScrollIndicator={false}
+            columnWrapperStyle={styles.gridRow}
+            contentContainerStyle={styles.gridContent}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => (
+              <ProductCard product={item} onPress={() => openProduct(item)} />
+            )}
           />
         )
       ) : filterError ? (
-        <ErrorState
-          message={String(filterErrorDetail?.message ?? "Could not load products")}
-          onRetry={() => refetchFiltered()}
+        <EmptyState
+          title="Could not load products"
+          body="The catalogue did not respond. Give it another go."
+          icon={<PackageIcon color={colors.muted} size={24} />}
+          actionLabel="Try again"
+          onAction={() => refetchFiltered()}
         />
       ) : results.length === 0 ? (
         <EmptyState
-          message={
-            hasFilters ? "No products match these filters." : "No products available right now."
+          title="Nothing here yet"
+          body={
+            hasFilters
+              ? "No products match these filters. Try widening your search."
+              : "No products are published right now. Check back soon."
           }
-          onReset={hasFilters ? resetAll : undefined}
+          icon={<PackageIcon color={colors.muted} size={24} />}
+          actionLabel={hasFilters ? "Clear filters" : undefined}
+          onAction={hasFilters ? resetAll : undefined}
         />
       ) : (
-        <ProductGrid
-          products={results}
-          onPressProduct={(p) => router.push(`/product/${p.slug}/${p._id}`)}
+        <FlatList
+          data={results}
+          keyExtractor={(item) => item._id}
+          numColumns={2}
+          showsVerticalScrollIndicator={false}
+          columnWrapperStyle={styles.gridRow}
+          contentContainerStyle={styles.gridContent}
+          renderItem={({ item }) => <ProductCard product={item} onPress={() => openProduct(item)} />}
           onEndReached={loadMore}
-          footer={
-            busy && hasMore ? (
-              <View style={styles.footerLoader}>
-                <ActivityIndicator color={colors.brand} size="small" />
-              </View>
-            ) : null
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={
+            busy && hasMore ? <Text color="subtle" align="center" style={styles.footerText}>Loading more</Text> : null
           }
         />
       )}
@@ -513,14 +415,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  top: {
+    paddingTop: 0,
+  },
+  headerPad: {
+    paddingHorizontal: 16,
+  },
 
-  header: {
+  searchRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 12,
+    paddingBottom: 14,
   },
   searchField: {
     flex: 1,
@@ -541,15 +447,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     height: "100%",
   },
-  filterBtn: {
-    width: 46,
-    height: 46,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
+  filterBtnActive: {
+    borderColor: colors.brand,
   },
 
   rail: {
@@ -557,17 +456,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 14,
   },
-  railChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-  },
-  railText: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.muted,
+  railItem: {
+    flexShrink: 0,
   },
 
   metaRow: {
@@ -575,20 +465,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
-    paddingHorizontal: 16,
     paddingBottom: 12,
   },
   metaText: {
-    fontFamily: fonts.body,
-    fontSize: 15,
-    fontWeight: "600",
-    color: colors.foreground,
     flexShrink: 1,
-  },
-  metaCount: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.muted,
   },
 
   gridRow: {
@@ -596,131 +476,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   gridContent: {
+    gap: 12,
     paddingBottom: 28,
   },
-
-  card: {
-    flex: 1,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    overflow: "hidden",
-    marginBottom: 12,
-  },
-  imageWrap: {
-    width: "100%",
-    aspectRatio: 1,
-    backgroundColor: colors.surfaceRaised,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-  },
-  badge: {
-    position: "absolute",
-    top: 10,
-    left: 10,
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: radius.pill,
-    zIndex: 2,
-  },
-  badgeText: {
-    fontFamily: fonts.body,
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-  },
-  savePill: {
-    position: "absolute",
-    bottom: 10,
-    right: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: colors.destructive,
-  },
-  saveText: {
-    fontFamily: fonts.body,
-    fontSize: 10,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-
-  cardBody: {
-    padding: 12,
-    gap: 5,
-  },
-  eyebrow: {
-    fontFamily: fonts.body,
-    fontSize: 10,
-    fontWeight: "600",
-    letterSpacing: 1.1,
-    textTransform: "uppercase",
-    color: colors.muted,
-  },
-  name: {
-    fontFamily: fonts.displaySemiBold,
-    fontSize: 17,
-    fontWeight: "600",
-    lineHeight: 20,
-    color: colors.foreground,
-  },
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    gap: 6,
-  },
-  price: {
-    fontFamily: fonts.display,
-    fontSize: 19,
-    fontWeight: "700",
-    color: colors.brand,
-  },
-  wasPrice: {
-    fontFamily: fonts.body,
-    fontSize: 12,
-    color: colors.muted,
-    textDecorationLine: "line-through",
-  },
-  starRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-  },
-  starGlyph: {
-    fontSize: 11,
-  },
-  starCount: {
-    fontFamily: fonts.body,
-    fontSize: 12,
-    color: colors.muted,
-    marginLeft: 2,
-  },
-
-  centerState: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 18,
-    paddingHorizontal: 32,
-    paddingBottom: 60,
-  },
-  retryWrap: {
-    minWidth: 160,
-  },
-  footerLoader: {
-    paddingVertical: 24,
+  footerText: {
+    paddingVertical: 20,
   },
 
   sheetBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.65)",
+    backgroundColor: "rgba(0,0,0,0.68)",
   },
   sheet: {
     backgroundColor: colors.surface,
@@ -730,8 +495,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 32,
-    gap: 2,
+    paddingBottom: 36,
   },
   grabber: {
     alignSelf: "center",
@@ -739,18 +503,24 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: colors.borderStrong,
-    marginBottom: 12,
+    marginBottom: 14,
   },
   sheetHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 8,
+    marginBottom: 6,
+  },
+  sheetTitle: {
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    lineHeight: 26,
   },
   sheetLabel: {
     letterSpacing: 1.2,
-    marginTop: 14,
-    marginBottom: 4,
+    textTransform: "uppercase",
+    marginTop: 16,
+    marginBottom: 2,
   },
   sheetRow: {
     flexDirection: "row",

@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from "react";
-import { useWindowDimensions } from "react-native";
 import {
   View,
   ScrollView,
@@ -7,90 +6,68 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  useWindowDimensions,
 } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
+
 import Container from "@/layout/Container";
 import Text from "@/components/ui/Text";
+import ScreenHeader, { headerIconButton } from "@/components/ui/ScreenHeader";
+import SectionHeading from "@/components/ui/SectionHeading";
+import ProductCard from "@/components/shared/ProductCard";
 import PromoBanner from "@/components/shared/PromoBanner";
-import { colors } from "@/constant/color";
+import { ShoppingBagIcon } from "@/assets/icons/ShoppingBagIcon";
+import { colors, radius } from "@/constant/color";
+import { titleCase } from "@/lib/format";
 import { useFeaturedProductsQuery, useBestSellersQuery } from "@/hooks/useProducts";
 import { useCategoriesQuery } from "@/hooks/useCategories";
 import { IProduct, ICategory } from "@/types/api";
 
-const { width } = useWindowDimensions();
-const CARD_WIDTH = width * 0.55;
-const CATEGORY_SIZE = (width - 60) / 2;
+const GUTTER = 16;
+const GRID_GAP = 12;
+const COLUMNS = 3;
+const RAIL_CARD = 164;
 
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <View style={styles.starRow}>
-      <Text size={14} color="muted">
-        {"★".repeat(Math.round(rating))}
-        {"☆".repeat(5 - Math.round(rating))}
-      </Text>
-      <Text size={14} color="muted">
-        {rating.toFixed(1)}
-      </Text>
-    </View>
-  );
-}
-
-function ProductCard({ product, onPress }: { product: IProduct; onPress: () => void }) {
+function CategoryTile({
+  category,
+  width,
+  onPress,
+}: {
+  category: ICategory;
+  width: number;
+  onPress: () => void;
+}) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[styles.productCard, { backgroundColor: colors.surface }]}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
+      style={[styles.categoryTile, { width }]}
+      accessibilityRole="button"
+      accessibilityLabel={`${category.name} category`}
     >
-      <Image
-        source={product.image}
-        style={styles.productImage}
-        contentFit="cover"
-        transition={300}
-      />
-      <View style={styles.productInfo}>
-        <Text size={14} weight="500">
-          {product.name}
-        </Text>
-        <View style={styles.priceRow}>
-          <Text size={16} weight="600">
-            ₹{product.discountPrice || product.price}
-          </Text>
-          {product.discountPrice > 0 && (
-            <Text size={14} color="muted" style={styles.strikethrough}>
-              ₹{product.price}
-            </Text>
-          )}
-        </View>
-        <StarRating rating={product.rating} />
+      <View style={[styles.categoryImageWrap, { height: width }]}>
+        <Image
+          source={category.image}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          transition={200}
+          cachePolicy="memory-disk"
+        />
       </View>
-    </TouchableOpacity>
-  );
-}
 
-function CategoryCard({ category, onPress }: { category: ICategory; onPress: () => void }) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.categoryCard, { backgroundColor: colors.surface }]}
-      activeOpacity={0.7}
-    >
-      <Image
-        source={category.image}
-        style={styles.categoryImage}
-        contentFit="cover"
-        transition={300}
-      />
-      <Text size={14} weight="500" align="center">
-        {category.name}
-      </Text>
+      <View style={styles.categoryLabel}>
+        <Text size={12} weight="700" variant="display" numberOfLines={1} style={styles.categoryName}>
+          {titleCase(category.name)}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 }
 
 export default function Home() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
   const [refreshing, setRefreshing] = useState(false);
 
   const {
@@ -113,110 +90,137 @@ export default function Home() {
   const bestSellers = bestSellersData?.data || [];
   const categories = categoriesData?.data || [];
 
+  const tileWidth = (width - GUTTER * 2 - GRID_GAP * (COLUMNS - 1)) / COLUMNS;
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.all([refetchFeatured(), refetchBestSellers(), refetchCategories()]);
     setRefreshing(false);
   }, [refetchFeatured, refetchBestSellers, refetchCategories]);
 
-  const navigateToProduct = (product: IProduct) => {
-    router.push(`/product/${product.slug}/${product._id}`);
-  };
+  const openProduct = (product: IProduct) => router.push(`/product/${product.slug}/${product._id}`);
 
-  const navigateToCategory = (category: ICategory) => {
-    router.push(`/category/${category._id}`);
-  };
-
-  if (featuredLoading && bestSellersLoading && categoriesLoading) {
-    return (
-      <Container
-        extraStyle={{
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <ActivityIndicator size="large" color={colors.brand} />
-      </Container>
-    );
-  }
+  const loading = featuredLoading && bestSellersLoading && categoriesLoading;
 
   return (
-    <Container extraStyle={styles.container}>
+    <Container topInset extraStyle={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.brand} />
         }
       >
-        <View style={styles.section}>
-          <PromoBanner onPress={() => router.push("/(tabs)/shop")} />
+        <View style={styles.gutter}>
+          <ScreenHeader
+            title="EZ Shop"
+            eyebrow="Everything, delivered"
+            right={
+              <TouchableOpacity
+                onPress={() => router.push("/(tabs)/cart")}
+                style={headerIconButton}
+                accessibilityRole="button"
+                accessibilityLabel="Open cart"
+              >
+                <ShoppingBagIcon color={colors.foreground} />
+              </TouchableOpacity>
+            }
+          />
         </View>
 
-        {featured.length > 0 && (
-          <View style={styles.section}>
-            <Text size={22} weight="700" variant="displaySemi" style={styles.sectionTitle}>
-              FEATURED
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalScroll}
-            >
-              {featured.map((product) => (
-                <ProductCard
-                  key={product._id}
-                  product={product}
-                  onPress={() => navigateToProduct(product)}
-                />
-              ))}
-            </ScrollView>
+        {loading ? (
+          <View style={styles.loading}>
+            <ActivityIndicator color={colors.brand} />
           </View>
-        )}
-
-        {categories.length > 0 && (
-          <View style={styles.section}>
-            <Text size={22} weight="600">
-              Categories
-            </Text>
-            <View style={styles.categoriesGrid}>
-              {categories.map((category) => (
-                <CategoryCard
-                  key={category._id}
-                  category={category}
-                  onPress={() => navigateToCategory(category)}
-                />
-              ))}
+        ) : (
+          <>
+            <View style={styles.gutter}>
+              <PromoBanner onPress={() => router.push("/(tabs)/shop")} />
             </View>
-          </View>
-        )}
 
-        {bestSellers.length > 0 && (
-          <View style={styles.section}>
-            <Text size={22} weight="700" variant="displaySemi" style={styles.sectionTitle}>
-              BEST SELLERS
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalScroll}
-            >
-              {bestSellers.map((product) => (
-                <ProductCard
-                  key={product._id}
-                  product={product}
-                  onPress={() => navigateToProduct(product)}
-                />
-              ))}
-            </ScrollView>
-          </View>
-        )}
+            {categories.length > 0 ? (
+              <View style={styles.section}>
+                <View style={styles.gutter}>
+                  <SectionHeading title="Shop by category" />
+                </View>
 
-        {featured.length === 0 && bestSellers.length === 0 && categories.length === 0 && (
-          <View style={styles.emptyState}>
-            <Text align="center" color="muted">
-              No products available right now.
-            </Text>
-          </View>
+                <View style={[styles.categoryGrid, styles.gutter]}>
+                  {categories.map((category) => (
+                    <CategoryTile
+                      key={category._id}
+                      category={category}
+                      width={tileWidth}
+                      onPress={() => router.push(`/category/${category._id}`)}
+                    />
+                  ))}
+                </View>
+              </View>
+            ) : null}
+
+            {featured.length > 0 ? (
+              <View style={styles.section}>
+                <View style={styles.gutter}>
+                  <SectionHeading
+                    title="Featured"
+                    action="See all"
+                    onPressAction={() => router.push("/(tabs)/shop")}
+                  />
+                </View>
+
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.rail}
+                >
+                  {featured.map((product) => (
+                    <ProductCard
+                      key={product._id}
+                      product={product}
+                      variant="rail"
+                      width={RAIL_CARD}
+                      onPress={() => openProduct(product)}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            ) : null}
+
+            {bestSellers.length > 0 ? (
+              <View style={styles.section}>
+                <View style={styles.gutter}>
+                  <SectionHeading
+                    title="Best sellers"
+                    action="See all"
+                    onPressAction={() => router.push("/(tabs)/shop")}
+                  />
+                </View>
+
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.rail}
+                >
+                  {bestSellers.map((product) => (
+                    <ProductCard
+                      key={product._id}
+                      product={product}
+                      variant="rail"
+                      width={RAIL_CARD}
+                      onPress={() => openProduct(product)}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            ) : null}
+
+            {featured.length === 0 && bestSellers.length === 0 && categories.length === 0 ? (
+              <View style={styles.loading}>
+                <Text align="center" color="muted">
+                  Nothing to show yet. Pull down to refresh.
+                </Text>
+              </View>
+            ) : null}
+          </>
         )}
       </ScrollView>
     </Container>
@@ -225,63 +229,53 @@ export default function Home() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
   },
-  sectionTitle: {
-    letterSpacing: 1,
+  scrollContent: {
+    paddingBottom: 28,
+  },
+  gutter: {
+    paddingHorizontal: GUTTER,
   },
   section: {
-    marginBottom: 28,
+    marginTop: 30,
+    gap: 14,
   },
-  horizontalScroll: {
-    paddingVertical: 12,
-    gap: 12,
+  rail: {
+    paddingHorizontal: GUTTER,
+    gap: GRID_GAP,
+    paddingBottom: 2,
   },
-  productCard: {
-    width: CARD_WIDTH,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  productImage: {
-    width: CARD_WIDTH,
-    height: CARD_WIDTH,
-  },
-  productInfo: {
-    padding: 10,
-    gap: 4,
-  },
-  priceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  strikethrough: {
-    textDecorationLine: "line-through",
-  },
-  starRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  categoriesGrid: {
+  categoryGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 12,
-    marginTop: 12,
+    gap: GRID_GAP,
   },
-  categoryCard: {
-    width: CATEGORY_SIZE,
-    borderRadius: 12,
+  categoryTile: {
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     overflow: "hidden",
+  },
+  categoryImageWrap: {
+    width: "100%",
+    backgroundColor: colors.surfaceRaised,
+  },
+  categoryLabel: {
     alignItems: "center",
-    paddingBottom: 10,
+    justifyContent: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 9,
   },
-  categoryImage: {
-    width: CATEGORY_SIZE,
-    height: CATEGORY_SIZE,
+  categoryName: {
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    lineHeight: 16,
   },
-  emptyState: {
+  loading: {
     paddingVertical: 80,
     alignItems: "center",
+    justifyContent: "center",
   },
 });

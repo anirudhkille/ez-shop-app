@@ -37,33 +37,82 @@ export class ApiAuthError extends Error {
   }
 }
 
-export async function apiClient<T = any>(endpoint: string, options: FetchOptions = {}): Promise<T> {
-  const { token, ...fetchOptions } = options;
+const REFRESH_PATH = "/user/refresh-token";
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(fetchOptions.headers as Record<string, string>),
+/**
+ * Single in-flight refresh. Several screens can fire requests at the same
+ * moment when the access token has just expired; without this they would each
+ * ask for a new token and all but one would fail.
+ */
+let refreshPromise: Promise<string | null> | null = null;
+
+const requestNewToken = async (): Promise<string | null> => {
+  try {
+    const res = await fetch(`${API_URL}${REFRESH_PATH}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+
+    if (!res.ok) return null;
+
+    const body = await res.json();
+    const token: string | undefined = body?.data?.token;
+    return token ?? null;
+  } catch {
+    return null;
+  }
+};
+
+const refreshAccessToken = async (): Promise<string | null> => {
+  if (!refreshPromise) {
+    refreshPromise = requestNewToken().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+};
+
+export async function apiClient<T = any>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+  const doRequest = async (token?: string) => {
+    const { token: _ignored, ...fetchOptions } = options;
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(fetchOptions.headers as Record<string, string>),
+    };
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const isFormData = fetchOptions.body instanceof FormData;
+    if (isFormData) {
+      delete headers["Content-Type"];
+    }
+
+    try {
+      return await fetch(`${API_URL}${endpoint}`, { ...fetchOptions, headers });
+    } catch {
+      throw new ApiNetworkError(
+        `Cannot reach the API at ${API_URL}. Check that the server is running and reachable from this device.`
+      );
+    }
   };
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
+  const { token } = options;
+  let res = await doRequest(token);
 
-  const isFormData = fetchOptions.body instanceof FormData;
-  if (isFormData) {
-    delete headers["Content-Type"];
-  }
+  if (!res.ok && res.status === 401 && token) {
+    // The access token lives for 15 minutes. Rather than dropping the user back
+    // to the login screen mid-session, exchange the refresh cookie once and
+    // replay the request.
+    const fresh = await refreshAccessToken();
 
-  const url = `${API_URL}${endpoint}`;
-
-  let res: Response;
-
-  try {
-    res = await fetch(url, { ...fetchOptions, headers });
-  } catch {
-    throw new ApiNetworkError(
-      `Cannot reach the API at ${API_URL}. Check that the server is running and reachable from this device.`
-    );
+    if (fresh) {
+      useAuthStore.getState().setToken(fresh);
+      res = await doRequest(fresh);
+    }
   }
 
   const data = await res.json();

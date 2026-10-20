@@ -10,7 +10,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useAuthStore } from "@/store/auth";
 import { ApiAuthError } from "@/api/client";
 import { toastConfig } from "@/lib/toastConfig";
-import { colors } from "@/constant/color";
+import { colors, fonts } from "@/constant/color";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -40,7 +40,10 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     BarlowCondensed_700Bold: require("../assets/fonts/BarlowCondensed-Bold.ttf"),
     BarlowCondensed_600SemiBold: require("../assets/fonts/BarlowCondensed-SemiBold.ttf"),
-    Outfit: require("../assets/fonts/Outfit.ttf"),
+    Outfit_400Regular: require("../assets/fonts/Outfit-Regular.ttf"),
+    Outfit_500Medium: require("../assets/fonts/Outfit-Medium.ttf"),
+    Outfit_600SemiBold: require("../assets/fonts/Outfit-SemiBold.ttf"),
+    Outfit_700Bold: require("../assets/fonts/Outfit-Bold.ttf"),
   });
 
   const [hydrated, setHydrated] = useState(useAuthStore.persist.hasHydrated());
@@ -64,7 +67,7 @@ export default function RootLayout() {
     if (!token && !isPublic) {
       router.replace("/login");
     } else if (token && isPublic) {
-      router.replace("/(tabs)");
+      router.replace("/home");
     }
   }, [hydrated, token, segments, router]);
 
@@ -79,7 +82,14 @@ export default function RootLayout() {
             screenOptions={{
               headerTitleAlign: "center",
               headerStyle: { backgroundColor: colors.background },
-              headerTitleStyle: { color: colors.foreground },
+              // Titles were inheriting the system UI font while every heading in
+              // the app runs in Barlow Condensed, so pushed screens looked like a
+              // different app from the tab screens.
+              headerTitleStyle: {
+                color: colors.foreground,
+                fontFamily: fonts.display,
+                fontSize: 19,
+              },
               headerTintColor: colors.foreground,
               headerShown: false,
               contentStyle: { backgroundColor: colors.background },

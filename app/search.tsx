@@ -1,110 +1,146 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-} from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { FlatList, Platform, StyleSheet, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
-import { useSearchProductsQuery } from "@/hooks/useProducts";
+
+import Header from "@/layout/Header";
+import Container from "@/layout/Container";
+import Text from "@/components/ui/Text";
+import EmptyState from "@/components/ui/EmptyState";
+import ProductCard from "@/components/shared/ProductCard";
+import { ProductGridSkeleton } from "@/components/ui/Skeleton";
 import { SearchIcon } from "@/assets/icons/SearchIcon";
-import { ChevronLeftIcon } from "@/assets/icons/ChevronLeftIcon";
-import { Image } from "expo-image";
+import { PackageIcon } from "@/assets/icons/PackageIcon";
+import { colors, fonts, radius } from "@/constant/color";
+import { useSearchProductsQuery } from "@/hooks/useProducts";
+import { IProduct } from "@/types/api";
 
 export default function SearchScreen() {
   const router = useRouter();
+
   const [query, setQuery] = useState("");
-  const { data: productsRes, isLoading } = useSearchProductsQuery(query);
-  const products = (productsRes as any)?.data || (Array.isArray(productsRes) ? productsRes : []);
+  const [debounced, setDebounced] = useState("");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setDebounced(query.trim()), 350);
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, [query]);
+
+  const { data, isLoading } = useSearchProductsQuery(debounced);
+  const results: IProduct[] = data?.data || [];
+
+  const hasQuery = debounced.length > 0;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ChevronLeftIcon color="#fff" size={24} />
-        </TouchableOpacity>
-        <View style={styles.searchBar}>
-          <SearchIcon color="#8C8C8C" size={20} />
-          <TextInput
-            style={styles.input}
-            placeholder="Search products..."
-            placeholderTextColor="#8C8C8C"
-            value={query}
-            onChangeText={setQuery}
-            autoFocus
-          />
-        </View>
-      </View>
+    <>
+      <Header title="Search" />
 
-      {isLoading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#FF5500" />
+      <Container extraStyle={styles.noPad}>
+        <View style={styles.gutter}>
+          <View style={styles.field}>
+            <SearchIcon color={colors.muted} size={18} />
+            <TextInput
+              style={[
+                styles.input,
+                Platform.OS === "web" && ({ outlineStyle: "none" } as object),
+              ]}
+              placeholder="Search products"
+              placeholderTextColor={colors.subtle}
+              value={query}
+              onChangeText={setQuery}
+              autoFocus
+              autoCorrect={false}
+              returnKeyType="search"
+              accessibilityLabel="Search products"
+            />
+          </View>
         </View>
-      ) : (
-        <FlatList
-          contentInsetAdjustmentBehavior="automatic"
-          data={products}
-          keyExtractor={(item: any) => item._id || item.id}
-          numColumns={2}
-          contentContainerStyle={styles.listContainer}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => router.push(`/product/${item.slug || "item"}/${item._id || item.id}`)}
-            >
-              <Image source={{ uri: item.images?.[0] || item.image }} style={styles.image} />
-              <Text style={styles.title} numberOfLines={2}>
-                {item.name}
-              </Text>
-              <Text style={styles.price}>${item.price}</Text>
-            </TouchableOpacity>
-          )}
-          ListEmptyComponent={
-            query.length > 0 ? (
-              <Text style={styles.emptyText}>No products found for "{query}"</Text>
-            ) : (
-              <Text style={styles.emptyText}>Type to start searching products</Text>
-            )
-          }
-        />
-      )}
-    </View>
+
+        {!hasQuery ? (
+          <EmptyState
+            title="Find something you like"
+            body="Search by product name, category or style."
+            icon={<SearchIcon color={colors.muted} size={24} />}
+            style={styles.empty}
+          />
+        ) : isLoading ? (
+          <View style={styles.skeletonWrap}>
+            <ProductGridSkeleton count={4} />
+          </View>
+        ) : results.length === 0 ? (
+          <EmptyState
+            title="No results"
+            body={`Nothing matches "${debounced}". Try a broader word.`}
+            icon={<PackageIcon color={colors.muted} size={24} />}
+            actionLabel="Clear search"
+            onAction={() => setQuery("")}
+          />
+        ) : (
+          <FlatList
+            data={results}
+            keyExtractor={(item) => item._id}
+            numColumns={2}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            columnWrapperStyle={styles.row}
+            contentContainerStyle={styles.list}
+            renderItem={({ item }) => (
+              <ProductCard
+                product={item}
+                onPress={() => router.push(`/product/${item.slug}/${item._id}`)}
+              />
+            )}
+          />
+        )}
+      </Container>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0D0D0D", paddingTop: 50 },
-  header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, marginBottom: 16 },
-  backButton: { marginRight: 12 },
-  searchBar: {
-    flex: 1,
+  noPad: {
+    paddingHorizontal: 0,
+  },
+  gutter: {
+    paddingHorizontal: 20,
+    paddingBottom: 14,
+  },
+  field: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#141414",
-    borderWidth: 1,
-    borderColor: "#262626",
-    borderRadius: 12,
-    paddingHorizontal: 12,
+    gap: 10,
     height: 46,
-  },
-  input: { flex: 1, color: "#F5F5F5", marginLeft: 8, fontSize: 16 },
-  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-  listContainer: { paddingHorizontal: 12, paddingBottom: 24 },
-  card: {
-    flex: 1,
-    backgroundColor: "#141414",
-    borderRadius: 12,
+    paddingHorizontal: 14,
+    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: "#262626",
-    margin: 6,
-    padding: 12,
-    maxWidth: "48%",
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
   },
-  image: { width: "100%", height: 140, borderRadius: 8, marginBottom: 8 },
-  title: { color: "#F5F5F5", fontSize: 14, fontWeight: "500", marginBottom: 4 },
-  price: { color: "#FF5500", fontSize: 16, fontWeight: "bold" },
-  emptyText: { color: "#8C8C8C", textAlign: "center", marginTop: 40, fontSize: 16 },
+  input: {
+    flex: 1,
+    height: "100%",
+    color: colors.foreground,
+    fontFamily: fonts.body,
+    fontSize: 15,
+  },
+  skeletonWrap: {
+    paddingTop: 4,
+  },
+  // Keep the hint near the field instead of centring it in the leftover space.
+  empty: {
+    flex: 0,
+    paddingTop: 56,
+    paddingBottom: 0,
+  },
+  row: {
+    gap: 12,
+    paddingHorizontal: 20,
+  },
+  list: {
+    gap: 12,
+    paddingBottom: 24,
+  },
 });

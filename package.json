@@ -4,17 +4,13 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "jest --watchAll",
     "lint": "expo lint",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
-  },
-  "jest": {
-    "preset": "jest-expo"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

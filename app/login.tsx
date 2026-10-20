@@ -39,7 +39,7 @@ export default function Login() {
     mutate(values, {
       onSuccess: (data) => {
         Toast.show({ type: "success", text1: data?.message || "Logged in" });
-        router.replace("/(tabs)/home");
+        router.replace("/home");
       },
       onError: (error: any) => {
         Toast.show({
@@ -104,7 +104,7 @@ export default function Login() {
         )}
       />
 
-      <Button text="Login" onPress={onSubmit} loading={isPending} />
+      <Button text="Login" size="lg" onPress={onSubmit} loading={isPending} />
     </AuthLayout>
   );
 }

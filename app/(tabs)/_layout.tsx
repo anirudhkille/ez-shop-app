@@ -3,10 +3,13 @@ import { HouseIcon } from "@/assets/icons/HouseIcon";
 import { SearchIcon } from "@/assets/icons/SearchIcon";
 import { ShoppingBagIcon } from "@/assets/icons/ShoppingBagIcon";
 import { UserIcon } from "@/assets/icons/UserIcon";
-import { colors } from "@/constant/color";
+import { colors, fonts } from "@/constant/color";
 import { Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -19,8 +22,21 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colors.background,
           borderTopColor: colors.border,
-          paddingBottom: 20,
-          height: 60,
+          // The bar has to own the gesture inset itself, otherwise it floats
+          // above the system navigation bar and the labels get clipped.
+          height: 62 + insets.bottom,
+          paddingTop: 8,
+          paddingBottom: insets.bottom + 8,
+        },
+        tabBarLabelStyle: {
+          fontFamily: fonts.bodyMedium,
+          fontSize: 10,
+          letterSpacing: 0.2,
+          // The label is a flex child inside the tab item. On web it was being
+          // compressed to a 7px box with overflow hidden, which sliced the
+          // glyphs in half, so pin the line box and stop it shrinking.
+          lineHeight: 13,
+          flexShrink: 0,
         },
       }}
     >

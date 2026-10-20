@@ -12,17 +12,20 @@ interface ContainerProps {
    * reserves that space and the inset would double it.
    */
   bottomInset?: boolean;
+  /**
+   * Reserves the top safe area. Needed on tab screens: they run with
+   * `headerShown: false`, so without this the content starts underneath the
+   * status bar. Pushed screens leave it off because the stack header already
+   * owns that inset — adding it there stacked a second gap under the title.
+   */
+  topInset?: boolean;
 }
 
-/**
- * Screen padding is horizontal plus bottom only. The stack header owns the top
- * inset, so adding top padding here stacked a second gap under every title —
- * which is what left pages looking loosely spaced.
- */
 export default function Container({
   children,
   extraStyle,
   bottomInset = false,
+  topInset = false,
 }: ContainerProps) {
   const insets = useSafeAreaInsets();
 
@@ -32,6 +35,7 @@ export default function Container({
         styles.container,
         {
           backgroundColor: colors.background,
+          paddingTop: topInset ? insets.top + 8 : 0,
           paddingBottom: bottomInset ? 20 + insets.bottom : 20,
         },
         extraStyle,

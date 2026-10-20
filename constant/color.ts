@@ -28,7 +28,16 @@ export const tagBadge: Record<string, { bg: string; fg: string }> = {
 export const fonts = {
   display: "BarlowCondensed_700Bold",
   displaySemiBold: "BarlowCondensed_600SemiBold",
-  body: "Outfit",
+  /**
+   * One registered family per weight, because React Native on Android cannot
+   * synthesise a custom family at an arbitrary `fontWeight` — asking for
+   * weight 700 on "Outfit" quietly fell back to Roboto, which is why headings
+   * and labels looked like a different app on device.
+   */
+  body: "Outfit_400Regular",
+  bodyMedium: "Outfit_500Medium",
+  bodySemiBold: "Outfit_600SemiBold",
+  bodyBold: "Outfit_700Bold",
 } as const;
 
 export const radius = {

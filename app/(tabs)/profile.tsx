@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
+  Platform,
 } from "react-native";
 import React, { useState } from "react";
 import Container from "@/layout/Container";
@@ -14,12 +15,14 @@ import { useRouter } from "expo-router";
 import { colors, fonts, radius } from "@/constant/color";
 import { Image } from "expo-image";
 import Text from "@/components/ui/Text";
+import ScreenHeader from "@/components/ui/ScreenHeader";
+import Button from "@/components/ui/Button";
 import { UserIcon } from "@/assets/icons/UserIcon";
 import { LogoutIcon } from "@/assets/icons/LogoutIcon";
-import { SettingsIcon } from "@/assets/icons/SettingsIcon";
 import { PackageIcon } from "@/assets/icons/PackageIcon";
+import { MapPinIcon } from "@/assets/icons/MapPinIcon";
+import { LockIcon } from "@/assets/icons/LockIcon";
 import { ChevronRightIcon } from "@/assets/icons/ChevronRightIcon";
-import Button from "@/components/ui/Button";
 import { useProfileQuery, useLogoutMutation } from "@/hooks/useUser";
 import { useSubscribeNewsletterMutation } from "@/hooks/useNewsletter";
 import Toast from "react-native-toast-message";
@@ -35,36 +38,38 @@ export default function Profile() {
   const user = profileRes?.data;
 
   const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
+    Alert.alert("Log out", "You will need to sign in again to see your orders.", [
       { text: "Cancel", style: "cancel" },
       {
-        text: "Logout",
+        text: "Log out",
         style: "destructive",
-        onPress: () =>
-          logout(undefined, {
-            onSuccess: () => router.replace("/"),
-          }),
+        onPress: () => logout(undefined, { onSuccess: () => router.replace("/") }),
       },
     ]);
   };
 
   const handleSubscribe = () => {
-    if (!newsletterEmail.trim()) return;
-    subscribe(newsletterEmail.trim(), {
+    const email = newsletterEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      Toast.show({ type: "error", text1: "Enter a valid email address" });
+      return;
+    }
+
+    subscribe(email, {
       onSuccess: () => {
-        Toast.show({ type: "success", text1: "Subscribed to newsletter!" });
+        Toast.show({ type: "success", text1: "You're on the list" });
         setNewsletterEmail("");
       },
       onError: (err: any) => {
-        Toast.show({ type: "error", text1: err?.message || "Subscription failed" });
+        Toast.show({ type: "error", text1: err?.message || "Could not subscribe" });
       },
     });
   };
 
   if (isLoading) {
     return (
-      <Container extraStyle={{ justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color={colors.brand} />
+      <Container topInset extraStyle={styles.center}>
+        <ActivityIndicator color={colors.brand} />
       </Container>
     );
   }
@@ -73,189 +78,278 @@ export default function Profile() {
     // An expired session clears the token, which the root guard turns into a
     // redirect to login, so this only appears for genuinely transient failures.
     return (
-      <Container extraStyle={{ justifyContent: "center", alignItems: "center", gap: 20 }}>
+      <Container topInset extraStyle={styles.center}>
         <Text align="center" color="muted">
-          Could not load your profile.
+          Could not load your account.
         </Text>
-        <Button text="Try again" variant="outline" onPress={() => refetch()} />
+        <Button text="Try again" variant="outline" size="sm" onPress={() => refetch()} />
       </Container>
     );
   }
 
+  const initial = (user?.name || user?.email || "U").charAt(0).toUpperCase();
+
   return (
-    <>
-      <Container extraStyle={{ paddingTop: 20, gap: 20 }}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={refetch}
-              tintColor={colors.brand}
-            />
-          }
+    <Container topInset extraStyle={styles.noPad}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.brand} />
+        }
+      >
+        <View style={styles.pad}>
+          <ScreenHeader title="Account" />
+        </View>
+
+        <TouchableOpacity
+          style={[styles.identity, styles.pad]}
+          activeOpacity={0.8}
+          onPress={() => router.push("/profile/edit-profile")}
+          accessibilityRole="button"
+          accessibilityLabel="Edit your profile"
         >
-          <View style={{ alignItems: "center", gap: 12, marginBottom: 10 }}>
+          <View style={styles.avatar}>
             {user?.avatar ? (
-              <Image source={user.avatar} style={styles.image} />
+              <Image source={user.avatar} style={StyleSheet.absoluteFill} contentFit="cover" />
             ) : (
-              <View
-                style={[
-                  styles.image,
-                  {
-                    backgroundColor: colors.brand,
-                    justifyContent: "center",
-                    alignItems: "center",
-                  },
-                ]}
-              >
-                <Text size={24} weight="600" color="muted" style={{ color: colors.background }}>
-                  {(user?.name || user?.email || "U").charAt(0).toUpperCase()}
-                </Text>
-              </View>
+              <Text size={24} weight="700" variant="display" color="brand">
+                {initial}
+              </Text>
             )}
-            <Text size={24} weight="500" align="center">
-              {user?.name || "User"}
+          </View>
+
+          <View style={styles.identityText}>
+            <Text size={18} weight="600" numberOfLines={1}>
+              {user?.name || "Your account"}
             </Text>
-            <Text color="muted">{user?.email}</Text>
+            <Text size={13} color="muted" numberOfLines={1}>
+              {user?.email}
+            </Text>
           </View>
 
-          <View style={styles.lists}>
-            <MenuRow
-              text="Your Profile"
-              icon={<UserIcon color={colors.muted} />}
-              onPress={() => router.push("/profile/edit-profile")}
-            />
-            <MenuRow
-              text="My Orders"
-              icon={<PackageIcon color={colors.muted} />}
-              onPress={() => router.push("/profile/my-orders")}
-            />
-            <MenuRow
-              text="Manage Addresses"
-              icon={<UserIcon color={colors.muted} />}
-              onPress={() => router.push("/profile/addresses")}
-            />
-            <MenuRow
-              text="Change Password"
-              icon={<SettingsIcon color={colors.muted} />}
-              onPress={() => router.push("/profile/change-password")}
-            />
+          <ChevronRightIcon color={colors.subtle} size={20} />
+        </TouchableOpacity>
 
-            <View style={styles.newsletter}>
-              <View style={styles.newsletterHead}>
-                <Text size={12} weight="600" color="muted" style={styles.newsletterLabel}>
-                  NEWSLETTER
-                </Text>
-                <Text size={14} color="foreground">
-                  Sale drops and restocks, sent occasionally.
-                </Text>
-              </View>
+        <View style={styles.card}>
+          <MenuRow
+            icon={<UserIcon color={colors.foreground} size={19} />}
+            label="Personal details"
+            onPress={() => router.push("/profile/edit-profile")}
+          />
+          <Divider />
+          <MenuRow
+            icon={<PackageIcon color={colors.foreground} size={19} />}
+            label="My orders"
+            onPress={() => router.push("/profile/my-orders")}
+          />
+          <Divider />
+          <MenuRow
+            icon={<MapPinIcon color={colors.foreground} size={19} />}
+            label="Saved addresses"
+            onPress={() => router.push("/profile/addresses")}
+          />
+          <Divider />
+          <MenuRow
+            icon={<LockIcon color={colors.foreground} size={19} />}
+            label="Change password"
+            onPress={() => router.push("/profile/change-password")}
+          />
+        </View>
 
-              <View style={styles.newsletterRow}>
-                <TextInput
-                  style={styles.newsletterInput}
-                  placeholder="you@example.com"
-                  placeholderTextColor={colors.subtle}
-                  value={newsletterEmail}
-                  onChangeText={setNewsletterEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  returnKeyType="done"
-                  onSubmitEditing={handleSubscribe}
-                  accessibilityLabel="Email address"
-                />
-                <Button
-                  text="Join"
-                  onPress={handleSubscribe}
-                  loading={isSubscribing}
-                  disabled={!newsletterEmail.trim()}
-                />
-              </View>
-            </View>
+        <View style={styles.newsletter}>
+          <Text size={11} weight="700" color="brand" style={styles.eyebrow}>
+            Newsletter
+          </Text>
+          <Text size={17} weight="600" style={styles.newsletterTitle}>
+            Style drops, straight to your inbox
+          </Text>
+          <Text size={13} color="muted" style={styles.newsletterBody}>
+            New arrivals and restocks. Twice a month at most.
+          </Text>
 
-            <MenuRow
-              text="Logout"
-              icon={<LogoutIcon color={colors.destructive} />}
-              onPress={handleLogout}
-            />
-          </View>
-        </ScrollView>
-      </Container>
-    </>
+          <TextInput
+            style={[
+              styles.input,
+              Platform.OS === "web" && ({ outlineStyle: "none" } as object),
+            ]}
+            placeholder="you@example.com"
+            placeholderTextColor={colors.subtle}
+            value={newsletterEmail}
+            onChangeText={setNewsletterEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            returnKeyType="send"
+            onSubmitEditing={handleSubscribe}
+            accessibilityLabel="Email address"
+          />
+
+          <Button
+            text="Subscribe"
+            size="sm"
+            onPress={handleSubscribe}
+            loading={isSubscribing}
+          />
+        </View>
+
+        <TouchableOpacity
+          style={[styles.logout, styles.pad]}
+          onPress={handleLogout}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+        >
+          <LogoutIcon color={colors.destructive} size={19} />
+          <Text size={15} weight="500" color="destructive">
+            Log out
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </Container>
   );
 }
 
+function Divider() {
+  return <View style={styles.divider} />;
+}
+
 function MenuRow({
-  text,
   icon,
+  label,
   onPress,
 }: {
-  text: string;
   icon: React.ReactNode;
+  label: string;
   onPress: () => void;
 }) {
   return (
-    <TouchableOpacity style={[styles.list, { backgroundColor: colors.surface }]} onPress={onPress}>
-      <View style={{ gap: 10, alignItems: "center", flexDirection: "row" }}>
-        {icon}
-        <Text color="foreground">{text}</Text>
-      </View>
-      <ChevronRightIcon color={colors.muted} />
+    <TouchableOpacity
+      style={styles.row}
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <View style={styles.rowIcon}>{icon}</View>
+      <Text size={15} weight="500" style={styles.rowLabel} numberOfLines={1}>
+        {label}
+      </Text>
+      <ChevronRightIcon color={colors.subtle} size={18} />
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  image: {
-    width: 100,
-    height: 100,
-    borderRadius: 999,
-    backgroundColor: colors.brand,
-    marginHorizontal: "auto",
+  noPad: {
+    paddingHorizontal: 0,
   },
-  lists: {
-    marginTop: 10,
-    gap: 20,
-    paddingBottom: 40,
+  content: {
+    paddingBottom: 32,
+    gap: 18,
   },
-  newsletter: {
+  pad: {
+    paddingHorizontal: 20,
+  },
+  center: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 18,
+  },
+
+  identity: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 14,
-    padding: 16,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: "rgba(255,85,0,0.35)",
+    backgroundColor: "rgba(255,85,0,0.14)",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  identityText: {
+    flex: 1,
+    gap: 2,
+  },
+
+  /**
+   * One grouped card with dividers instead of five separate cards floating in
+   * a column. The old layout read as unrelated blocks rather than a settings
+   * list, and spacing every row 20px apart is what made the page feel loose.
+   */
+  card: {
+    marginHorizontal: 20,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
+    overflow: "hidden",
   },
-  newsletterHead: {
-    gap: 4,
-  },
-  newsletterLabel: {
-    letterSpacing: 1.2,
-  },
-  newsletterRow: {
+  row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    minHeight: 56,
   },
-  newsletterInput: {
+  rowIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceRaised,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  rowLabel: {
     flex: 1,
-    height: 50,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+    marginLeft: 60,
+  },
+
+  newsletter: {
+    marginHorizontal: 20,
+    gap: 6,
+  },
+  eyebrow: {
+    letterSpacing: 1.4,
+    textTransform: "uppercase",
+    lineHeight: 14,
+  },
+  newsletterTitle: {
+    lineHeight: 24,
+  },
+  newsletterBody: {
+    lineHeight: 19,
+    marginBottom: 8,
+  },
+  input: {
+    height: 48,
     paddingHorizontal: 14,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     color: colors.foreground,
     fontFamily: fonts.body,
     fontSize: 15,
+    marginBottom: 8,
   },
-  list: {
-    justifyContent: "space-between",
-    alignItems: "center",
+
+  logout: {
     flexDirection: "row",
-    borderRadius: 10,
-    padding: 15,
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 14,
+    marginTop: 4,
   },
 });

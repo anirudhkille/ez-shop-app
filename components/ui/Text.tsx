@@ -1,4 +1,4 @@
-import { Text as RNText, TextStyle } from "react-native";
+import { Text as RNText, StyleSheet, TextStyle } from "react-native";
 import React, { ReactNode } from "react";
 import { colors, fonts } from "@/constant/color";
 
@@ -7,7 +7,9 @@ export type TextTone =
 
 interface TextProps {
   children: ReactNode;
-  size?: 11 | 12 | 13 | 14 | 15 | 16 | 18 | 20 | 22 | 24 | 34 | 38 | 40;
+  /** Point size. Deliberately a plain number: the old fixed union meant every
+   *  new scale step (10, 17, 26, 32) needed a type edit before it could be used. */
+  size?: number;
   weight?: "400" | "500" | "600" | "700";
   align?: "right" | "left" | "center";
   color?: TextTone;
@@ -27,6 +29,32 @@ const toneColor: Record<TextTone, string> = {
   warning: colors.warning,
 };
 
+/**
+ * One registered family per weight.
+ *
+ * React Native on Android cannot synthesise a weight for a font that was
+ * loaded from an asset file: pairing a custom `fontFamily` with `fontWeight`
+ * made Android silently fall back to the system face. The family therefore
+ * carries the weight, and no `fontWeight` is ever set.
+ */
+const familyNames = {
+  display: fonts.display,
+  displaySemi: fonts.displaySemiBold,
+  body: fonts.body,
+  bodyMedium: fonts.bodyMedium,
+  bodySemiBold: fonts.bodySemiBold,
+  bodyBold: fonts.bodyBold,
+} as const;
+
+const familyStyles = StyleSheet.create({
+  display: { fontFamily: familyNames.display },
+  displaySemi: { fontFamily: familyNames.displaySemi },
+  body: { fontFamily: familyNames.body },
+  bodyMedium: { fontFamily: familyNames.bodyMedium },
+  bodySemiBold: { fontFamily: familyNames.bodySemiBold },
+  bodyBold: { fontFamily: familyNames.bodyBold },
+});
+
 export function Text({
   children,
   size = 16,
@@ -37,27 +65,27 @@ export function Text({
   numberOfLines,
   style,
 }: TextProps) {
-  const family =
+  const key: keyof typeof familyStyles =
     variant === "display"
-      ? fonts.display
+      ? weight === "400" || weight === "500"
+        ? "displaySemi"
+        : "display"
       : variant === "displaySemi"
-        ? fonts.displaySemiBold
-        : fonts.body;
+        ? "displaySemi"
+        : weight === "500"
+          ? "bodyMedium"
+          : weight === "600"
+            ? "bodySemiBold"
+            : weight === "700"
+              ? "bodyBold"
+              : "body";
+
+  const familyStyle = familyStyles[key];
 
   return (
     <RNText
       numberOfLines={numberOfLines}
-      style={[
-        {
-          fontFamily: family,
-          fontSize: size,
-          fontWeight: weight,
-          textAlign: align,
-          flexWrap: "wrap",
-          color: toneColor[color],
-        },
-        style,
-      ]}
+      style={[familyStyle, { fontSize: size, textAlign: align, color: toneColor[color] }, style]}
     >
       {children}
     </RNText>

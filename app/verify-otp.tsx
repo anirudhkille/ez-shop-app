@@ -1,14 +1,11 @@
 import React, { useState } from "react";
-import { StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import Toast from "react-native-toast-message";
+
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
-import Text from "@/components/ui/Text";
-import Container from "@/layout/Container";
+import AuthLayout from "@/layout/AuthLayout";
 import { useVerifySignupOTPMutation } from "@/hooks/useUser";
-import { colors } from "@/constant/color";
-import Toast from "react-native-toast-message";
 
 export default function VerifyOtp() {
   const router = useRouter();
@@ -18,54 +15,41 @@ export default function VerifyOtp() {
 
   const handleVerify = () => {
     if (!otp || otp.length < 6) {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Please enter a valid 6-digit OTP",
-      });
+      Toast.show({ type: "error", text1: "Enter the 6-digit code we emailed you" });
       return;
     }
+
     mutate(
       { email, otp },
       {
-        onSuccess: (data) => {
-          Toast.show({
-            type: "success",
-            text1: "Success",
-            text2: data?.message || "Email verified successfully",
-          });
-          router.replace("/(tabs)/home");
+        onSuccess: () => {
+          Toast.show({ type: "success", text1: "Email verified" });
+          router.replace("/home");
         },
-        onError: (error: any) => {
-          Toast.show({
-            type: "error",
-            text1: "Error",
-            text2: error?.message || "Verification failed",
-          });
-        },
-      }
+        onError: (error: any) =>
+          Toast.show({ type: "error", text1: error?.message || "That code did not work" }),
+      },
     );
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Container>
-        <Text size={22} weight="600" align="center">
-          Verify OTP
-        </Text>
-        <Text color="muted" align="center">
-          Enter the OTP sent to {email}
-        </Text>
-        <Input label="OTP" value={otp} onChangeText={setOtp} placeholder="Enter 6-digit OTP" />
-        <Button text="Verify" onPress={handleVerify} loading={isPending} />
-      </Container>
-    </SafeAreaView>
+    <AuthLayout
+      heading="Verify your email"
+      description={email ? `We sent a 6-digit code to ${email}.` : "Enter the 6-digit code we emailed you."}
+      href="/login"
+      prompt="Wrong email?"
+      action="Start over"
+    >
+      <Input
+        label="Verification code"
+        placeholder="123456"
+        value={otp}
+        onChangeText={setOtp}
+        keyboardType="number-pad"
+        maxLength={6}
+        autoComplete="one-time-code"
+      />
+      <Button text="Verify email" size="lg" onPress={handleVerify} loading={isPending} />
+    </AuthLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-  },
-});

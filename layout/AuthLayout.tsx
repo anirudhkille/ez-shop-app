@@ -1,8 +1,8 @@
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import React, { ReactNode } from "react";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
-import { colors, radius } from "@/constant/color";
+import { colors } from "@/constant/color";
 import Text from "@/components/ui/Text";
 
 interface AuthLayoutProps {
@@ -16,18 +16,27 @@ interface AuthLayoutProps {
   href: "/login" | "/signup";
 }
 
-export function OrDivider({ label = "OR" }: { label?: string }) {
+export function OrDivider({ label = "or" }: { label?: string }) {
   return (
     <View style={styles.dividerRow}>
       <View style={styles.dividerLine} />
-      <Text size={12} color="muted" style={styles.dividerLabel}>
-        {label}
+      <Text size={11} weight="600" color="subtle" style={styles.dividerLabel}>
+        {label.toUpperCase()}
       </Text>
       <View style={styles.dividerLine} />
     </View>
   );
 }
 
+/**
+ * Auth screens.
+ *
+ * The form used to sit in a bordered card centred in the middle of the screen,
+ * which is a web dialog, not an app screen. It also nested its own
+ * SafeAreaProvider under the root one, which reset the insets. Now the content
+ * is full-bleed, top-aligned, scrolls when the keyboard appears, and the
+ * heading reads as a page title rather than a modal caption.
+ */
 export default function AuthLayout({
   children,
   heading,
@@ -37,57 +46,100 @@ export default function AuthLayout({
   href,
 }: AuthLayoutProps) {
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
-        <View style={styles.card}>
+    <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.brandRow}>
+            <View style={styles.brandDot} />
+            <Text size={13} weight="700" variant="display" color="brand" style={styles.brand}>
+              EZ Shop
+            </Text>
+          </View>
+
           <View style={styles.headingBlock}>
-            <Text size={38} weight="700" variant="display" align="center" style={styles.heading}>
+            <Text size={34} weight="700" variant="display" style={styles.heading}>
               {heading.toUpperCase()}
             </Text>
-            <Text size={15} color="muted" align="center">
+            <Text size={14} color="muted" style={styles.description}>
               {description}
             </Text>
           </View>
 
-          {children}
+          <View style={styles.form}>{children}</View>
 
           <View style={styles.footer}>
-            <Text size={15} color="muted">
+            <Text size={14} color="muted">
               {prompt}{" "}
               <Link href={href} style={styles.actionLink}>
                 {action}
               </Link>
             </Text>
           </View>
-        </View>
-      </SafeAreaView>
-    </SafeAreaProvider>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 20,
+    backgroundColor: colors.background,
   },
-  card: {
-    width: "100%",
-    maxWidth: 420,
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderWidth: 1,
-    borderRadius: radius.xl,
+  flex: {
+    flex: 1,
+  },
+  content: {
+    flexGrow: 1,
     paddingHorizontal: 20,
-    paddingVertical: 28,
-    gap: 20,
+    paddingTop: 16,
+    paddingBottom: 28,
+  },
+  brandRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    marginBottom: 34,
+  },
+  brandDot: {
+    width: 3,
+    height: 15,
+    borderRadius: 1.5,
+    backgroundColor: colors.brand,
+  },
+  brand: {
+    letterSpacing: 2,
+    textTransform: "uppercase",
+    lineHeight: 18,
   },
   headingBlock: {
-    gap: 8,
+    gap: 6,
+    marginBottom: 26,
   },
   heading: {
-    letterSpacing: 1.4,
+    letterSpacing: 1,
+    lineHeight: 38,
+  },
+  description: {
+    lineHeight: 20,
+  },
+  form: {
+    gap: 18,
+  },
+  footer: {
+    marginTop: "auto",
+    paddingTop: 28,
+    alignItems: "center",
+  },
+  actionLink: {
+    color: colors.brand,
   },
   dividerRow: {
     flexDirection: "row",
@@ -96,18 +148,11 @@ const styles = StyleSheet.create({
   },
   dividerLine: {
     flex: 1,
-    height: 1,
+    height: StyleSheet.hairlineWidth,
     backgroundColor: colors.border,
   },
   dividerLabel: {
-    letterSpacing: 1,
-  },
-  footer: {
-    alignItems: "center",
-    paddingTop: 4,
-  },
-  actionLink: {
-    color: colors.brand,
-    fontWeight: "700",
+    letterSpacing: 1.4,
+    lineHeight: 15,
   },
 });
