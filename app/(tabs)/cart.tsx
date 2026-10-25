@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
@@ -28,13 +28,40 @@ import {
 import { useAddressesQuery } from "@/hooks/useAddress";
 import { usePlaceCODOrderMutation } from "@/hooks/useOrders";
 import { useCreatePaymentIntentMutation, useAbandonPaymentMutation } from "@/hooks/usePayment";
-import { useStripe } from "@/lib/stripe";
+import { useStripe, billingCollectionConfig } from "@/lib/stripe";
+import { useAuthStore } from "@/store/auth";
 import { ICartProduct, IProduct, IAddress } from "@/types/api";
 
+/** Stripe wants E.164; Indian numbers are usually saved with spaces. */
+function toE164(value?: string) {
+  if (!value) return undefined;
+
+  const digits = value.replace(/[^\d+]/g, "");
+  if (digits.startsWith("+")) return digits;
+  if (digits.length === 10) return `+91${digits}`;
+
+  return undefined;
+}
+
 const DELIVERY_OPTIONS = [
-  { key: "standard", label: "Standard", charge: 0, days: "7-10 days" },
-  { key: "express", label: "Express", charge: 5, days: "3-5 days" },
-  { key: "same-day", label: "Same Day", charge: 10, days: "Today" },
+  {
+    key: "standard",
+    label: "Standard Delivery",
+    charge: 0,
+    days: "Delivery in 3 to 5 business days",
+  },
+  {
+    key: "express",
+    label: "Express Delivery",
+    charge: 120,
+    days: "Delivery in 1 to 2 business days",
+  },
+  {
+    key: "same-day",
+    label: "Same Day Delivery",
+    charge: 199,
+    days: "Priority delivery for select cities",
+  },
 ];
 
 type CheckoutStep = "address" | "delivery" | "payment" | "confirming" | "success";
@@ -86,6 +113,7 @@ export default function Cart() {
     useCreatePaymentIntentMutation();
   const { mutate: abandonPayment } = useAbandonPaymentMutation();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const user = useAuthStore((s) => s.user);
 
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
@@ -100,13 +128,28 @@ export default function Cart() {
   const cartItems: ICartProduct[] = cart?.products || [];
 
   const openCheckout = () => {
-    setSelectedAddressId(addresses.find((a: IAddress) => a.isDefault)?._id || null);
+    setSelectedAddressId(null);
     setSelectedDelivery("standard");
     setPaymentMethod("cod");
     setCheckoutStep("address");
     setError("");
     setCheckoutOpen(true);
   };
+
+  // The sheet is a native Modal, so it has to close before pushing a screen.
+  const goToAddAddress = () => {
+    setCheckoutOpen(false);
+    router.push("/profile/add-address");
+  };
+
+  // Derived rather than synced: a brand-new address lands in the query cache
+  // while the sheet is closed, and it must be selectable on return.
+  const addressId =
+    selectedAddressId && addresses.some((a: IAddress) => a._id === selectedAddressId)
+      ? selectedAddressId
+      : (addresses.find((a: IAddress) => a.isDefault)?._id ?? addresses[0]?._id ?? null);
+
+  const selectedAddress = addresses.find((a: IAddress) => a._id === addressId);
 
   const handleQuantityChange = (item: ICartProduct, delta: number) => {
     const newQty = item.quantity + delta;
@@ -131,7 +174,7 @@ export default function Cart() {
   };
 
   const handlePlaceOrder = () => {
-    if (!selectedAddressId) {
+    if (!addressId) {
       setError("Please select an address");
       return;
     }
@@ -140,7 +183,7 @@ export default function Cart() {
     if (paymentMethod === "cod") {
       setCheckoutStep("confirming");
       placeCODOrder(
-        { addressId: selectedAddressId, deliveryMethod: selectedDelivery },
+        { addressId, deliveryMethod: selectedDelivery },
         {
           onSuccess: () => setCheckoutStep("success"),
           onError: (err: any) => {
@@ -155,7 +198,7 @@ export default function Cart() {
     setCheckoutStep("confirming");
 
     createPaymentIntent(
-      { addressId: selectedAddressId, deliveryMethod: selectedDelivery },
+      { addressId, deliveryMethod: selectedDelivery },
       {
         onSuccess: async (res) => {
           const details = res.data;
@@ -166,6 +209,21 @@ export default function Cart() {
               merchantDisplayName: "EZ Shop",
               paymentIntentClientSecret: details.clientSecret,
               returnURL: `ezshop://payment/success?orderId=${details.orderId}`,
+              // The address was collected above; Stripe only confirms the card.
+              billingDetailsCollectionConfiguration: billingCollectionConfig,
+              defaultBillingDetails: {
+                name: selectedAddress?.name ?? user?.name,
+                email: user?.email,
+                phone: toE164(selectedAddress?.phone ?? user?.phone),
+                address: {
+                  line1: selectedAddress?.addressLine1,
+                  line2: selectedAddress?.addressLine2 || undefined,
+                  city: selectedAddress?.city,
+                  state: selectedAddress?.state,
+                  postalCode: selectedAddress?.zipCode,
+                  country: "IN",
+                },
+              },
             });
 
             if (initError) {
@@ -389,10 +447,7 @@ export default function Cart() {
                     text="Add an address"
                     variant="outline"
                     size="sm"
-                    onPress={() => {
-                      setCheckoutOpen(false);
-                      router.push("/profile/add-address");
-                    }}
+                    onPress={goToAddAddress}
                   />
                 </View>
               ) : (
@@ -403,7 +458,7 @@ export default function Cart() {
                   contentContainerStyle={styles.sheetList}
                   renderItem={({ item }) => (
                     <OptionCard
-                      selected={selectedAddressId === item._id}
+                      selected={addressId === item._id}
                       onPress={() => setSelectedAddressId(item._id)}
                     >
                       <View style={styles.addressHead}>
@@ -433,8 +488,16 @@ export default function Cart() {
                 <Button
                   text="Continue"
                   onPress={() => setCheckoutStep("delivery")}
-                  disabled={!selectedAddressId}
+                  disabled={!addressId}
                 />
+                {addresses.length > 0 ? (
+                  <Button
+                    text="Add new address"
+                    variant="ghost"
+                    size="sm"
+                    onPress={goToAddAddress}
+                  />
+                ) : null}
               </View>
             </>
           )}
@@ -506,6 +569,33 @@ export default function Cart() {
                   </Text>
                 </OptionCard>
               </View>
+
+              <ScrollView
+                style={styles.sheetItemsScroll}
+                showsVerticalScrollIndicator={false}
+                nestedScrollEnabled
+              >
+                <View style={styles.sheetItems}>
+                  <Text size={11} weight="700" color="muted" style={styles.sheetItemsLabel}>
+                    Order summary
+                  </Text>
+
+                  {cartItems.map((item) => {
+                    const product = getProduct(item);
+                    const unit = item.discountPriceAtPurchase ?? item.priceAtPurchase;
+
+                    return (
+                      <View key={item._id} style={styles.sheetItemRow}>
+                        <Text size={13} numberOfLines={1} style={styles.sheetItemName}>
+                          {product?.name || "Product"}
+                          {item.size ? ` · ${item.size}` : ""} × {item.quantity}
+                        </Text>
+                        <Text size={13}>{formatPrice(unit * item.quantity)}</Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </ScrollView>
 
               <View style={styles.sheetSummary}>{summaryRows}</View>
 
@@ -722,6 +812,26 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
     gap: 8,
+  },
+  sheetItemsScroll: {
+    maxHeight: 168,
+    marginTop: 16,
+  },
+  sheetItems: {
+    gap: 6,
+  },
+  sheetItemsLabel: {
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  sheetItemRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  sheetItemName: {
+    flex: 1,
   },
   sheetCenter: {
     flex: 1,

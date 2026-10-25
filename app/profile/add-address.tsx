@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 
@@ -18,11 +18,24 @@ import {
   useCreateAddressMutation,
   useUpdateAddressMutation,
 } from "@/hooks/useAddress";
+import {
+  isMapboxEnabled,
+  newMapboxSession,
+  retrieveAddress,
+  suggestAddresses,
+  type MapboxSuggestion,
+} from "@/lib/mapbox";
 import { IAddress } from "@/types/api";
 
 const LABELS = ["Home", "Work", "Other"] as const;
 
 type Label = (typeof LABELS)[number];
+
+type FieldErrors = Partial<Record<"name" | "phone" | "addressLine1" | "city" | "state" | "zipCode", string>>;
+
+const NAME_PATTERN = /^[\p{L}\p{M}'.\- ]+$/u;
+const PHONE_PATTERN = /^\+?[\d\s\-().]+$/;
+const PIN_PATTERN = /^\d{6}$/;
 
 /**
  * The form holds the draft, so it is mounted only once the address it edits is
@@ -47,20 +60,84 @@ function AddressForm({ address }: { address?: IAddress }) {
   const [zipCode, setZipCode] = useState(address?.zipCode ?? "");
   const [country, setCountry] = useState(address?.country ?? "India");
   const [isDefault, setIsDefault] = useState(Boolean(address?.isDefault));
+  const [errors, setErrors] = useState<FieldErrors>({});
+
+  const [suggestions, setSuggestions] = useState<MapboxSuggestion[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchEnabled, setSearchEnabled] = useState(false);
+  const sessionRef = useRef(newMapboxSession());
+
+  const query = addressLine1.trim();
+  const searchActive = isMapboxEnabled && searchEnabled && query.length >= 3;
+
+  useEffect(() => {
+    if (!searchActive) return;
+
+    const controller = new AbortController();
+
+    const timer = setTimeout(async () => {
+      setSearching(true);
+
+      try {
+        const results = await suggestAddresses(query, sessionRef.current, controller.signal);
+        if (!controller.signal.aborted) setSuggestions(results);
+      } catch {
+        if (!controller.signal.aborted) setSuggestions([]);
+      } finally {
+        if (!controller.signal.aborted) setSearching(false);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query, searchActive]);
+
+  const pickSuggestion = async (suggestion: MapboxSuggestion) => {
+    setSearchEnabled(false);
+    setSuggestions([]);
+    setSearching(false);
+
+    try {
+      const resolved = await retrieveAddress(suggestion.mapboxId, sessionRef.current);
+
+      setAddressLine1(resolved.addressLine1 || suggestion.primaryText);
+      if (resolved.city) setCity(resolved.city);
+      if (resolved.state) setState(resolved.state);
+      if (resolved.zipCode) setZipCode(resolved.zipCode);
+      if (resolved.country) setCountry(resolved.country);
+      setErrors({});
+    } catch {
+      setAddressLine1(suggestion.primaryText);
+    } finally {
+      sessionRef.current = newMapboxSession();
+    }
+  };
+
+  const validate = () => {
+    const next: FieldErrors = {};
+
+    if (!name.trim()) next.name = "Full name is required";
+    else if (!NAME_PATTERN.test(name.trim())) next.name = "Use letters only";
+
+    if (!phone.trim()) next.phone = "Phone number is required";
+    else if (!PHONE_PATTERN.test(phone.trim())) next.phone = "Digits only, e.g. +91 98450 12345";
+
+    if (!addressLine1.trim()) next.addressLine1 = "Address line 1 is required";
+    if (!city.trim()) next.city = "City is required";
+    if (!state.trim()) next.state = "State is required";
+
+    if (!zipCode.trim()) next.zipCode = "PIN code is required";
+    else if (!PIN_PATTERN.test(zipCode.trim())) next.zipCode = "Enter a 6-digit PIN code";
+
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
 
   const handleSave = () => {
-    const required: [string, string][] = [
-      [name, "Full name"],
-      [phone, "Phone"],
-      [addressLine1, "Address line 1"],
-      [city, "City"],
-      [state, "State"],
-      [zipCode, "Zip code"],
-      [country, "Country"],
-    ];
-    const missing = required.find(([value]) => !value.trim());
-    if (missing) {
-      Toast.show({ type: "error", text1: `Please enter your ${missing[1].toLowerCase()}` });
+    if (!validate()) {
+      Toast.show({ type: "error", text1: "Please fix the highlighted fields" });
       return;
     }
 
@@ -73,7 +150,7 @@ function AddressForm({ address }: { address?: IAddress }) {
       city: city.trim(),
       state: state.trim(),
       zipCode: zipCode.trim(),
-      country: country.trim(),
+      country: country.trim() || "India",
       isDefault,
     };
 
@@ -102,6 +179,8 @@ function AddressForm({ address }: { address?: IAddress }) {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          automaticallyAdjustKeyboardInsets
         >
           <View style={styles.field}>
             <Text size={11} weight="700" color="muted" style={styles.fieldLabel}>
@@ -133,14 +212,23 @@ function AddressForm({ address }: { address?: IAddress }) {
             label="Full name"
             placeholder="Anirudh Kille"
             value={name}
-            onChangeText={setName}
+            onChangeText={(value) => {
+              setName(value);
+              if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+            }}
+            error={errors.name}
             autoComplete="name"
+            autoCapitalize="words"
           />
           <Input
             label="Phone"
             placeholder="98450 12345"
             value={phone}
-            onChangeText={setPhone}
+            onChangeText={(value) => {
+              setPhone(value);
+              if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }));
+            }}
+            error={errors.phone}
             keyboardType="phone-pad"
             autoComplete="tel"
           />
@@ -148,8 +236,49 @@ function AddressForm({ address }: { address?: IAddress }) {
             label="Address line 1"
             placeholder="Flat / house no, building"
             value={addressLine1}
-            onChangeText={setAddressLine1}
+            onChangeText={(value) => {
+              setAddressLine1(value);
+              setSearchEnabled(true);
+              if (errors.addressLine1) setErrors((prev) => ({ ...prev, addressLine1: undefined }));
+            }}
+            error={errors.addressLine1}
           />
+
+          {searchActive && (searching || suggestions.length > 0) ? (
+            <View style={styles.suggestions}>
+              {searching && suggestions.length === 0 ? (
+                <View style={styles.suggestionStatus}>
+                  <ActivityIndicator color={colors.brand} size="small" />
+                  <Text size={12} color="muted">
+                    Searching addresses…
+                  </Text>
+                </View>
+              ) : null}
+
+              {suggestions.map((suggestion) => (
+                <TouchableOpacity
+                  key={suggestion.mapboxId}
+                  onPress={() => pickSuggestion(suggestion)}
+                  activeOpacity={0.7}
+                  style={styles.suggestion}
+                  accessibilityRole="button"
+                >
+                  <MapPinIcon color={colors.brand} size={16} />
+                  <View style={styles.suggestionText}>
+                    <Text size={14} weight="600" numberOfLines={1}>
+                      {suggestion.primaryText}
+                    </Text>
+                    {suggestion.secondaryText ? (
+                      <Text size={12} color="muted" numberOfLines={2}>
+                        {suggestion.secondaryText}
+                      </Text>
+                    ) : null}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : null}
+
           <Input
             label="Address line 2 (optional)"
             placeholder="Street, area"
@@ -159,21 +288,46 @@ function AddressForm({ address }: { address?: IAddress }) {
 
           <View style={styles.pair}>
             <View style={styles.pairItem}>
-              <Input label="City" placeholder="Mangaluru" value={city} onChangeText={setCity} />
+              <Input
+                label="City"
+                placeholder="Mangaluru"
+                value={city}
+                onChangeText={(value) => {
+                  setCity(value);
+                  if (errors.city) setErrors((prev) => ({ ...prev, city: undefined }));
+                }}
+                error={errors.city}
+                autoCapitalize="words"
+              />
             </View>
             <View style={styles.pairItem}>
-              <Input label="State" placeholder="Karnataka" value={state} onChangeText={setState} />
+              <Input
+                label="State"
+                placeholder="Karnataka"
+                value={state}
+                onChangeText={(value) => {
+                  setState(value);
+                  if (errors.state) setErrors((prev) => ({ ...prev, state: undefined }));
+                }}
+                error={errors.state}
+                autoCapitalize="words"
+              />
             </View>
           </View>
 
           <View style={styles.pair}>
             <View style={styles.pairItem}>
               <Input
-                label="Zip code"
+                label="PIN code"
                 placeholder="575002"
                 value={zipCode}
-                onChangeText={setZipCode}
+                onChangeText={(value) => {
+                  setZipCode(value);
+                  if (errors.zipCode) setErrors((prev) => ({ ...prev, zipCode: undefined }));
+                }}
+                error={errors.zipCode}
                 keyboardType="number-pad"
+                maxLength={6}
               />
             </View>
             <View style={styles.pairItem}>
@@ -285,6 +439,34 @@ const styles = StyleSheet.create({
   },
   pairItem: {
     flex: 1,
+  },
+  suggestions: {
+    marginTop: -8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    overflow: "hidden",
+  },
+  suggestionStatus: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  suggestion: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
+  suggestionText: {
+    flex: 1,
+    gap: 2,
   },
   defaultRow: {
     flexDirection: "row",

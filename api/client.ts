@@ -136,6 +136,16 @@ export async function apiClient<T = any>(endpoint: string, options: FetchOptions
       throw new ApiAuthError(data.message || "Your session has expired. Please sign in again.");
     }
 
+    // "Validation failed" alone tells the user nothing; surface the first field.
+    const details = data?.data?.details as
+      | Array<{ field?: string; message?: string }>
+      | undefined;
+    const detail = details?.[0];
+
+    if (detail?.message) {
+      throw new Error(`${detail.message}${detail.field ? ` (${detail.field})` : ""}`);
+    }
+
     throw new Error(data.message || "Something went wrong");
   }
 

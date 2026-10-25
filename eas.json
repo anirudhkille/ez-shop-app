@@ -6,28 +6,37 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "environment": "development",
       "android": {
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://localhost:7777/api"
+        "EXPO_PUBLIC_API_URL": "http://localhost:7777/api",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "768558640777-9vkiesuphc2nei2bao85bdo8v8lfjet6.apps.googleusercontent.com",
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51OYVoSSEjEnWyrPSf1lpn9Srvw3VuL87qCtKimjG2tWXlq57GUiE5uJ6SgJU7lsxVhvEMe6kVlf4j0e5IjyY4vdh00TfAfj5SM"
       }
     },
     "preview": {
       "distribution": "internal",
+      "environment": "preview",
       "android": {
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://ez-shop-server.onrender.com/api"
+        "EXPO_PUBLIC_API_URL": "https://ez-shop-server.onrender.com/api",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "768558640777-9vkiesuphc2nei2bao85bdo8v8lfjet6.apps.googleusercontent.com",
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51OYVoSSEjEnWyrPSf1lpn9Srvw3VuL87qCtKimjG2tWXlq57GUiE5uJ6SgJU7lsxVhvEMe6kVlf4j0e5IjyY4vdh00TfAfj5SM"
       }
     },
     "production": {
+      "environment": "production",
       "android": {
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://ez-shop-server.onrender.com/api"
+        "EXPO_PUBLIC_API_URL": "https://ez-shop-server.onrender.com/api",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "768558640777-9vkiesuphc2nei2bao85bdo8v8lfjet6.apps.googleusercontent.com",
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51OYVoSSEjEnWyrPSf1lpn9Srvw3VuL87qCtKimjG2tWXlq57GUiE5uJ6SgJU7lsxVhvEMe6kVlf4j0e5IjyY4vdh00TfAfj5SM"
       }
     }
   },

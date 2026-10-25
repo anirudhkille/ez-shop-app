@@ -11,3 +11,12 @@ export const useStripe = () => ({
   initPaymentSheet: unavailable,
   presentPaymentSheet: unavailable,
 });
+
+// Mirrors lib/stripe.tsx; the web checkout sheet never opens PaymentSheet.
+export const billingCollectionConfig = {
+  name: "never",
+  phone: "never",
+  email: "never",
+  address: "never",
+  attachDefaultsToPaymentMethod: true,
+} as const;
