@@ -3,12 +3,12 @@ import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 
-import Container from "@/layout/Container";
-import ScreenHeader from "@/components/ui/ScreenHeader";
-import EmptyState from "@/components/ui/EmptyState";
-import ProductCard from "@/components/shared/ProductCard";
-import { ProductGridSkeleton } from "@/components/ui/Skeleton";
-import { HeartIcon } from "@/assets/icons/HeartIcon";
+import Container from "@/layout/container";
+import ScreenHeader from "@/components/ui/screen-header";
+import EmptyState from "@/components/ui/empty-state";
+import ProductCard from "@/components/shared/product-card";
+import { ProductGridSkeleton } from "@/components/ui/skeleton";
+import { HeartIcon } from "@/assets/icons/heart-icon";
 import { colors } from "@/constant/color";
 import { useWishlistDetailsQuery, useToggleWishlistMutation } from "@/hooks/useWishlist";
 import { IProduct } from "@/types/api";

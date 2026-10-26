@@ -6,15 +6,15 @@ import { z } from "zod";
 import { useRouter, Link } from "expo-router";
 import Toast from "react-native-toast-message";
 
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
-import GoogleButton from "@/components/ui/GoogleButton";
-import Text from "@/components/ui/Text";
-import AuthLayout, { OrDivider } from "@/layout/AuthLayout";
+import Input from "@/components/ui/input";
+import Button from "@/components/ui/button";
+import GoogleButton from "@/components/ui/google-button";
+import Text from "@/components/ui/text";
+import AuthLayout, { OrDivider } from "@/layout/auth-layout";
 import { useLoginMutation } from "@/hooks/useUser";
 import { useGoogleLogin } from "@/hooks/useGoogleAuth";
-import { MailIcon } from "@/assets/icons/MailIcon";
-import { LockIcon } from "@/assets/icons/LockIcon";
+import { MailIcon } from "@/assets/icons/mail-icon";
+import { LockIcon } from "@/assets/icons/lock-icon";
 import { colors } from "@/constant/color";
 
 const schema = z.object({

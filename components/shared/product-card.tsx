@@ -3,10 +3,10 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 
 import { colors, radius } from "@/constant/color";
-import Text from "@/components/ui/Text";
-import Badge, { BadgeTone } from "@/components/ui/Badge";
-import Stars from "@/components/ui/Stars";
-import { PackageIcon } from "@/assets/icons/PackageIcon";
+import Text from "@/components/ui/text";
+import Badge, { BadgeTone } from "@/components/ui/badge";
+import Stars from "@/components/ui/stars";
+import { PackageIcon } from "@/assets/icons/package-icon";
 import { formatPrice, discountPercent } from "@/lib/format";
 import { IProduct } from "@/types/api";
 

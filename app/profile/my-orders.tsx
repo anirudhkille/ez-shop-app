@@ -3,14 +3,14 @@ import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from "re
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 
-import Container from "@/layout/Container";
-import Header from "@/layout/Header";
-import Text from "@/components/ui/Text";
-import Badge, { BadgeTone } from "@/components/ui/Badge";
-import EmptyState from "@/components/ui/EmptyState";
-import { ListSkeleton } from "@/components/ui/Skeleton";
-import { PackageIcon } from "@/assets/icons/PackageIcon";
-import { ChevronRightIcon } from "@/assets/icons/ChevronRightIcon";
+import Container from "@/layout/container";
+import Header from "@/layout/header";
+import Text from "@/components/ui/text";
+import Badge, { BadgeTone } from "@/components/ui/badge";
+import EmptyState from "@/components/ui/empty-state";
+import { ListSkeleton } from "@/components/ui/skeleton";
+import { PackageIcon } from "@/assets/icons/package-icon";
+import { ChevronRightIcon } from "@/assets/icons/chevron-right-icon";
 import { colors, radius } from "@/constant/color";
 import { formatDate, formatPrice } from "@/lib/format";
 import { useMyOrdersQuery } from "@/hooks/useOrders";

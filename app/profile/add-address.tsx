@@ -3,15 +3,15 @@ import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } fro
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 
-import Container from "@/layout/Container";
-import Header from "@/layout/Header";
-import Input from "@/components/ui/Input";
-import Text from "@/components/ui/Text";
-import Button from "@/components/ui/Button";
-import EmptyState from "@/components/ui/EmptyState";
-import { ListSkeleton } from "@/components/ui/Skeleton";
-import { CircleCheckIcon } from "@/assets/icons/CircleCheckIcon";
-import { MapPinIcon } from "@/assets/icons/MapPinIcon";
+import Container from "@/layout/container";
+import Header from "@/layout/header";
+import Input from "@/components/ui/input";
+import Text from "@/components/ui/text";
+import Button from "@/components/ui/button";
+import EmptyState from "@/components/ui/empty-state";
+import { ListSkeleton } from "@/components/ui/skeleton";
+import { CircleCheckIcon } from "@/assets/icons/circle-check-icon";
+import { MapPinIcon } from "@/assets/icons/map-pin-icon";
 import { colors, radius } from "@/constant/color";
 import {
   useAddressesQuery,
@@ -19,13 +19,11 @@ import {
   useUpdateAddressMutation,
 } from "@/hooks/useAddress";
 import {
-  isMapboxEnabled,
   newMapboxSession,
   retrieveAddress,
   suggestAddresses,
-  type MapboxSuggestion,
-} from "@/lib/mapbox";
-import { IAddress } from "@/types/api";
+} from "@/api/mapbox";
+import { IAddress, IMapboxSuggestion } from "@/types/api";
 
 const LABELS = ["Home", "Work", "Other"] as const;
 
@@ -62,13 +60,13 @@ function AddressForm({ address }: { address?: IAddress }) {
   const [isDefault, setIsDefault] = useState(Boolean(address?.isDefault));
   const [errors, setErrors] = useState<FieldErrors>({});
 
-  const [suggestions, setSuggestions] = useState<MapboxSuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<IMapboxSuggestion[]>([]);
   const [searching, setSearching] = useState(false);
   const [searchEnabled, setSearchEnabled] = useState(false);
   const sessionRef = useRef(newMapboxSession());
 
   const query = addressLine1.trim();
-  const searchActive = isMapboxEnabled && searchEnabled && query.length >= 3;
+  const searchActive = searchEnabled && query.length >= 3;
 
   useEffect(() => {
     if (!searchActive) return;
@@ -94,7 +92,7 @@ function AddressForm({ address }: { address?: IAddress }) {
     };
   }, [query, searchActive]);
 
-  const pickSuggestion = async (suggestion: MapboxSuggestion) => {
+  const pickSuggestion = async (suggestion: IMapboxSuggestion) => {
     setSearchEnabled(false);
     setSuggestions([]);
     setSearching(false);

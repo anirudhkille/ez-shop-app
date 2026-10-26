@@ -150,6 +150,22 @@ export interface IPagination {
   totalPages: number;
 }
 
+export interface IMapboxSuggestion {
+  mapboxId: string;
+  primaryText: string;
+  secondaryText: string;
+  fullAddress: string;
+  featureType: string;
+}
+
+export interface IResolvedAddress {
+  addressLine1: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+
 export interface IApiResponse<T = any> {
   success: boolean;
   message: string;

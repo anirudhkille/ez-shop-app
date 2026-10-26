@@ -3,8 +3,8 @@ import React, { ReactNode } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import { colors } from "@/constant/color";
-import Text from "@/components/ui/Text";
-import { BrandLogo } from "@/assets/icons/BrandLogo";
+import Text from "@/components/ui/text";
+import { BrandLogo } from "@/assets/icons/brand-logo";
 
 interface AuthLayoutProps {
   children: ReactNode;

@@ -3,12 +3,12 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 
-import Container from "@/layout/Container";
-import Header from "@/layout/Header";
-import Text from "@/components/ui/Text";
-import Button from "@/components/ui/Button";
-import { CircleCheckIcon } from "@/assets/icons/CircleCheckIcon";
-import { CircleXIcon } from "@/assets/icons/CircleXIcon";
+import Container from "@/layout/container";
+import Header from "@/layout/header";
+import Text from "@/components/ui/text";
+import Button from "@/components/ui/button";
+import { CircleCheckIcon } from "@/assets/icons/circle-check-icon";
+import { CircleXIcon } from "@/assets/icons/circle-x-icon";
 import { colors } from "@/constant/color";
 import { useOrderByIdQuery } from "@/hooks/useOrders";
 

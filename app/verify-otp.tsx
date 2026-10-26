@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
-import AuthLayout from "@/layout/AuthLayout";
+import Input from "@/components/ui/input";
+import Button from "@/components/ui/button";
+import AuthLayout from "@/layout/auth-layout";
 import { useVerifySignupOTPMutation } from "@/hooks/useUser";
 
 export default function VerifyOtp() {

@@ -2,11 +2,11 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 
-import Container from "@/layout/Container";
-import Header from "@/layout/Header";
-import Text from "@/components/ui/Text";
-import Button from "@/components/ui/Button";
-import { CircleXIcon } from "@/assets/icons/CircleXIcon";
+import Container from "@/layout/container";
+import Header from "@/layout/header";
+import Text from "@/components/ui/text";
+import Button from "@/components/ui/button";
+import { CircleXIcon } from "@/assets/icons/circle-x-icon";
 import { colors } from "@/constant/color";
 
 /** Stripe redirect target when a card scheme bounces the customer back. */

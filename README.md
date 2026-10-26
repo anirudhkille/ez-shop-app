@@ -314,7 +314,7 @@ in `app.json` before a store build. Bundle identifiers are
 
 - Add a function to `api/<domain>.ts`, then wrap it in a hook in `hooks/`. Keep query
   keys consistent and invalidate affected keys after mutations.
-- Import through the `@/` alias, for example `@/components/ui/Button`.
+- Import through the `@/` alias, for example `@/components/ui/button`.
 - Use `components/ui` primitives and tokens from `constant/color.ts` instead of
   hardcoding colours, fonts, spacing or radii.
 - Format money, dates and addresses with the helpers in `lib/format.ts`.

@@ -3,8 +3,8 @@ import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 
-import Text from "@/components/ui/Text";
-import Badge from "@/components/ui/Badge";
+import Text from "@/components/ui/text";
+import Badge from "@/components/ui/badge";
 import { colors, radius } from "@/constant/color";
 
 interface Props {

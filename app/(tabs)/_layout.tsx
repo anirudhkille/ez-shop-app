@@ -1,8 +1,8 @@
-import { HeartIcon } from "@/assets/icons/HeartIcon";
-import { HouseIcon } from "@/assets/icons/HouseIcon";
-import { SearchIcon } from "@/assets/icons/SearchIcon";
-import { ShoppingBagIcon } from "@/assets/icons/ShoppingBagIcon";
-import { UserIcon } from "@/assets/icons/UserIcon";
+import { HeartIcon } from "@/assets/icons/heart-icon";
+import { HouseIcon } from "@/assets/icons/house-icon";
+import { SearchIcon } from "@/assets/icons/search-icon";
+import { ShoppingBagIcon } from "@/assets/icons/shopping-bag-icon";
+import { UserIcon } from "@/assets/icons/user-icon";
 import { colors, fonts } from "@/constant/color";
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

@@ -8,20 +8,20 @@ import {
   Alert,
 } from "react-native";
 import React from "react";
-import Container from "@/layout/Container";
+import Container from "@/layout/container";
 import { useRouter } from "expo-router";
 import { colors, radius } from "@/constant/color";
 import { Image } from "expo-image";
-import Text from "@/components/ui/Text";
-import ScreenHeader from "@/components/ui/ScreenHeader";
-import Button from "@/components/ui/Button";
-import { UserIcon } from "@/assets/icons/UserIcon";
-import { LogoutIcon } from "@/assets/icons/LogoutIcon";
-import { PackageIcon } from "@/assets/icons/PackageIcon";
-import { MapPinIcon } from "@/assets/icons/MapPinIcon";
-import { LockIcon } from "@/assets/icons/LockIcon";
-import { MailIcon } from "@/assets/icons/MailIcon";
-import { ChevronRightIcon } from "@/assets/icons/ChevronRightIcon";
+import Text from "@/components/ui/text";
+import ScreenHeader from "@/components/ui/screen-header";
+import Button from "@/components/ui/button";
+import { UserIcon } from "@/assets/icons/user-icon";
+import { LogoutIcon } from "@/assets/icons/logout-icon";
+import { PackageIcon } from "@/assets/icons/package-icon";
+import { MapPinIcon } from "@/assets/icons/map-pin-icon";
+import { LockIcon } from "@/assets/icons/lock-icon";
+import { MailIcon } from "@/assets/icons/mail-icon";
+import { ChevronRightIcon } from "@/assets/icons/chevron-right-icon";
 import { useProfileQuery, useLogoutMutation } from "@/hooks/useUser";
 
 export default function Profile() {

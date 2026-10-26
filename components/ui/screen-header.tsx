@@ -2,8 +2,8 @@ import React, { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { colors } from "@/constant/color";
-import Text from "@/components/ui/Text";
-import { BrandLogo } from "@/assets/icons/BrandLogo";
+import Text from "@/components/ui/text";
+import { BrandLogo } from "@/assets/icons/brand-logo";
 
 interface ScreenHeaderProps {
   title: string;

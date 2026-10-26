@@ -14,18 +14,18 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, fonts, radius } from "@/constant/color";
-import Text from "@/components/ui/Text";
-import Button from "@/components/ui/Button";
-import Chip from "@/components/ui/Chip";
-import Badge from "@/components/ui/Badge";
-import EmptyState from "@/components/ui/EmptyState";
-import ScreenHeader, { headerIconButton } from "@/components/ui/ScreenHeader";
-import ProductCard from "@/components/shared/ProductCard";
-import { ProductGridSkeleton } from "@/components/ui/Skeleton";
-import { SearchIcon } from "@/assets/icons/SearchIcon";
-import { TuneIcon } from "@/assets/icons/TuneIcon";
-import { CircleCheckIcon } from "@/assets/icons/CircleCheckIcon";
-import { PackageIcon } from "@/assets/icons/PackageIcon";
+import Text from "@/components/ui/text";
+import Button from "@/components/ui/button";
+import Chip from "@/components/ui/chip";
+import Badge from "@/components/ui/badge";
+import EmptyState from "@/components/ui/empty-state";
+import ScreenHeader, { headerIconButton } from "@/components/ui/screen-header";
+import ProductCard from "@/components/shared/product-card";
+import { ProductGridSkeleton } from "@/components/ui/skeleton";
+import { SearchIcon } from "@/assets/icons/search-icon";
+import { TuneIcon } from "@/assets/icons/tune-icon";
+import { CircleCheckIcon } from "@/assets/icons/circle-check-icon";
+import { PackageIcon } from "@/assets/icons/package-icon";
 import {
   useInfiniteFilteredProductsQuery,
   useProductFacetsQuery,

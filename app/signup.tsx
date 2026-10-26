@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
-import AuthLayout from "@/layout/AuthLayout";
+import Input from "@/components/ui/input";
+import Button from "@/components/ui/button";
+import AuthLayout from "@/layout/auth-layout";
 import { useSignupMutation } from "@/hooks/useUser";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

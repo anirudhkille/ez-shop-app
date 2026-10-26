@@ -2,8 +2,8 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
 
 import { colors } from "@/constant/color";
-import Text from "@/components/ui/Text";
-import { ChevronRightIcon } from "@/assets/icons/ChevronRightIcon";
+import Text from "@/components/ui/text";
+import { ChevronRightIcon } from "@/assets/icons/chevron-right-icon";
 
 interface SectionHeadingProps {
   title: string;

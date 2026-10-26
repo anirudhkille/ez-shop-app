@@ -1,6 +1,6 @@
-import { CircleCheckIcon } from "@/assets/icons/CircleCheckIcon";
-import { CircleXIcon } from "@/assets/icons/CircleXIcon";
-import Text from "@/components/ui/Text";
+import { CircleCheckIcon } from "@/assets/icons/circle-check-icon";
+import { CircleXIcon } from "@/assets/icons/circle-x-icon";
+import Text from "@/components/ui/text";
 import { colors, radius } from "@/constant/color";
 import { View } from "react-native";
 import { BaseToastProps } from "react-native-toast-message";

@@ -11,13 +11,13 @@ import {
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 
-import Container from "@/layout/Container";
-import Text from "@/components/ui/Text";
-import ScreenHeader, { headerIconButton } from "@/components/ui/ScreenHeader";
-import SectionHeading from "@/components/ui/SectionHeading";
-import ProductCard from "@/components/shared/ProductCard";
-import PromoBanner from "@/components/shared/PromoBanner";
-import { ShoppingBagIcon } from "@/assets/icons/ShoppingBagIcon";
+import Container from "@/layout/container";
+import Text from "@/components/ui/text";
+import ScreenHeader, { headerIconButton } from "@/components/ui/screen-header";
+import SectionHeading from "@/components/ui/section-heading";
+import ProductCard from "@/components/shared/product-card";
+import PromoBanner from "@/components/shared/promo-banner";
+import { ShoppingBagIcon } from "@/assets/icons/shopping-bag-icon";
 import { colors, radius } from "@/constant/color";
 import { titleCase } from "@/lib/format";
 import { useFeaturedProductsQuery, useBestSellersQuery } from "@/hooks/useProducts";

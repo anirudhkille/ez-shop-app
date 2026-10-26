@@ -3,10 +3,10 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import Toast from "react-native-toast-message";
 
-import Container from "@/layout/Container";
-import Header from "@/layout/Header";
-import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
+import Container from "@/layout/container";
+import Header from "@/layout/header";
+import Input from "@/components/ui/input";
+import Button from "@/components/ui/button";
 import { useUpdatePasswordMutation } from "@/hooks/useUser";
 
 export default function ChangePassword() {

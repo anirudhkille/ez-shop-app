@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, View, ViewStyle } from "react-native";
 
 import { colors } from "@/constant/color";
-import Text from "@/components/ui/Text";
+import Text from "@/components/ui/text";
 
 export type BadgeTone = "brand" | "success" | "danger" | "warning" | "info" | "neutral";
 

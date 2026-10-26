@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import Toast from "react-native-toast-message";
 
-import Container from "@/layout/Container";
-import Header from "@/layout/Header";
-import Input from "@/components/ui/Input";
-import Text from "@/components/ui/Text";
-import Button from "@/components/ui/Button";
-import { ListSkeleton } from "@/components/ui/Skeleton";
+import Container from "@/layout/container";
+import Header from "@/layout/header";
+import Input from "@/components/ui/input";
+import Text from "@/components/ui/text";
+import Button from "@/components/ui/button";
+import { ListSkeleton } from "@/components/ui/skeleton";
 import { colors, radius } from "@/constant/color";
 import { useProfileQuery, useUpdateProfileMutation } from "@/hooks/useUser";
 import { IUser } from "@/types/api";

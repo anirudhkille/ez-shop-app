@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, TouchableOpacity, ViewStyle } from "react-native";
 
 import { colors } from "@/constant/color";
-import Text from "@/components/ui/Text";
+import Text from "@/components/ui/text";
 
 interface ChipProps {
   label: string;

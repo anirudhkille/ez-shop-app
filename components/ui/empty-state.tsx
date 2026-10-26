@@ -2,8 +2,8 @@ import React, { ReactNode } from "react";
 import { StyleSheet, View, ViewStyle } from "react-native";
 
 import { colors } from "@/constant/color";
-import Text from "@/components/ui/Text";
-import Button from "@/components/ui/Button";
+import Text from "@/components/ui/text";
+import Button from "@/components/ui/button";
 
 interface EmptyStateProps {
   title: string;

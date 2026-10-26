@@ -1,8 +1,8 @@
 import React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
-import { GoogleIcon } from "@/assets/icons/GoogleIcon";
+import { GoogleIcon } from "@/assets/icons/google-icon";
 import { colors, radius } from "@/constant/color";
-import Text from "@/components/ui/Text";
+import Text from "@/components/ui/text";
 
 interface Props {
   onPress: () => void;

@@ -3,7 +3,7 @@ import React from "react";
 import { Stack, useRouter } from "expo-router";
 
 import { colors, fonts } from "@/constant/color";
-import { ChevronLeftIcon } from "@/assets/icons/ChevronLeftIcon";
+import { ChevronLeftIcon } from "@/assets/icons/chevron-left-icon";
 
 interface HeaderProps {
   /**
