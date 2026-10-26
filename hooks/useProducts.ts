@@ -3,6 +3,7 @@ import {
   getFeaturedProducts,
   getBestSellers,
   getFilteredProducts,
+  getProductFacets,
   getSearchProducts,
   getSimilarProducts,
   getProductById,
@@ -47,6 +48,13 @@ export const useInfiniteFilteredProductsQuery = (params: Record<string, string>)
       return pagination.page < pagination.totalPages ? pagination.page + 1 : undefined;
     },
     enabled: Object.keys(params).length > 0,
+  });
+
+export const useProductFacetsQuery = (params: Record<string, string>) =>
+  useQuery({
+    queryKey: ["products", "facets", params],
+    queryFn: () => getProductFacets(params),
+    staleTime: 60_000,
   });
 
 export const useSearchProductsQuery = (name: string) =>

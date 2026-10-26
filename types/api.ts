@@ -32,6 +32,13 @@ export interface IVariant {
   sizes: IVariantSize[];
 }
 
+export interface IProductFacets {
+  price: { min: number; max: number };
+  sizes: string[];
+  colors: { label: string; hex: string }[];
+  ratings: number[];
+}
+
 export interface IProduct {
   _id: string;
   name: string;

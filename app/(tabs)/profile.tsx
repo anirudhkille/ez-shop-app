@@ -136,7 +136,7 @@ export default function Profile() {
           <MenuRow
             icon={<MailIcon color={colors.foreground} size={19} />}
             label="Newsletter"
-            onPress={() => router.push("/newsletter" as never)}
+            onPress={() => router.push("/newsletter")}
           />
           <Divider />
           <MenuRow
