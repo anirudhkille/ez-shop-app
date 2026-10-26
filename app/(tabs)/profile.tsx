@@ -6,13 +6,11 @@ import {
   RefreshControl,
   ActivityIndicator,
   Alert,
-  TextInput,
-  Platform,
 } from "react-native";
-import React, { useState } from "react";
+import React from "react";
 import Container from "@/layout/Container";
 import { useRouter } from "expo-router";
-import { colors, fonts, radius } from "@/constant/color";
+import { colors, radius } from "@/constant/color";
 import { Image } from "expo-image";
 import Text from "@/components/ui/Text";
 import ScreenHeader from "@/components/ui/ScreenHeader";
@@ -22,18 +20,15 @@ import { LogoutIcon } from "@/assets/icons/LogoutIcon";
 import { PackageIcon } from "@/assets/icons/PackageIcon";
 import { MapPinIcon } from "@/assets/icons/MapPinIcon";
 import { LockIcon } from "@/assets/icons/LockIcon";
+import { MailIcon } from "@/assets/icons/MailIcon";
 import { ChevronRightIcon } from "@/assets/icons/ChevronRightIcon";
 import { useProfileQuery, useLogoutMutation } from "@/hooks/useUser";
-import { useSubscribeNewsletterMutation } from "@/hooks/useNewsletter";
-import Toast from "react-native-toast-message";
 
 export default function Profile() {
   const router = useRouter();
-  const [newsletterEmail, setNewsletterEmail] = useState("");
 
   const { data: profileRes, isLoading, isError, refetch, isRefetching } = useProfileQuery();
   const { mutate: logout } = useLogoutMutation();
-  const { mutate: subscribe, isPending: isSubscribing } = useSubscribeNewsletterMutation();
 
   const user = profileRes?.data;
 
@@ -46,24 +41,6 @@ export default function Profile() {
         onPress: () => logout(undefined, { onSuccess: () => router.replace("/") }),
       },
     ]);
-  };
-
-  const handleSubscribe = () => {
-    const email = newsletterEmail.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      Toast.show({ type: "error", text1: "Enter a valid email address" });
-      return;
-    }
-
-    subscribe(email, {
-      onSuccess: () => {
-        Toast.show({ type: "success", text1: "You're on the list" });
-        setNewsletterEmail("");
-      },
-      onError: (err: any) => {
-        Toast.show({ type: "error", text1: err?.message || "Could not subscribe" });
-      },
-    });
   };
 
   if (isLoading) {
@@ -155,55 +132,20 @@ export default function Profile() {
             label="Change password"
             onPress={() => router.push("/profile/change-password")}
           />
-        </View>
-
-        <View style={styles.newsletter}>
-          <Text size={11} weight="700" color="brand" style={styles.eyebrow}>
-            Newsletter
-          </Text>
-          <Text size={17} weight="600" style={styles.newsletterTitle}>
-            Style drops, straight to your inbox
-          </Text>
-          <Text size={13} color="muted" style={styles.newsletterBody}>
-            New arrivals and restocks. Twice a month at most.
-          </Text>
-
-          <TextInput
-            style={[
-              styles.input,
-              Platform.OS === "web" && ({ outlineStyle: "none" } as object),
-            ]}
-            placeholder="you@example.com"
-            placeholderTextColor={colors.subtle}
-            value={newsletterEmail}
-            onChangeText={setNewsletterEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            returnKeyType="send"
-            onSubmitEditing={handleSubscribe}
-            accessibilityLabel="Email address"
+          <Divider />
+          <MenuRow
+            icon={<MailIcon color={colors.foreground} size={19} />}
+            label="Newsletter"
+            onPress={() => router.push("/newsletter" as never)}
           />
-
-          <Button
-            text="Subscribe"
-            size="sm"
-            onPress={handleSubscribe}
-            loading={isSubscribing}
+          <Divider />
+          <MenuRow
+            icon={<LogoutIcon color={colors.destructive} size={19} />}
+            label="Log out"
+            onPress={handleLogout}
+            destructive
           />
         </View>
-
-        <TouchableOpacity
-          style={[styles.logout, styles.pad]}
-          onPress={handleLogout}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-        >
-          <LogoutIcon color={colors.destructive} size={19} />
-          <Text size={15} weight="500" color="destructive">
-            Log out
-          </Text>
-        </TouchableOpacity>
       </ScrollView>
     </Container>
   );
@@ -217,10 +159,12 @@ function MenuRow({
   icon,
   label,
   onPress,
+  destructive = false,
 }: {
   icon: React.ReactNode;
   label: string;
   onPress: () => void;
+  destructive?: boolean;
 }) {
   return (
     <TouchableOpacity
@@ -231,10 +175,16 @@ function MenuRow({
       accessibilityLabel={label}
     >
       <View style={styles.rowIcon}>{icon}</View>
-      <Text size={15} weight="500" style={styles.rowLabel} numberOfLines={1}>
+      <Text
+        size={15}
+        weight="500"
+        color={destructive ? "destructive" : "foreground"}
+        style={styles.rowLabel}
+        numberOfLines={1}
+      >
         {label}
       </Text>
-      <ChevronRightIcon color={colors.subtle} size={18} />
+      {destructive ? null : <ChevronRightIcon color={colors.subtle} size={18} />}
     </TouchableOpacity>
   );
 }
@@ -314,42 +264,5 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: colors.border,
     marginLeft: 60,
-  },
-
-  newsletter: {
-    marginHorizontal: 20,
-    gap: 6,
-  },
-  eyebrow: {
-    letterSpacing: 1.4,
-    textTransform: "uppercase",
-    lineHeight: 14,
-  },
-  newsletterTitle: {
-    lineHeight: 24,
-  },
-  newsletterBody: {
-    lineHeight: 19,
-    marginBottom: 8,
-  },
-  input: {
-    height: 48,
-    paddingHorizontal: 14,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    color: colors.foreground,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    marginBottom: 8,
-  },
-
-  logout: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingVertical: 14,
-    marginTop: 4,
   },
 });
