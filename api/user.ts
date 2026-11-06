@@ -4,7 +4,11 @@ import { IApiResponse, IUser, ILogin, ISignUp } from "@/types/api";
 export const postSignup = (formData: ISignUp) =>
   apiClient<IApiResponse>("/user/signup", {
     method: "POST",
-    body: JSON.stringify({ email: formData.email, password: formData.password }),
+    body: JSON.stringify({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+    }),
   });
 
 export const verifySignupOTP = (email: string, otp: string) =>

@@ -178,7 +178,7 @@ export interface IApiResponse<T = any> {
 }
 
 export interface ISignUp {
-  name?: string;
+  name: string;
   email: string;
   password: string;
 }
