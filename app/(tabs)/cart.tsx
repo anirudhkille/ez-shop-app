@@ -565,7 +565,7 @@ export default function Cart() {
                     Card
                   </Text>
                   <Text size={13} color="muted">
-                    Secure checkout with Stripe
+                    Visa, Mastercard, RuPay (3D Secure authentication)
                   </Text>
                 </OptionCard>
               </View>

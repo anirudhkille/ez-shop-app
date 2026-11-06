@@ -77,6 +77,24 @@ export const useGoogleLogin = () => {
           });
           return;
         }
+
+        const code = error.code as string;
+        if (code === "CONFIGURATION_NOT_FOUND" || code === "INVALID_CLIENT") {
+          Toast.show({
+            type: "error",
+            text1:
+              "Google sign-in is not configured on this build. Contact support.",
+          });
+          return;
+        }
+
+        if (code === "SIGN_IN_FAILED") {
+          Toast.show({
+            type: "error",
+            text1: "Google sign-in failed. Try again or use email login.",
+          });
+          return;
+        }
       }
 
       Toast.show({ type: "error", text1: "Google sign-in failed" });
