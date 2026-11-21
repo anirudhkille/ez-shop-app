@@ -290,6 +290,16 @@ npm run format:check
 GitHub Actions runs lint and TypeScript checks on pushes to `main` and `develop`, and
 on pull requests targeting `main` (`.github/workflows/ci.yml`).
 
+### Secret scanning
+
+```bash
+gitleaks git . --redact
+```
+
+`.gitleaks.toml` extends the default rules and allowlists Stripe publishable keys
+(`pk_test_…` / `pk_live_…`), which ship in client bundles by design. Secret keys
+(`sk_`, `rk_`) and every other credential are still reported.
+
 ## Building and releasing
 
 Builds are managed with EAS using the profiles in `eas.json`:

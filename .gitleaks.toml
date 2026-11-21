@@ -1,0 +1,10 @@
+# Publishable Stripe keys are meant to ship inside client bundles; only secret
+# keys (sk_/rk_) are sensitive. Everything else uses the default rule set.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Stripe publishable keys and placeholder values"
+regexTarget = "match"
+condition = "OR"
+regexes = ['''pk_(test|live)_[A-Za-z0-9]{10,}''']
