@@ -10,6 +10,7 @@ import ProductCard from "@/components/shared/product-card";
 import { ProductGridSkeleton } from "@/components/ui/skeleton";
 import { PackageIcon } from "@/assets/icons/package-icon";
 import { colors } from "@/constant/color";
+import { GRID_WINDOW } from "@/constant/list";
 import { titleCase } from "@/lib/format";
 import { useCategoriesQuery } from "@/hooks/useCategories";
 import { useFilteredProductsQuery } from "@/hooks/useProducts";
@@ -78,6 +79,7 @@ export default function CategoryProductsScreen() {
               showsVerticalScrollIndicator={false}
               columnWrapperStyle={styles.row}
               contentContainerStyle={styles.list}
+              {...GRID_WINDOW}
               renderItem={({ item }) => (
                 <ProductCard
                   product={item}

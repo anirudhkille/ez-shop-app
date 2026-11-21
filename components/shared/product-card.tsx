@@ -78,6 +78,7 @@ export default function ProductCard({
             contentFit="contain"
             transition={200}
             cachePolicy="memory-disk"
+            recyclingKey={product._id}
             accessibilityIgnoresInvertColors
           />
         </View>

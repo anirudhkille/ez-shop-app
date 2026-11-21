@@ -90,7 +90,7 @@ export default function MyOrders() {
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
-              onRefresh={refetch}
+              onRefresh={() => void refetch()}
               tintColor={colors.brand}
             />
           }

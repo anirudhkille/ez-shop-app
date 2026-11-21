@@ -10,6 +10,7 @@ import ProductCard from "@/components/shared/product-card";
 import { ProductGridSkeleton } from "@/components/ui/skeleton";
 import { HeartIcon } from "@/assets/icons/heart-icon";
 import { colors } from "@/constant/color";
+import { GRID_WINDOW } from "@/constant/list";
 import { useWishlistDetailsQuery, useToggleWishlistMutation } from "@/hooks/useWishlist";
 import { IProduct } from "@/types/api";
 
@@ -62,6 +63,7 @@ export default function Wishlist() {
           showsVerticalScrollIndicator={false}
           columnWrapperStyle={styles.row}
           contentContainerStyle={styles.list}
+          {...GRID_WINDOW}
           renderItem={({ item }) => (
             <ProductCard
               product={item}

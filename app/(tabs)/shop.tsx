@@ -14,6 +14,7 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { colors, fonts, radius } from "@/constant/color";
+import { GRID_WINDOW } from "@/constant/list";
 import Text from "@/components/ui/text";
 import Button from "@/components/ui/button";
 import Chip from "@/components/ui/chip";
@@ -587,6 +588,7 @@ export default function Shop() {
             columnWrapperStyle={styles.gridRow}
             contentContainerStyle={styles.gridContent}
             keyboardShouldPersistTaps="handled"
+            {...GRID_WINDOW}
             renderItem={({ item }) => (
               <ProductCard product={item} onPress={() => openProduct(item)} />
             )}
@@ -620,11 +622,16 @@ export default function Shop() {
           showsVerticalScrollIndicator={false}
           columnWrapperStyle={styles.gridRow}
           contentContainerStyle={styles.gridContent}
+          {...GRID_WINDOW}
           renderItem={({ item }) => <ProductCard product={item} onPress={() => openProduct(item)} />}
           onEndReached={loadMore}
           onEndReachedThreshold={0.4}
           ListFooterComponent={
-            busy && hasMore ? <Text color="subtle" align="center" style={styles.footerText}>Loading more</Text> : null
+            busy && hasMore ? (
+              <Text color="subtle" align="center" style={styles.footerText}>
+                Loading more
+              </Text>
+            ) : undefined
           }
         />
       )}

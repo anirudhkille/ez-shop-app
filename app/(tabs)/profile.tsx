@@ -72,7 +72,11 @@ export default function Profile() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.brand} />
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={() => void refetch()}
+            tintColor={colors.brand}
+          />
         }
       >
         <View style={styles.pad}>

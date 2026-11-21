@@ -42,7 +42,14 @@ export default function RootLayout() {
     () =>
       new QueryClient({
         defaultOptions: {
-          queries: { retry: retryUnlessAuthError, staleTime: 60_000 },
+          queries: {
+            retry: retryUnlessAuthError,
+            staleTime: 60_000,
+            // Keep recently viewed lists in memory briefly, then drop them so a
+            // long session does not hold every product payload it ever fetched.
+            gcTime: 15 * 60_000,
+            refetchOnWindowFocus: false,
+          },
         },
       })
   );
@@ -86,7 +93,7 @@ export default function RootLayout() {
 
   const app = (
     <QueryClientProvider client={queryClient}>
-      <StatusBar backgroundColor={colors.brand} barStyle="light-content" />
+      <StatusBar barStyle="light-content" />
       <Stack
         screenOptions={{
           headerTitleAlign: "center",

@@ -10,6 +10,7 @@ import { ProductGridSkeleton } from "@/components/ui/skeleton";
 import { SearchIcon } from "@/assets/icons/search-icon";
 import { PackageIcon } from "@/assets/icons/package-icon";
 import { colors, fonts, radius } from "@/constant/color";
+import { GRID_WINDOW } from "@/constant/list";
 import { useSearchProductsQuery } from "@/hooks/useProducts";
 import { IProduct } from "@/types/api";
 
@@ -86,6 +87,7 @@ export default function SearchScreen() {
             keyboardShouldPersistTaps="handled"
             columnWrapperStyle={styles.row}
             contentContainerStyle={styles.list}
+            {...GRID_WINDOW}
             renderItem={({ item }) => (
               <ProductCard
                 product={item}
