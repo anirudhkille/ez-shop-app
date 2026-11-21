@@ -23,12 +23,24 @@ interface FetchOptions extends RequestInit {
   token?: string;
 }
 
-class ApiNetworkError extends Error {
+export class ApiNetworkError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "ApiNetworkError";
   }
 }
+
+/** Proxies return HTML and deletes return no body, so JSON cannot be assumed. */
+const readBody = async (res: Response): Promise<any> => {
+  const text = await res.text();
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+};
 
 export class ApiAuthError extends Error {
   constructor(message: string) {
@@ -60,7 +72,7 @@ const requestNewToken = async (): Promise<boolean> => {
       return false;
     }
 
-    const body = await res.json();
+    const body = await readBody(res);
     const token: string | undefined = body?.data?.token;
     if (!token) return false;
 
@@ -85,27 +97,25 @@ export const refreshSession = (): Promise<boolean> => {
   return refreshPromise;
 };
 
-export async function apiClient<T = any>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+export async function apiClient<T = unknown>(
+  endpoint: string,
+  options: FetchOptions = {}
+): Promise<T> {
   const doRequest = async (token?: string) => {
     const { token: _ignored, ...fetchOptions } = options;
-
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      ...(fetchOptions.headers as Record<string, string>),
-    };
-
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
     const isFormData = fetchOptions.body instanceof FormData;
-    if (isFormData) {
-      delete headers["Content-Type"];
+
+    const headers = new Headers(fetchOptions.headers);
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    if (!isFormData && !headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
     }
 
     try {
       return await fetch(`${API_URL}${endpoint}`, { ...fetchOptions, headers });
-    } catch {
+    } catch (error) {
+      // An abort is a deliberate cancellation, not a connectivity problem.
+      if (error instanceof Error && error.name === "AbortError") throw error;
       throw new ApiNetworkError(
         `Cannot reach the API at ${API_URL}. Check that the server is running and reachable from this device.`
       );
@@ -125,7 +135,7 @@ export async function apiClient<T = any>(endpoint: string, options: FetchOptions
     }
   }
 
-  const data = await res.json();
+  const data = await readBody(res);
 
   if (!res.ok) {
     // A rejected token means the session is dead. Clearing it here makes the
@@ -133,7 +143,7 @@ export async function apiClient<T = any>(endpoint: string, options: FetchOptions
     // leaving the user on a screen that only shows a failed request.
     if (res.status === 401 && token) {
       useAuthStore.getState().clearAuth();
-      throw new ApiAuthError(data.message || "Your session has expired. Please sign in again.");
+      throw new ApiAuthError(data?.message || "Your session has expired. Please sign in again.");
     }
 
     // "Validation failed" alone tells the user nothing; surface the first field.
@@ -146,8 +156,8 @@ export async function apiClient<T = any>(endpoint: string, options: FetchOptions
       throw new Error(`${detail.message}${detail.field ? ` (${detail.field})` : ""}`);
     }
 
-    throw new Error(data.message || "Something went wrong");
+    throw new Error(data?.message || `Request failed (${res.status})`);
   }
 
-  return data;
+  return data as T;
 }

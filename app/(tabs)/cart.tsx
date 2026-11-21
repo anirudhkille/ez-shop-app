@@ -20,6 +20,7 @@ import { CircleCheckIcon } from "@/assets/icons/circle-check-icon";
 import { PackageIcon } from "@/assets/icons/package-icon";
 import { colors, radius } from "@/constant/color";
 import { formatPrice } from "@/lib/format";
+import { errorMessage } from "@/lib/errors";
 import {
   useCartQuery,
   useUpdateCartQuantityMutation,
@@ -123,9 +124,9 @@ export default function Cart() {
   const [error, setError] = useState("");
   const [isPaying, setPaying] = useState(false);
 
-  const cart = (cartResponse as any)?.data;
-  const addresses = ((addressesResponse as any)?.data || []) as IAddress[];
-  const cartItems: ICartProduct[] = cart?.products || [];
+  const cart = cartResponse?.data;
+  const addresses = addressesResponse?.data ?? [];
+  const cartItems: ICartProduct[] = cart?.products ?? [];
 
   const openCheckout = () => {
     setSelectedAddressId(null);
@@ -170,7 +171,8 @@ export default function Cart() {
 
   const getTotal = () => {
     if (!cart) return 0;
-    return (cart.subtotal || 0) - (cart.discountTotal || 0) + getDeliveryCharge();
+    // Mirror the server: a discount can never take the order below zero.
+    return Math.max(0, (cart.subtotal || 0) - (cart.discountTotal || 0)) + getDeliveryCharge();
   };
 
   const handlePlaceOrder = () => {
@@ -186,8 +188,8 @@ export default function Cart() {
         { addressId, deliveryMethod: selectedDelivery },
         {
           onSuccess: () => setCheckoutStep("success"),
-          onError: (err: any) => {
-            setError(err?.message || "Failed to place order");
+          onError: (cause) => {
+            setError(errorMessage(cause, "Failed to place order"));
             setCheckoutStep("payment");
           },
         },
@@ -202,6 +204,16 @@ export default function Cart() {
       {
         onSuccess: async (res) => {
           const details = res.data;
+
+          // Stripe charges the server's total, so a cart that changed after the
+          // sheet rendered must not be paid at a different price.
+          if (details.amount !== getTotal()) {
+            abandonPayment(details.orderId);
+            setError("The order total changed. Please review your cart and try again.");
+            setCheckoutStep("payment");
+            return;
+          }
+
           setPaying(true);
 
           try {
@@ -252,8 +264,8 @@ export default function Cart() {
             setPaying(false);
           }
         },
-        onError: (err: any) => {
-          setError(err?.message || "Failed to start card payment");
+        onError: (cause) => {
+          setError(errorMessage(cause, "Failed to start card payment"));
           setCheckoutStep("payment");
         },
       },

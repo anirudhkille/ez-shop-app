@@ -12,24 +12,19 @@ import { HeartIcon } from "@/assets/icons/heart-icon";
 import { colors } from "@/constant/color";
 import { GRID_WINDOW } from "@/constant/list";
 import { useWishlistDetailsQuery, useToggleWishlistMutation } from "@/hooks/useWishlist";
-import { IProduct } from "@/types/api";
 
 export default function Wishlist() {
   const router = useRouter();
   const { data: wishlistResponse, isLoading } = useWishlistDetailsQuery();
   const { mutate: toggleWishlist } = useToggleWishlistMutation();
 
-  const products: IProduct[] =
-    ((wishlistResponse as any)?.data?.products || []).filter(
-      (p: any): p is IProduct => typeof p === "object",
-    ) || [];
+  const products = wishlistResponse?.data?.products ?? [];
 
   const handleToggleWishlist = (productId: string) => {
     toggleWishlist(productId, {
-      onSuccess: (res: any) => {
-        const action = res?.data?.action || res?.action;
-        if (action === "removed") Toast.show({ type: "success", text1: "Removed from wishlist" });
-        else if (action === "added") Toast.show({ type: "success", text1: "Saved to wishlist" });
+      onSuccess: (res) => {
+        if (res.action === "removed") Toast.show({ type: "success", text1: "Removed from wishlist" });
+        else if (res.action === "added") Toast.show({ type: "success", text1: "Saved to wishlist" });
       },
       onError: () => Toast.show({ type: "error", text1: "Could not update your wishlist" }),
     });

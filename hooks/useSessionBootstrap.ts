@@ -19,7 +19,21 @@ export const useSessionBootstrap = (hydrated: boolean) => {
       const { token, refreshToken } = useAuthStore.getState();
 
       if (!token && refreshToken) {
-        await refreshSession();
+        // A cold start can outrun the network; retry a transport failure a
+        // couple of times instead of dropping a valid session on the login
+        // screen. A rejected token clears the store, so that stops the retries.
+        const retryRefresh = async (attempt = 0): Promise<void> => {
+          if (cancelled) return;
+
+          const refreshed = await refreshSession();
+          if (refreshed || cancelled || !useAuthStore.getState().refreshToken) return;
+          if (attempt >= 2) return;
+
+          await new Promise((resolve) => setTimeout(resolve, 800 * (attempt + 1)));
+          await retryRefresh(attempt + 1);
+        };
+
+        await retryRefresh();
       }
 
       if (!cancelled) setReady(true);

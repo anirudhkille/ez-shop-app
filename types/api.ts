@@ -143,6 +143,13 @@ export interface IWishlist {
   products: string[] | IProduct[];
 }
 
+/** `/wishlist/details` resolves every saved id into a full product. */
+export interface IWishlistDetails {
+  _id: string;
+  user: string;
+  products: IProduct[];
+}
+
 export interface IPagination {
   total: number;
   page: number;

@@ -16,7 +16,9 @@ interface AuthStore {
 }
 
 // SecureStore has no web implementation, and the app also runs in a browser
-// during development. Only the refresh token is persisted either way.
+// during development. Only the refresh token is persisted either way; the web
+// build is a development target, so the XSS-readable localStorage fallback is
+// accepted there rather than a native problem.
 const secureStorage = {
   getItem: async (key: string) => {
     if (Platform.OS === "web") return globalThis.localStorage?.getItem(key) ?? null;

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,7 +21,7 @@ export default function PaymentSuccess() {
   const queryClient = useQueryClient();
   const { orderId } = useLocalSearchParams<{ orderId?: string }>();
 
-  const { data } = useOrderByIdQuery(orderId ?? "");
+  const { data, refetch, isFetching } = useOrderByIdQuery(orderId ?? "");
   const order = data?.data;
   const reference = orderId ? `#${orderId.slice(-8).toUpperCase()}` : "";
 
@@ -32,6 +32,18 @@ export default function PaymentSuccess() {
 
   const failed = order?.paymentStatus === "failed";
   const paid = order?.paymentStatus === "paid";
+
+  // Automatic polling gives up after about two minutes; from then on the
+  // customer can ask for a fresh status by hand.
+  const [allowManualRefresh, setAllowManualRefresh] = useState(false);
+
+  useEffect(() => {
+    if (!orderId || paid || failed) return;
+
+    const timer = setTimeout(() => setAllowManualRefresh(true), 120_000);
+
+    return () => clearTimeout(timer);
+  }, [orderId, paid, failed]);
 
   return (
     <>
@@ -57,6 +69,16 @@ export default function PaymentSuccess() {
                 ? "Nothing was charged. You can try again from your cart."
                 : "This usually takes a few seconds. The status updates on its own."}
           </Text>
+
+          {allowManualRefresh ? (
+            <Button
+              text="Refresh status"
+              variant="outline"
+              style={styles.action}
+              loading={isFetching}
+              onPress={() => void refetch()}
+            />
+          ) : null}
 
           {orderId ? (
             <Button

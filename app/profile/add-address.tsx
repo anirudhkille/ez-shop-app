@@ -13,6 +13,7 @@ import { ListSkeleton } from "@/components/ui/skeleton";
 import { CircleCheckIcon } from "@/assets/icons/circle-check-icon";
 import { MapPinIcon } from "@/assets/icons/map-pin-icon";
 import { colors, radius } from "@/constant/color";
+import { errorMessage } from "@/lib/errors";
 import {
   useAddressesQuery,
   useCreateAddressMutation,
@@ -67,6 +68,9 @@ function AddressForm({ address }: { address?: IAddress }) {
 
   const query = addressLine1.trim();
   const searchActive = searchEnabled && query.length >= 3;
+  // An aborted request never clears the flag itself, so gate it on the field
+  // still being worth searching.
+  const searchBusy = searching && searchActive;
 
   useEffect(() => {
     if (!searchActive) return;
@@ -156,8 +160,8 @@ function AddressForm({ address }: { address?: IAddress }) {
       Toast.show({ type: "success", text1: editing ? "Address updated" : "Address added" });
       router.back();
     };
-    const onError = (err: any) =>
-      Toast.show({ type: "error", text1: err?.message || "Could not save the address" });
+    const onError = (error: unknown) =>
+      Toast.show({ type: "error", text1: errorMessage(error, "Could not save the address") });
 
     // Editing used to run the create mutation, which quietly added a second
     // copy of the address instead of changing the one that was opened.
@@ -237,14 +241,20 @@ function AddressForm({ address }: { address?: IAddress }) {
             onChangeText={(value) => {
               setAddressLine1(value);
               setSearchEnabled(true);
+              // Typing below the threshold aborts the in-flight lookup, which
+              // never resets its own spinner.
+              if (value.trim().length < 3) {
+                setSuggestions([]);
+                setSearching(false);
+              }
               if (errors.addressLine1) setErrors((prev) => ({ ...prev, addressLine1: undefined }));
             }}
             error={errors.addressLine1}
           />
 
-          {searchActive && (searching || suggestions.length > 0) ? (
+          {searchActive && (searchBusy || suggestions.length > 0) ? (
             <View style={styles.suggestions}>
-              {searching && suggestions.length === 0 ? (
+              {searchBusy && suggestions.length === 0 ? (
                 <View style={styles.suggestionStatus}>
                   <ActivityIndicator color={colors.brand} size="small" />
                   <Text size={12} color="muted">

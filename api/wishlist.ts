@@ -1,11 +1,11 @@
 import { apiClient } from "./client";
-import { IApiResponse, IWishlist } from "@/types/api";
+import { IApiResponse, IWishlist, IWishlistDetails } from "@/types/api";
 
 export const getWishlist = (token: string) =>
   apiClient<IApiResponse<IWishlist>>("/wishlist", { token });
 
 export const getWishlistDetails = (token: string) =>
-  apiClient<IApiResponse<IWishlist>>("/wishlist/details", { token });
+  apiClient<IApiResponse<IWishlistDetails>>("/wishlist/details", { token });
 
 export const toggleWishlist = (token: string, productId: string) =>
   apiClient<IApiResponse & { action: "added" | "removed"; data: IWishlist }>("/wishlist/toggle", {
