@@ -55,7 +55,7 @@ const familyStyles = StyleSheet.create({
   bodyBold: { fontFamily: familyNames.bodyBold },
 });
 
-export function Text({
+function Text({
   children,
   size = 16,
   weight = "400",

@@ -18,7 +18,13 @@ import { colors, fonts } from "@/constant/color";
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 /** Reachable without a token. Everything else requires sign-in. */
-const PUBLIC_ROUTES = ["login", "signup", "forgot-password", "reset-password", "verify-otp"];
+const PUBLIC_ROUTES = new Set([
+  "login",
+  "signup",
+  "forgot-password",
+  "reset-password",
+  "verify-otp",
+]);
 
 /**
  * The toast is absolutely positioned from the top of the window, so a fixed
@@ -77,8 +83,8 @@ export default function RootLayout() {
     if (!hydrated || !bootstrapped) return;
 
     // The index route yields no segment, so `segments[0]` is undefined there.
-    // `includes(undefined)` is false, which correctly treats "/" as protected.
-    const isPublic = PUBLIC_ROUTES.includes(segments[0]);
+    // `has(undefined)` is false, which correctly treats "/" as protected.
+    const isPublic = PUBLIC_ROUTES.has(segments[0] as string);
 
     if (!token && !isPublic) {
       router.replace("/login");

@@ -86,10 +86,10 @@ Expo Router's typed file-based routes, and keeps server state in TanStack Query.
 | Networking     | `fetch` wrapper with bearer auth and refresh-token rotation          |
 | Secure storage | `expo-secure-store` (falls back to `localStorage` on web)            |
 | Media          | `expo-image`, `expo-linear-gradient`, `react-native-svg`             |
-| Payments       | Stripe Checkout (hosted page opened with `expo-web-browser`)         |
-| Auth provider  | Google OAuth (browser session + deep-link redirect)                  |
+| Payments       | Stripe PaymentSheet via `@stripe/stripe-react-native`                 |
+| Auth provider  | Native Google Sign-In and email OTP                                  |
 | Feedback       | `react-native-toast-message`, custom skeleton/empty-state components |
-| Tooling        | ESLint, Prettier, GitHub Actions                                     |
+| Tooling        | Oxlint, Prettier, GitHub Actions                                     |
 
 ## Requirements
 
@@ -173,7 +173,8 @@ EAS injects this variable per build profile (see `eas.json`).
 | `npm run android`      | Start Expo and open the Android target.   |
 | `npm run ios`          | Start Expo and open the iOS target.       |
 | `npm run web`          | Start the web build in the browser.       |
-| `npm run lint`         | Run ESLint via `expo lint`.               |
+| `npm run lint`         | Run Oxlint.                               |
+| `npm run lint:fix`     | Run Oxlint and apply safe fixes.          |
 | `npm run typecheck`    | Run `tsc --noEmit` across the project.    |
 | `npm run format`       | Format the repository with Prettier.      |
 | `npm run format:check` | Check formatting without writing changes. |

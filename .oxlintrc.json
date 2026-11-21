@@ -1,0 +1,45 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "import", "jsx-a11y", "unicorn"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
+  "globals": {
+    "__DEV__": "readonly"
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    ".expo",
+    "android",
+    "ios",
+    "server",
+    "coverage"
+  ],
+  "rules": {
+    "no-console": "warn",
+    "no-unused-vars": "error",
+    "eqeqeq": "error",
+    "react/react-in-jsx-scope": "off",
+    "eslint/no-underscore-dangle": "off",
+    "react/no-unstable-nested-components": ["warn", { "allowAsProps": true }],
+    "react/no-array-index-key": "off",
+    "unicorn/consistent-function-scoping": "off"
+  },
+  "overrides": [
+    {
+      "files": ["*.config.js", "*.config.ts", "metro.config.js", "babel.config.js"],
+      "env": { "node": true }
+    },
+    {
+      "files": ["app/search.tsx"],
+      "rules": { "jsx-a11y/no-autofocus": "off" }
+    }
+  ]
+}
