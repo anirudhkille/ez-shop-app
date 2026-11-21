@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   FlatList,
@@ -85,6 +85,25 @@ function priceCeiling(max?: number): number {
 
 function toggle(list: string[], value: string): string[] {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
+}
+
+function buildFacetParams(categories: string[]): Record<string, string> {
+  return categories.length ? { category: categories.join(",") } : {};
+}
+
+function buildFilterParams(
+  filters: ShopFilters,
+  priceNarrowed: boolean,
+  priceMax: number,
+): Record<string, string> {
+  const params: Record<string, string> = { sort: filters.sort, limit: String(PAGE_SIZE) };
+  if (filters.categories.length) params.category = filters.categories.join(",");
+  if (filters.gender !== "all") params.gender = filters.gender;
+  if (filters.sizes.length) params.size = filters.sizes.join(",");
+  if (filters.colors.length) params.color = filters.colors.join(",");
+  if (filters.minRating > 0) params.minRating = String(filters.minRating);
+  if (priceNarrowed) params.price = `0-${priceMax}`;
+  return params;
 }
 
 function OptionRow({
@@ -360,11 +379,7 @@ export default function Shop() {
   const { data: categoriesData } = useCategoriesQuery();
   const categories = categoriesData?.data || [];
 
-  const facetParams = useMemo<Record<string, string>>(() => {
-    const next: Record<string, string> = {};
-    if (filters.categories.length) next.category = filters.categories.join(",");
-    return next;
-  }, [filters.categories]);
+  const facetParams = buildFacetParams(filters.categories);
   const { data: facetsData } = useProductFacetsQuery(facetParams);
   const facets = facetsData?.data;
   const ceiling = priceCeiling(facets?.price.max);
@@ -381,16 +396,7 @@ export default function Shop() {
 
   // `page` is deliberately absent: the infinite query appends it per request,
   // so changing a filter starts a fresh key instead of mutating a page counter.
-  const params = useMemo(() => {
-    const next: Record<string, string> = { sort: filters.sort, limit: String(PAGE_SIZE) };
-    if (filters.categories.length) next.category = filters.categories.join(",");
-    if (filters.gender !== "all") next.gender = filters.gender;
-    if (filters.sizes.length) next.size = filters.sizes.join(",");
-    if (filters.colors.length) next.color = filters.colors.join(",");
-    if (filters.minRating > 0) next.minRating = String(filters.minRating);
-    if (priceNarrowed) next.price = `0-${activePrice}`;
-    return next;
-  }, [filters, priceNarrowed, activePrice]);
+  const params = buildFilterParams(filters, priceNarrowed, activePrice);
 
   const {
     data: filteredData,
@@ -402,20 +408,17 @@ export default function Shop() {
     refetch: refetchFiltered,
   } = useInfiniteFilteredProductsQuery(params);
 
-  const pageItems = useMemo(
-    () => filteredData?.pages.flatMap((page) => page.data ?? []) ?? [],
-    [filteredData],
-  );
+  const pageItems = filteredData?.pages.flatMap((page) => page.data ?? []) ?? [];
   const pagination = filteredData?.pages[0]?.pagination;
   const searchResults = searchData?.data || [];
 
-  const handleQuery = useCallback((text: string) => {
+  const handleQuery = (text: string) => {
     setQuery(text);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       setDebounced(text.trim());
     }, 350);
-  }, []);
+  };
 
   useEffect(
     () => () => {
@@ -445,15 +448,15 @@ export default function Shop() {
 
   const hasMore = !searching && !!hasNextPage;
 
-  const loadMore = useCallback(() => {
+  const loadMore = () => {
     if (!searching && hasNextPage && !isFetchingNextPage) fetchNextPage();
-  }, [searching, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  };
 
-  const resetAll = useCallback(() => {
+  const resetAll = () => {
     setFilters(DEFAULT_FILTERS);
     setQuery("");
     setDebounced("");
-  }, []);
+  };
 
   const metaLabel =
     filters.categories.length === 0

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import {
   View,
   ScrollView,
@@ -98,11 +98,11 @@ export default function Home() {
 
   const tileWidth = (width - GUTTER * 2 - GRID_GAP * (COLUMNS - 1)) / COLUMNS;
 
-  const onRefresh = useCallback(async () => {
+  const onRefresh = async () => {
     setRefreshing(true);
     await Promise.all([refetchFeatured(), refetchBestSellers(), refetchCategories()]);
     setRefreshing(false);
-  }, [refetchFeatured, refetchBestSellers, refetchCategories]);
+  };
 
   const openProduct = (product: IProduct) => router.push(`/product/${product.slug}/${product._id}`);
 

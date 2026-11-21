@@ -44,11 +44,15 @@
       "expo-font",
       "expo-image",
       "expo-secure-store",
-      ["@stripe/stripe-react-native", {}],
+      [
+        "@stripe/stripe-react-native",
+        {}
+      ],
       "@react-native-google-signin/google-signin"
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "reactCompiler": true
     },
     "extra": {
       "router": {
@@ -57,6 +61,12 @@
       "eas": {
         "projectId": "1e2bbbc2-6e39-4055-8ddc-ee41311cd128"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/1e2bbbc2-6e39-4055-8ddc-ee41311cd128"
     }
   }
 }

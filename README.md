@@ -311,6 +311,21 @@ App versions are sourced locally (`appVersionSource: "local"`), so bump `expo.ve
 in `app.json` before a store build. Bundle identifiers are
 `com.anirudhkille.ezshopapp` on both platforms, and the deep-link scheme is `ezshop`.
 
+### Over-the-air updates
+
+EAS Update ships JavaScript and asset changes to installed builds. Each profile in
+`eas.json` has a channel (`development`, `preview`, `production`) and the runtime version
+follows `expo.version` (`runtimeVersion.policy: "appVersion"`).
+
+```bash
+npx eas-cli@latest update --channel preview --environment preview --message "Fix cart totals"
+```
+
+Only publish to `production` after the change has been verified on `preview`. A build can
+only receive updates that match its channel and runtime version, so bump `expo.version`
+and rebuild whenever native code or dependencies change. Release builds check for updates
+in the background and apply them on a later cold start.
+
 ## Conventions for contributors
 
 - Add a function to `api/<domain>.ts`, then wrap it in a hook in `hooks/`. Keep query
@@ -319,6 +334,9 @@ in `app.json` before a store build. Bundle identifiers are
 - Use `components/ui` primitives and tokens from `constant/color.ts` instead of
   hardcoding colours, fonts, spacing or radii.
 - Format money, dates and addresses with the helpers in `lib/format.ts`.
+- React Compiler is enabled in `app.json`, so components and hooks are memoized at build
+  time. Skip manual `useMemo`/`useCallback` unless a value needs a stable identity, such
+  as an `Animated.Value`.
 - If you add an unauthenticated screen, add its route to `PUBLIC_ROUTES` in
   `app/_layout.tsx`; otherwise the auth guard will redirect it to `/login`.
 - Run `npm run lint`, `npm run typecheck` and `npm run format:check` before opening a

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import {
   GoogleSignin,
   isErrorWithCode,
@@ -28,7 +28,7 @@ export const useGoogleLogin = () => {
   const setSession = useAuthStore((s) => s.setSession);
   const [isPending, setPending] = useState(false);
 
-  const startGoogleLogin = useCallback(async () => {
+  const startGoogleLogin = async () => {
     if (!webClientId) {
       Toast.show({ type: "error", text1: "Google sign-in is not configured" });
       return;
@@ -101,7 +101,7 @@ export const useGoogleLogin = () => {
     } finally {
       setPending(false);
     }
-  }, [setSession]);
+  };
 
   return { startGoogleLogin, isPending };
 };
