@@ -33,8 +33,8 @@ const TAG_TONE: Record<string, BadgeTone> = {
   Trending: "neutral",
 };
 
-/** Two lines of 15/19 body copy - keeps every grid row the same height. */
-const NAME_HEIGHT = 38;
+/** Two lines of 14/17 body copy - keeps every grid row the same height. */
+const NAME_HEIGHT = 34;
 
 export default function ProductCard({
   product,
@@ -84,31 +84,33 @@ export default function ProductCard({
         </View>
 
         <View style={styles.body}>
-          {showCategory && categoryName ? (
-            <Text size={10} weight="600" color="muted" numberOfLines={1} style={styles.eyebrow}>
-              {categoryName}
-            </Text>
-          ) : null}
+          <View style={styles.metaRow}>
+            {showCategory && categoryName ? (
+              <Text size={10} weight="600" color="muted" numberOfLines={1} style={styles.eyebrow}>
+                {categoryName}
+              </Text>
+            ) : (
+              <View />
+            )}
 
-          <Text size={15} weight="500" numberOfLines={2} style={styles.name}>
+            <Stars rating={product.rating} size={10} />
+          </View>
+
+          <Text size={14} weight="500" numberOfLines={2} style={styles.name}>
             {product.name}
           </Text>
 
           <View style={styles.priceRow}>
-            <Text size={18} weight="700" variant="display" style={styles.price} numberOfLines={1}>
+            <Text size={16} weight="700" variant="display" style={styles.price} numberOfLines={1}>
               {formatPrice(price)}
             </Text>
             {saving ? (
-              <Text size={12} color="muted" style={styles.wasPrice} numberOfLines={1}>
+              <Text size={11} color="muted" style={styles.wasPrice} numberOfLines={1}>
                 {formatPrice(product.price)}
               </Text>
             ) : null}
-          </View>
-
-          <View style={styles.footer}>
-            <Stars rating={product.rating} size={11} />
             {saving ? (
-              <Text size={11} weight="600" style={styles.saving}>
+              <Text size={10} weight="600" style={styles.saving}>
                 {"\u2212"}
                 {saving}%
               </Text>
@@ -142,7 +144,7 @@ const styles = StyleSheet.create({
   },
   imageWrap: {
     width: "100%",
-    aspectRatio: 1,
+    aspectRatio: 1.1,
     backgroundColor: colors.surfaceRaised,
     alignItems: "center",
     justifyContent: "center",
@@ -150,8 +152,8 @@ const styles = StyleSheet.create({
   },
   tag: {
     position: "absolute",
-    top: 10,
-    left: 10,
+    top: 8,
+    left: 8,
     zIndex: 2,
   },
   overlayAction: {
@@ -161,16 +163,24 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   body: {
-    padding: 12,
-    gap: 6,
+    padding: 10,
+    gap: 5,
+  },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    minHeight: 14,
   },
   eyebrow: {
+    flexShrink: 1,
     letterSpacing: 1,
     textTransform: "uppercase",
     lineHeight: 14,
   },
   name: {
-    lineHeight: 19,
+    lineHeight: 17,
     minHeight: NAME_HEIGHT,
   },
   priceRow: {
@@ -186,14 +196,8 @@ const styles = StyleSheet.create({
     textDecorationLine: "line-through",
     flexShrink: 1,
   },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-    minHeight: 18,
-  },
   saving: {
+    marginLeft: "auto",
     color: colors.success,
     flexShrink: 0,
   },
