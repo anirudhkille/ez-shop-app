@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
 import Toast from "react-native-toast-message";
 
 import Container from "@/layout/container";
@@ -12,6 +12,7 @@ import { CircleCheckIcon } from "@/assets/icons/circle-check-icon";
 import { colors, radius } from "@/constant/color";
 import { useSubscribeNewsletterMutation } from "@/hooks/useNewsletter";
 import { useAuthStore } from "@/store/auth";
+import { displaySize } from "@/lib/responsive";
 
 const PERKS = [
   "New arrivals and restocks, before anyone else",
@@ -20,6 +21,7 @@ const PERKS = [
 ];
 
 export default function Newsletter() {
+  const { width } = useWindowDimensions();
   const user = useAuthStore((s) => s.user);
   const { mutate: subscribe, isPending } = useSubscribeNewsletterMutation();
 
@@ -63,7 +65,12 @@ export default function Newsletter() {
               Newsletter
             </Text>
 
-            <Text size={30} weight="700" variant="display" style={styles.title}>
+            <Text
+              size={displaySize(30, width)}
+              weight="700"
+              variant="display"
+              style={styles.title}
+            >
               STYLE DROPS, STRAIGHT TO YOUR INBOX
             </Text>
 

@@ -1,10 +1,18 @@
-import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  useWindowDimensions,
+} from "react-native";
 import React, { ReactNode } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import { colors } from "@/constant/color";
 import Text from "@/components/ui/text";
 import { BrandLogo } from "@/assets/icons/brand-logo";
+import { displaySize } from "@/lib/responsive";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -46,6 +54,8 @@ export default function AuthLayout({
   action,
   href,
 }: AuthLayoutProps) {
+  const { width } = useWindowDimensions();
+
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       <KeyboardAvoidingView
@@ -65,7 +75,7 @@ export default function AuthLayout({
           </View>
 
           <View style={styles.headingBlock}>
-            <Text size={34} weight="700" variant="display" style={styles.heading}>
+            <Text size={displaySize(34, width)} weight="700" variant="display" style={styles.heading}>
               {heading.toUpperCase()}
             </Text>
             <Text size={14} color="muted" style={styles.description}>

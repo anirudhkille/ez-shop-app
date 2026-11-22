@@ -1,9 +1,10 @@
 import React, { ReactNode } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
 
 import { colors } from "@/constant/color";
 import Text from "@/components/ui/text";
 import { BrandLogo } from "@/assets/icons/brand-logo";
+import { displaySize } from "@/lib/responsive";
 
 interface ScreenHeaderProps {
   title: string;
@@ -29,6 +30,8 @@ export default function ScreenHeader({
   eyebrow,
   logo = false,
 }: ScreenHeaderProps) {
+  const { width } = useWindowDimensions();
+
   return (
     <View style={styles.header}>
       <View style={styles.left}>
@@ -41,7 +44,13 @@ export default function ScreenHeader({
         <View style={styles.titleRow}>
           {logo ? <BrandLogo size={26} /> : null}
 
-          <Text size={26} weight="700" variant="display" style={styles.title} numberOfLines={1}>
+          <Text
+            size={displaySize(26, width)}
+            weight="700"
+            variant="display"
+            style={styles.title}
+            numberOfLines={1}
+          >
             {title}
           </Text>
         </View>

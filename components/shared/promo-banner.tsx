@@ -1,11 +1,12 @@
 import React from "react";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 
 import Text from "@/components/ui/text";
 import Badge from "@/components/ui/badge";
 import { colors, radius } from "@/constant/color";
+import { displaySize } from "@/lib/responsive";
 
 interface Props {
   onPress?: () => void;
@@ -21,6 +22,8 @@ interface Props {
  * feed before the first shelf of products.
  */
 export default function PromoBanner({ onPress }: Props) {
+  const { width } = useWindowDimensions();
+
   return (
     <TouchableOpacity
       style={styles.wrap}
@@ -55,7 +58,7 @@ export default function PromoBanner({ onPress }: Props) {
       <View style={styles.content}>
         <Badge label="Limited edition drop" tone="brand" variant="soft" />
 
-        <Text size={32} weight="700" variant="display" style={styles.title}>
+        <Text size={displaySize(32, width)} weight="700" variant="display" style={styles.title}>
           THE APEX COLLECTION
         </Text>
 
